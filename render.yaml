@@ -5,6 +5,9 @@ services:
     name: theme-studio-api
     runtime: node
     plan: free
+    branch: main
+    # Deploy only commits whose GitHub Actions checks passed (.github/workflows/ci.yml).
+    autoDeployTrigger: checksPass
     # tsx is a dev dependency of the workspace root; NODE_ENV=production would otherwise skip it.
     buildCommand: npm ci --workspace @dts/server --include-workspace-root --include=dev
     startCommand: npm run start -w @dts/server
