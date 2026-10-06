@@ -1,0 +1,27 @@
+# Local demo: API on :8787, admin on :5173. Demo data is seeded on first start.
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    environment:
+      # Set a real secret outside local demos. NODE_ENV=production requires it and disables demo seeding.
+      JWT_SECRET: ${JWT_SECRET:-local-demo-secret-change-me-local-demo-secret}
+    volumes:
+      - dts-data:/data
+    ports:
+      - "8787:8787"
+
+  admin:
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8787}
+    depends_on:
+      - api
+    ports:
+      - "5173:80"
+
+volumes:
+  dts-data:
