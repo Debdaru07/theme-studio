@@ -5,7 +5,7 @@ import {
   getPath,
   leafPaths,
   resolveTheme,
-  validateLayer,
+  validateLayerChange,
   type ContrastReport,
   type Layer,
   type Theme,
@@ -14,7 +14,11 @@ import {
 } from '@dts/schema';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { api, type ThemeState, type VersionSummary } from '../api.ts';
+import { api, type Role, type ThemeState, type VersionSummary } from '../api.ts';
+import { useAuth } from '../auth.tsx';
+
+/** Mirrors the server: editors act at their role's level, whichever theme they edit. */
+const EDITOR_LAYER: Record<Role, Layer> = { platform_admin: 'platform', tenant_admin: 'tenant', client_editor: 'client' };
 
 export type OwnerKind = 'tenant' | 'client';
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
@@ -38,8 +42,9 @@ export interface Change {
  */
 export function useThemeEditor(kind: OwnerKind, id: string) {
   const qc = useQueryClient();
+  const { user } = useAuth();
   const base = `/${kind === 'tenant' ? 'tenants' : 'clients'}/${id}/theme`;
-  const policy: Layer = kind;
+  const policy: Layer = EDITOR_LAYER[user?.role ?? 'client_editor'];
 
   const state = useQuery({ queryKey: ['theme', kind, id], queryFn: () => api<ThemeState>(base) });
   const versions = useQuery({
@@ -70,7 +75,8 @@ export function useThemeEditor(kind: OwnerKind, id: string) {
   const lastGood = useRef<Theme | null>(null);
   const resolved = useMemo<ResolveState>(() => {
     if (!layer) return { theme: null, contrast: null, issues: [] };
-    const issues = validateLayer(layer, policy);
+    // Only tokens changed since the last save need the editor's permission (same rule as the server).
+    const issues = validateLayerChange(state.data?.draft ?? {}, layer, policy);
     try {
       const r = resolveTheme(layers);
       lastGood.current = r.theme;
@@ -79,7 +85,7 @@ export function useThemeEditor(kind: OwnerKind, id: string) {
       if (e instanceof ThemeValidationError) return { theme: lastGood.current, contrast: null, issues: [...issues, ...e.issues] };
       throw e;
     }
-  }, [layer, layers, policy]);
+  }, [layer, layers, policy, state.data?.draft]);
 
   /** Platform defaults + base + draft, unresolved: used to show seeds and `{refs}` in fields. */
   const merged = useMemo(() => deepMerge<ThemeInput>(PLATFORM_DEFAULTS, ...layers), [layers]);

@@ -2,10 +2,14 @@ import { useState, type FormEvent } from 'react';
 import { useAuth } from '../auth.tsx';
 
 const DEMO_LOGINS = [
-  { label: 'Tenant admin', email: 'owner@northwind.test', password: 'northwind123' },
+  { label: 'Agency admin (Northwind)', email: 'owner@northwind.test', password: 'northwind123' },
   { label: 'Client editor (Acme)', email: 'editor@acme.test', password: 'acme12345' },
-  { label: 'Platform admin', email: 'admin@dts.local', password: 'admin12345' },
+  // The platform admin uses ADMIN_PASSWORD when deployed, so it is offered in development only.
+  ...(import.meta.env.DEV ? [{ label: 'Platform admin', email: 'admin@dts.local', password: 'admin12345' }] : []),
 ];
+
+/** Hosted demos set VITE_DEMO_LOGINS=true to show one-click demo accounts. */
+const SHOW_DEMO_LOGINS = import.meta.env.DEV || import.meta.env.VITE_DEMO_LOGINS === 'true';
 
 export function Login() {
   const { login } = useAuth();
@@ -13,16 +17,21 @@ export function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [slow, setSlow] = useState(false);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true);
     setError(null);
+    // Free hosting sleeps when idle; the first request can take up to a minute.
+    const slowTimer = setTimeout(() => setSlow(true), 4000);
     try {
       await login(email, password);
     } catch (err) {
       setError((err as Error).message);
     } finally {
+      clearTimeout(slowTimer);
+      setSlow(false);
       setBusy(false);
     }
   };
@@ -41,10 +50,11 @@ export function Login() {
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         </label>
         {error && <p className="error-text">{error}</p>}
+        {slow && <p className="muted small">Waking up the server — this can take up to a minute after it has been idle.</p>}
         <button className="btn primary" disabled={busy}>
           {busy ? 'Signing in…' : 'Sign in'}
         </button>
-        {import.meta.env.DEV && (
+        {SHOW_DEMO_LOGINS && (
           <div className="demo-logins">
             <span className="muted small">Demo accounts</span>
             {DEMO_LOGINS.map((d) => (

@@ -50,6 +50,7 @@
   font-weight: var(--dts-text-display-weight);
   line-height: calc(var(--dts-text-display-line-height) * var(--p-text-scale, 1));
   letter-spacing: var(--dts-text-display-letter-spacing);
+  font-style: var(--dts-text-display-font-style, normal);
 }
 .dts-app .t-display.small-display {
   font-size: calc(var(--dts-text-display-size) * 0.7);
@@ -61,6 +62,7 @@
   font-weight: var(--dts-text-headline-weight);
   line-height: calc(var(--dts-text-headline-line-height) * var(--p-text-scale, 1));
   letter-spacing: var(--dts-text-headline-letter-spacing);
+  font-style: var(--dts-text-headline-font-style, normal);
 }
 .dts-app .t-title-large {
   font-family: var(--dts-text-title-large-family), var(--p-fallback-font);
@@ -68,6 +70,7 @@
   font-weight: var(--dts-text-title-large-weight);
   line-height: var(--dts-text-title-large-line-height);
   letter-spacing: var(--dts-text-title-large-letter-spacing);
+  font-style: var(--dts-text-title-large-font-style, normal);
 }
 .dts-app .t-title-medium {
   font-family: var(--dts-text-title-medium-family), var(--p-fallback-font);
@@ -75,6 +78,7 @@
   font-weight: var(--dts-text-title-medium-weight);
   line-height: var(--dts-text-title-medium-line-height);
   letter-spacing: var(--dts-text-title-medium-letter-spacing);
+  font-style: var(--dts-text-title-medium-font-style, normal);
 }
 .dts-app .t-body-large {
   font-family: var(--dts-text-body-large-family), var(--p-fallback-font);
@@ -82,6 +86,7 @@
   font-weight: var(--dts-text-body-large-weight);
   line-height: var(--dts-text-body-large-line-height);
   letter-spacing: var(--dts-text-body-large-letter-spacing);
+  font-style: var(--dts-text-body-large-font-style, normal);
 }
 .dts-app .t-body-medium {
   font-family: var(--dts-text-body-medium-family), var(--p-fallback-font);
@@ -89,6 +94,7 @@
   font-weight: var(--dts-text-body-medium-weight);
   line-height: var(--dts-text-body-medium-line-height);
   letter-spacing: var(--dts-text-body-medium-letter-spacing);
+  font-style: var(--dts-text-body-medium-font-style, normal);
 }
 .dts-app .t-body-small {
   font-family: var(--dts-text-body-small-family), var(--p-fallback-font);
@@ -96,6 +102,7 @@
   font-weight: var(--dts-text-body-small-weight);
   line-height: var(--dts-text-body-small-line-height);
   letter-spacing: var(--dts-text-body-small-letter-spacing);
+  font-style: var(--dts-text-body-small-font-style, normal);
 }
 .dts-app .t-label-large {
   font-family: var(--dts-text-label-large-family), var(--p-fallback-font);
@@ -103,6 +110,7 @@
   font-weight: var(--dts-text-label-large-weight);
   line-height: var(--dts-text-label-large-line-height);
   letter-spacing: var(--dts-text-label-large-letter-spacing);
+  font-style: var(--dts-text-label-large-font-style, normal);
 }
 .dts-app .t-label-medium {
   font-family: var(--dts-text-label-medium-family), var(--p-fallback-font);
@@ -110,6 +118,7 @@
   font-weight: var(--dts-text-label-medium-weight);
   line-height: var(--dts-text-label-medium-line-height);
   letter-spacing: var(--dts-text-label-medium-letter-spacing);
+  font-style: var(--dts-text-label-medium-font-style, normal);
 }
 .dts-app .t-caption {
   font-family: var(--dts-text-caption-family), var(--p-fallback-font);
@@ -117,6 +126,7 @@
   font-weight: var(--dts-text-caption-weight);
   line-height: var(--dts-text-caption-line-height);
   letter-spacing: var(--dts-text-caption-letter-spacing);
+  font-style: var(--dts-text-caption-font-style, normal);
 }
 .dts-app .t-mono {
   font-family: var(--dts-font-mono), ui-monospace, monospace;
@@ -518,6 +528,7 @@
   font-size: var(--dts-text-label-large-size);
   font-weight: var(--dts-text-label-large-weight);
   letter-spacing: var(--dts-text-label-large-letter-spacing);
+  font-style: var(--dts-text-label-large-font-style, normal);
   display: inline-flex;
   align-items: center;
   gap: var(--dts-space-sm);

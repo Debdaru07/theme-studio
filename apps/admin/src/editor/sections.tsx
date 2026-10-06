@@ -5,7 +5,9 @@ import {
   TEXT_STYLES,
   canEdit,
   type ColorRole,
+  type TextStyleName,
 } from '@dts/schema';
+import { FontPicker, availableWeights, fontInfo } from './fonts.tsx';
 import { useState, type ReactNode } from 'react';
 import {
   BezierField,
@@ -38,12 +40,6 @@ function Group({ title, children, note }: { title?: string; children: ReactNode;
     </fieldset>
   );
 }
-
-const GOOGLE_FONTS = [
-  'Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins', 'Nunito Sans', 'Source Sans 3', 'Work Sans',
-  'DM Sans', 'Manrope', 'Rubik', 'IBM Plex Sans', 'Noto Sans', 'Raleway', 'Playfair Display', 'Merriweather',
-  'Lora', 'DM Serif Display', 'Space Grotesk', 'JetBrains Mono', 'Fira Code', 'Roboto Mono', 'IBM Plex Mono',
-];
 
 // ── Colors ───────────────────────────────────────────────────────────────────
 
@@ -129,26 +125,123 @@ export function ContrastPanel() {
 
 // ── Typography ───────────────────────────────────────────────────────────────
 
+const WEIGHT_NAMES: Record<number, string> = {
+  100: 'Thin', 200: 'Extra light', 300: 'Light', 400: 'Regular', 500: 'Medium',
+  600: 'Semibold', 700: 'Bold', 800: 'Extra bold', 900: 'Black',
+};
+
+/** Weight options limited to what the style's font family actually ships. */
+function WeightField({ style }: { style: TextStyleName }) {
+  const family = useField<string>(`typography.styles.${style}.family`).value;
+  const f = useField<number>(`typography.styles.${style}.weight`);
+  const weights = availableWeights(family);
+  const missing = f.value !== undefined && !weights.includes(f.value);
+  return (
+    <div className={`tf ${f.locked ? 'locked' : ''}`} title={f.lockedReason}>
+      <div className="tf-label">
+        <span>Weight</span>
+        {f.locked && <span className="lock">🔒</span>}
+        {f.overridden && !f.locked && (
+          <button type="button" className="reset" onClick={f.reset}>
+            reset
+          </button>
+        )}
+      </div>
+      <select value={f.value} disabled={f.locked} onChange={(e) => f.set(Number(e.target.value))}>
+        {[...weights, ...(missing ? [f.value] : [])].map((w) => (
+          <option key={w} value={w}>
+            {w} · {WEIGHT_NAMES[w]}
+            {missing && w === f.value ? ' (not in this font)' : ''}
+          </option>
+        ))}
+      </select>
+      {missing && <div className="tf-hint">{family} has no {f.value}; the nearest weight is used.</div>}
+    </div>
+  );
+}
+
+function ItalicField({ style }: { style: TextStyleName }) {
+  const family = useField<string>(`typography.styles.${style}.family`).value;
+  const f = useField<boolean>(`typography.styles.${style}.italic`);
+  const info = fontInfo(family);
+  const unsupported = info && !info.i;
+  return (
+    <div className={`tf ${f.locked ? 'locked' : ''}`} title={f.lockedReason}>
+      <div className="tf-label">
+        <span>Italic</span>
+        {f.locked && <span className="lock">🔒</span>}
+      </div>
+      <label className="switch">
+        <input type="checkbox" checked={!!f.value} disabled={f.locked || (unsupported && !f.value)} onChange={(e) => f.set(e.target.checked)} />
+        <span>{unsupported ? 'Not available' : f.value ? 'Italic' : 'Upright'}</span>
+      </label>
+    </div>
+  );
+}
+
+/** Live sample of a text style using its resolved tokens. */
+function StyleSample({ style }: { style: TextStyleName }) {
+  const { resolved } = useEditor();
+  const s = resolved.theme?.typography.styles[style];
+  if (!s) return null;
+  return (
+    <div
+      className="type-sample"
+      style={{
+        fontFamily: `'${s.family}', system-ui`,
+        fontSize: Math.min(s.size, 40),
+        fontWeight: s.weight,
+        fontStyle: s.italic ? 'italic' : 'normal',
+        lineHeight: `${Math.min(s.lineHeight, 48)}px`,
+        letterSpacing: s.letterSpacing,
+      }}
+    >
+      {SAMPLE_TEXT[style]}
+    </div>
+  );
+}
+
+const SAMPLE_TEXT: Record<TextStyleName, string> = {
+  display: 'Ship faster',
+  headline: 'Quarterly overview',
+  titleLarge: 'Recent shipments',
+  titleMedium: 'Delivery address',
+  bodyLarge: 'Your order is on its way and arrives tomorrow.',
+  bodyMedium: 'Track every delivery in real time from one place.',
+  bodySmall: 'Updated 2 minutes ago by the dispatch team.',
+  labelLarge: 'Save changes',
+  labelMedium: 'In transit',
+  caption: 'Last synced 09:41',
+};
+
 function TypographySection() {
   const { policy } = useEditor();
   const stylesEditable = canEdit(policy, 'typography.styles.display.size');
   return (
     <>
-      <datalist id="google-fonts">
-        {GOOGLE_FONTS.map((f) => (
-          <option key={f} value={f} />
-        ))}
-      </datalist>
-      <Group title="Fonts" note="Any Google Fonts family name.">
-        <TextField path="typography.fontFamily.primary" label="Primary (UI)" list="google-fonts" />
-        <TextField path="typography.fontFamily.secondary" label="Secondary (display & headings)" list="google-fonts" />
-        <TextField path="typography.fontFamily.mono" label="Monospace" list="google-fonts" />
+      <Group title="Font families" note="Pick from Google Fonts. Text styles below use one of these three.">
+        <div className="span-2">
+          <FontPicker path="typography.fontFamily.primary" label="Primary (UI)" />
+        </div>
+        <div className="span-2">
+          <FontPicker path="typography.fontFamily.secondary" label="Secondary (display & headings)" />
+        </div>
+        <div className="span-2">
+          <FontPicker path="typography.fontFamily.mono" label="Monospace (code, IDs)" />
+        </div>
       </Group>
+      {!stylesEditable && (
+        <div className="notice info small">Sizes, weights and spacing of text styles are managed by your agency.</div>
+      )}
       {TEXT_STYLES.map((s) => (
-        <Group key={s} title={humanize(s)} note={!stylesEditable && s === 'display' ? 'Text sizes are managed by your agency.' : undefined}>
+        <Group key={s} title={humanize(s)}>
+          <div className="span-2">
+            <StyleSample style={s} />
+          </div>
           <FontRefField path={`typography.styles.${s}.family`} label="Font" />
           <NumberField path={`typography.styles.${s}.size`} label="Size" unit="px" min={8} max={120} />
-          <SelectField path={`typography.styles.${s}.weight`} label="Weight" options={['100', '200', '300', '400', '500', '600', '700', '800', '900']} />
+          <WeightField style={s} />
+          <ItalicField style={s} />
           <NumberField path={`typography.styles.${s}.lineHeight`} label="Line height" unit="px" />
           <NumberField path={`typography.styles.${s}.letterSpacing`} label="Letter spacing" unit="px" step={0.05} />
         </Group>
