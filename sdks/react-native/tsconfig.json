@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    // react-native is an optional peer and not installed in this monorepo: typecheck against the
+    // test mock, which mirrors the (small) subset of the RN API this package uses.
+    "paths": {
+      "react-native": ["./test/react-native-mock.ts"]
+    }
+  },
+  "include": ["src", "test", "vitest.config.ts"]
+}
