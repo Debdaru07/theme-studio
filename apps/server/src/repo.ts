@@ -144,6 +144,10 @@ export class Repo {
     return this.one(`SELECT ${Repo.USER_COLS}, password_hash AS passwordHash FROM users WHERE email = ?`, [email]);
   }
 
+  setPasswordHash(userId: string, passwordHash: string): Promise<void> {
+    return this.run('UPDATE users SET password_hash = ? WHERE id = ?', [passwordHash, userId]);
+  }
+
   listClientUsers(clientId: string): Promise<User[]> {
     return this.all(`SELECT ${Repo.USER_COLS} FROM users WHERE client_id = ? ORDER BY name`, [clientId]);
   }

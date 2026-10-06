@@ -5,7 +5,7 @@ import type { FastifyInstance } from 'fastify';
 import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.ts';
 import { openDb, type Db } from '../src/db.ts';
-import { DEMO_KEYS, DEMO_USERS, seedDemo } from '../src/demo.ts';
+import { DEMO_KEYS, DEMO_USERS, seedDemo, syncPlatformAdmin } from '../src/demo.ts';
 
 let app: FastifyInstance;
 let db: Db;
@@ -110,6 +110,32 @@ describe('auth', () => {
     expect(other.statusCode).toBe(403);
     const base = await app.inject({ method: 'PUT', url: `/tenants/${ids.tenantId}/theme/draft`, headers, payload: { layer: {} } });
     expect(base.statusCode).toBe(403);
+  });
+});
+
+describe('platform admin password (syncPlatformAdmin)', () => {
+  const tryLogin = async (password: string) =>
+    (await app.inject({ method: 'POST', url: '/auth/login', payload: { email: DEMO_USERS.platform.email, password } })).statusCode;
+
+  it('applies ADMIN_PASSWORD on every start, replacing the demo password', async () => {
+    expect(await tryLogin(DEMO_USERS.platform.password)).toBe(200); // dev seed
+    expect(await syncPlatformAdmin(db, { password: 'a-much-better-secret', production: true })).toBe('set');
+    expect(await tryLogin(DEMO_USERS.platform.password)).toBe(401);
+    expect(await tryLogin('a-much-better-secret')).toBe(200);
+    expect(await syncPlatformAdmin(db, { password: 'a-much-better-secret', production: true })).toBe('unchanged');
+  });
+
+  it('locks the demo password in production when ADMIN_PASSWORD is missing or too short', async () => {
+    expect(await syncPlatformAdmin(db, { password: undefined, production: true })).toBe('locked');
+    expect(await tryLogin(DEMO_USERS.platform.password)).toBe(401);
+
+    expect(await syncPlatformAdmin(db, { password: 'short', production: true })).toBe('weak-password-locked');
+    expect(await tryLogin('short')).toBe(401);
+  });
+
+  it('leaves development alone', async () => {
+    expect(await syncPlatformAdmin(db, { password: undefined, production: false })).toBe('unchanged');
+    expect(await tryLogin(DEMO_USERS.platform.password)).toBe(200);
   });
 });
 

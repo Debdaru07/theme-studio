@@ -14,7 +14,7 @@ export const config = {
   /** Seeds the Northwind demo tenant. On by default in development, opt-in in production. */
   seedDemo: env.SEED_DEMO ? env.SEED_DEMO === 'true' : !production,
   /** Platform admin password for the demo seed. Without it, production seeds no platform admin. */
-  adminPassword: env.ADMIN_PASSWORD,
+  adminPassword: env.ADMIN_PASSWORD?.trim() || undefined,
   production,
 };
 

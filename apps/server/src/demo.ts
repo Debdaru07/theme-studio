@@ -1,6 +1,7 @@
 import { DEMO_CLIENTS, DEMO_TENANT_BASE } from '@dts/schema';
 import type { Db } from './db.ts';
-import { hashPassword } from './passwords.ts';
+import { randomBytes } from 'node:crypto';
+import { hashPassword, verifyPassword } from './passwords.ts';
 import { Repo } from './repo.ts';
 import { ThemeService } from './themes.ts';
 
@@ -20,6 +21,44 @@ export interface SeedOptions {
    * `undefined` skips creating the platform admin (production without ADMIN_PASSWORD).
    */
   adminPassword?: string | null;
+}
+
+export const MIN_ADMIN_PASSWORD_LENGTH = 12;
+
+export type AdminSync = 'set' | 'created' | 'locked' | 'weak-password-locked' | 'unchanged';
+
+/**
+ * Applies ADMIN_PASSWORD to the platform admin on every start, so changing the variable takes effect
+ * on the next deploy. In production a missing or short password never leaves the public demo password
+ * usable: the account is locked with a random password instead.
+ */
+export async function syncPlatformAdmin(db: Db, { password, production }: { password?: string; production: boolean }): Promise<AdminSync> {
+  const repo = new Repo(db, db);
+  const existing = await repo.getUserWithHash(DEMO_USERS.platform.email);
+  const strong = !!password && password.length >= MIN_ADMIN_PASSWORD_LENGTH;
+
+  if (password && (strong || !production)) {
+    if (existing) {
+      if (verifyPassword(password, existing.passwordHash)) return 'unchanged';
+      await repo.setPasswordHash(existing.id, hashPassword(password));
+      return 'set';
+    }
+    await repo.createUser({
+      email: DEMO_USERS.platform.email,
+      name: 'Platform Admin',
+      passwordHash: hashPassword(password),
+      role: 'platform_admin',
+      tenantId: null,
+      clientId: null,
+    });
+    return 'created';
+  }
+
+  if (production && existing && (password || verifyPassword(DEMO_USERS.platform.password, existing.passwordHash))) {
+    await repo.setPasswordHash(existing.id, hashPassword(randomBytes(32).toString('base64url')));
+    return password ? 'weak-password-locked' : 'locked';
+  }
+  return 'unchanged';
 }
 
 /**
