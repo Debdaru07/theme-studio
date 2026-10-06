@@ -43,6 +43,12 @@ Settings → Branches → Add branch ruleset for `main`:
 - Require status checks to pass: **JS / TS (schema, API, SDKs, admin, docs)** and **Flutter SDK**
 - Block force pushes
 
+## UI, marketing and design work
+
+Use the project skills in [`.claude/skills`](.claude/skills/README.md): `functional-ui` (accessibility,
+responsive, states; `npm run audit:ui`), `marketing-page` (landing page and copy, with verified facts only) and
+`design-taste` (design direction and critique rubric).
+
 ## Changing the token schema
 
 1. Edit `packages/schema/src/tokens.ts` (and defaults). New fields must be optional in SDK parsers so cached themes keep loading.

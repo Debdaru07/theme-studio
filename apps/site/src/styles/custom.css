@@ -150,6 +150,23 @@ html {
   text-size-adjust: 100%;
 }
 
+/* Starlight shows the collapsible "On this page" menu below 72rem, so size it for touch up to there. */
+@media (max-width: 72rem) {
+  mobile-starlight-toc summary {
+    min-height: 2.75rem;
+  }
+  mobile-starlight-toc a {
+    display: flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+  /* Sidebar group headings (collapsible "Concepts", "SDKs") on tablets and phones in landscape. */
+  .sidebar-content summary {
+    min-height: 2.75rem;
+    align-items: center;
+  }
+}
+
 /* Narrow phones: hero buttons stack full width instead of wrapping unevenly. */
 @media (max-width: 30rem) {
   .cta-row {
@@ -186,7 +203,9 @@ html {
     align-items: center;
     min-height: 2.75rem;
   }
-  mobile-starlight-toc summary {
+  starlight-tabs [role='tab'] {
+    display: inline-flex;
+    align-items: center;
     min-height: 2.75rem;
   }
   .pagination-links a {

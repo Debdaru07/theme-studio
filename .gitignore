@@ -25,3 +25,7 @@ pubspec.lock
 .idea/
 .DS_Store
 Thumbs.db
+
+# Claude Code: personal settings stay local; project skills are committed
+.claude/settings.local.json
+.ui-audit/

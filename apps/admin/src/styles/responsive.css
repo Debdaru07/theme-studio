@@ -365,10 +365,11 @@ label {
   .bezier input {
     font-size: 15px;
   }
+  /* 44px hit area; negative margins keep the label row at its normal height. */
   .tf .reset {
-    min-height: 32px;
-    padding: 0 8px;
-    margin-right: -8px;
+    min-height: 44px;
+    padding: 0 10px;
+    margin: -13px -10px -13px auto;
     font-size: 13px;
   }
   .font-trigger {

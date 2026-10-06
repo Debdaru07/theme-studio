@@ -13,10 +13,13 @@
     "dev:server": "npm run dev -w @dts/server",
     "dev:admin": "npm run dev -w @dts/admin",
     "seed": "npm run seed -w @dts/server",
-    "fixtures": "npm run fixtures -w @dts/schema"
+    "fixtures": "npm run fixtures -w @dts/schema",
+    "audit:ui": "node .claude/skills/functional-ui/scripts/audit.mjs",
+    "dev:site": "npm run dev -w @dts/site"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
+    "playwright-core": "^1.63.0",
     "tsx": "^4.20.0",
     "typescript": "^5.9.0",
     "vitest": "^5.0.3",
