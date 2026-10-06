@@ -1,0 +1,26 @@
+name: dynamic_theme
+description: >-
+  Runtime, multi-tenant theming for Flutter. Fetches a fully resolved theme from the
+  Dynamic Theming System API and maps it to ThemeData, a ThemeExtension and adaptive widgets.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.10.0
+  flutter: ">=3.38.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  google_fonts: ^8.2.1
+  http: ^1.6.0
+  shared_preferences: ^2.5.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  assets:
+    - assets/default_theme.json
