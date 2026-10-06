@@ -1,5 +1,5 @@
 import { leafPaths } from '@dts/schema';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { API_URL } from '../api.ts';
 import { useAuth } from '../auth.tsx';
@@ -23,6 +23,14 @@ function EditorPage({ kind, id }: { kind: OwnerKind; id: string }) {
   const ed = useThemeEditor(kind, id);
   const [tab, setTab] = useState<Tab>('colors');
   const [publishing, setPublishing] = useState(false);
+  /** Compact layouts (phones, short landscape) show one pane at a time; wider layouts ignore this. */
+  const [pane, setPane] = useState<'edit' | 'preview'>('edit');
+  const panel = useRef<HTMLDivElement>(null);
+
+  const selectTab = (t: Tab) => {
+    setTab(t);
+    panel.current?.scrollTo({ top: 0 });
+  };
 
   if (ed.state.error) return <ErrorPage message={ed.state.error.message} />;
   if (!ed.state.data || !ed.layer || !ed.resolved.theme) {
@@ -40,40 +48,41 @@ function EditorPage({ kind, id }: { kind: OwnerKind; id: string }) {
 
   return (
     <EditorContext.Provider value={ed}>
-      <div className="page editor-page">
+      <div className="page editor-page" data-pane={pane}>
         <TopBar>
           <div className="editor-title">
-            <Link to="/" className="muted small">
-              ← All clients
+            <Link to="/" className="back-link" aria-label="All clients">
+              <span aria-hidden>←</span>
+              <span className="back-label">All clients</span>
             </Link>
-            <strong>{name}</strong>
+            <strong title={name}>{name}</strong>
             <SaveBadge ed={ed} />
           </div>
-          <button className="btn primary" onClick={() => setPublishing(true)} disabled={ed.changes.length === 0 || ed.saveStatus === 'saving'}>
+          <button className="btn primary publish-btn" onClick={() => setPublishing(true)} disabled={ed.changes.length === 0 || ed.saveStatus === 'saving'}>
             Publish{ed.changes.length ? ` (${ed.changes.length})` : ''}
           </button>
         </TopBar>
 
         <div className="editor-grid">
-          <nav className="editor-tabs">
+          <nav className="editor-tabs" aria-label="Theme categories">
             {SECTIONS.map((s) => (
-              <button key={s.id} className={tab === s.id ? 'on' : ''} onClick={() => setTab(s.id)}>
+              <button key={s.id} className={tab === s.id ? 'on' : ''} aria-current={tab === s.id ? 'page' : undefined} onClick={() => selectTab(s.id)}>
                 {s.title}
                 {sectionChanged(ed, s.paths) && <span className="dot" title="Unpublished changes" />}
               </button>
             ))}
             <hr />
-            <button className={tab === 'history' ? 'on' : ''} onClick={() => setTab('history')}>
+            <button className={tab === 'history' ? 'on' : ''} aria-current={tab === 'history' ? 'page' : undefined} onClick={() => selectTab('history')}>
               History
             </button>
             {kind === 'client' && (
-              <button className={tab === 'integrate' ? 'on' : ''} onClick={() => setTab('integrate')}>
+              <button className={tab === 'integrate' ? 'on' : ''} aria-current={tab === 'integrate' ? 'page' : undefined} onClick={() => selectTab('integrate')}>
                 Integrate
               </button>
             )}
           </nav>
 
-          <div className="editor-panel">
+          <div className="editor-panel" ref={panel}>
             {kind === 'tenant' && (
               <div className="notice info small">
                 Base theme for every client of this agency. Clients inherit these values and can override brand,
@@ -94,6 +103,15 @@ function EditorPage({ kind, id }: { kind: OwnerKind; id: string }) {
             <Preview theme={ed.resolved.theme} />
           </div>
         </div>
+
+        <nav className="pane-switch" aria-label="Editor view">
+          <button aria-pressed={pane === 'edit'} className={pane === 'edit' ? 'on' : ''} onClick={() => setPane('edit')}>
+            <span aria-hidden>✎</span> Edit
+          </button>
+          <button aria-pressed={pane === 'preview'} className={pane === 'preview' ? 'on' : ''} onClick={() => setPane('preview')}>
+            <span aria-hidden>▢</span> Preview
+          </button>
+        </nav>
 
         {publishing && <PublishDialog ed={ed} blocked={blocked} onClose={() => setPublishing(false)} />}
       </div>

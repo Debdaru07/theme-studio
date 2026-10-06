@@ -25,7 +25,11 @@ export function Preview({ theme }: { theme: Theme }) {
   useLayoutEffect(() => {
     const el = stage.current;
     if (!el) return;
-    const fit = () => setScale(Math.min(1, (el.clientWidth - 32) / width, (el.clientHeight - 32) / height));
+    // Skip while hidden (compact layouts hide the preview pane); the observer refits once it shows.
+    const fit = () => {
+      if (!el.clientWidth || !el.clientHeight) return;
+      setScale(Math.max(0.1, Math.min(1, (el.clientWidth - 24) / width, (el.clientHeight - 24) / height)));
+    };
     fit();
     const ro = new ResizeObserver(fit);
     ro.observe(el);

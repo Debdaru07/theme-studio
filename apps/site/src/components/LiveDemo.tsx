@@ -96,35 +96,29 @@ function Sample() {
   );
 }
 
-const toggle = (active: boolean): CSSProperties => ({
-  font: 'inherit',
-  fontSize: '0.875rem',
-  padding: '0.3rem 0.8rem',
-  borderRadius: '999px',
-  cursor: 'pointer',
-  border: '1px solid var(--sl-color-gray-5)',
-  background: active ? 'var(--sl-color-accent)' : 'transparent',
-  color: active ? 'var(--sl-color-black)' : 'var(--sl-color-gray-2)',
-});
-
 export default function LiveDemo() {
   const [client, setClient] = useState<ClientId>('acme');
   const [mode, setMode] = useState<Mode>('light');
   return (
     <div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center', marginBottom: '0.75rem' }}>
-        <span style={{ fontSize: '0.875rem', color: 'var(--sl-color-gray-3)' }}>Client</span>
-        {(['acme', 'globex'] as const).map((id) => (
-          <button key={id} type="button" style={toggle(client === id)} aria-pressed={client === id} onClick={() => setClient(id)}>
-            {THEMES[id].assets.appName}
-          </button>
-        ))}
-        <span style={{ fontSize: '0.875rem', color: 'var(--sl-color-gray-3)', marginLeft: '0.75rem' }}>Mode</span>
-        {(['light', 'dark'] as const).map((m) => (
-          <button key={m} type="button" style={toggle(mode === m)} aria-pressed={mode === m} onClick={() => setMode(m)}>
-            {m}
-          </button>
-        ))}
+      {/* Each label stays with its buttons when the row wraps on narrow screens. */}
+      <div className="demo-controls">
+        <div className="demo-group" role="group" aria-label="Client">
+          <span className="demo-label">Client</span>
+          {(['acme', 'globex'] as const).map((id) => (
+            <button key={id} type="button" className="demo-toggle" aria-pressed={client === id} onClick={() => setClient(id)}>
+              {THEMES[id].assets.appName}
+            </button>
+          ))}
+        </div>
+        <div className="demo-group" role="group" aria-label="Mode">
+          <span className="demo-label">Mode</span>
+          {(['light', 'dark'] as const).map((m) => (
+            <button key={m} type="button" className="demo-toggle" aria-pressed={mode === m} onClick={() => setMode(m)}>
+              {m === 'light' ? 'Light' : 'Dark'}
+            </button>
+          ))}
+        </div>
       </div>
       <ThemeProvider
         theme={THEMES[client]}

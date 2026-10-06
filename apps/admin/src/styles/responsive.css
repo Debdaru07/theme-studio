@@ -1,0 +1,390 @@
+/*
+ * Theme Studio responsive layer.
+ *
+ * Layout tiers (by viewport width, with a height check for phones in landscape):
+ *   wide     ≥ 1280px  three columns: categories | fields | preview
+ *   laptop   1024–1279 three narrower columns
+ *   tablet   768–1023  category strip on top; fields | preview side by side
+ *   compact  < 768, or < 1024 wide and ≤ 500 tall (phone landscape)
+ *            one pane at a time with an Edit / Preview switch at the bottom
+ *
+ * Touch tier: on coarse pointers or below 1024px, every control is at least 44px tall (WCAG 2.5.5 /
+ * Apple HIG) and form fields use 16px text so iOS Safari does not zoom on focus.
+ */
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+button,
+a,
+input,
+select,
+label {
+  touch-action: manipulation;
+}
+:where(button, a, [role='option']):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.editor-panel,
+.font-list,
+.modal,
+.changes {
+  overscroll-behavior: contain;
+}
+
+/* ── Elements that only appear on some tiers ─────────────────────────────── */
+
+.avatar-btn,
+.pane-switch {
+  display: none;
+}
+.avatar-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--accent-soft);
+  color: var(--text);
+  font-weight: 700;
+  font-size: 13px;
+  place-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.topbar-user {
+  position: relative;
+}
+.user-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 120;
+  width: min(260px, calc(100vw - 24px));
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgb(16 24 40 / 0.18);
+}
+.user-menu-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-wrap: anywhere;
+}
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.editor-page {
+  height: 100vh;
+  height: 100dvh;
+}
+.editor-grid {
+  grid-template-columns: 200px minmax(340px, 400px) minmax(0, 1fr);
+}
+.editor-panel {
+  container: panel / inline-size;
+}
+.topbar {
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+}
+.topbar-middle,
+.editor-title {
+  min-width: 0;
+}
+.preview-toolbar {
+  scrollbar-width: none;
+}
+/* Flex columns must not squeeze their controls when the sheet is short; only the list scrolls. */
+.font-popover > *,
+.font-list > * {
+  flex-shrink: 0;
+}
+.font-popover > .font-list {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Field grids collapse to one column when the fields pane itself is narrow. */
+@container panel (max-width: 360px) {
+  .group-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── laptop ──────────────────────────────────────────────────────────────── */
+
+@media (max-width: 1279px) {
+  .editor-grid {
+    grid-template-columns: 168px minmax(320px, 360px) minmax(0, 1fr);
+  }
+}
+
+/* ── tablet ──────────────────────────────────────────────────────────────── */
+
+@media (max-width: 1023px) {
+  .brand-name,
+  .back-label,
+  .user-inline {
+    display: none;
+  }
+  .avatar-btn {
+    display: grid;
+  }
+  .topbar {
+    gap: 10px;
+  }
+  .editor-grid {
+    grid-template-columns: minmax(300px, 1fr) minmax(0, 1.15fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .editor-tabs {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    gap: 4px;
+    padding: 8px max(12px, env(safe-area-inset-left));
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .editor-tabs::-webkit-scrollbar,
+  .preview-toolbar::-webkit-scrollbar {
+    display: none;
+  }
+  .editor-tabs button {
+    flex: none;
+    gap: 6px;
+    white-space: nowrap;
+    scroll-snap-align: start;
+  }
+  .editor-tabs hr {
+    width: 1px;
+    height: auto;
+    margin: 6px 4px;
+    border: 0;
+    border-left: 1px solid var(--line);
+  }
+  .preview-toolbar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+  .preview-toolbar > * {
+    flex-shrink: 0;
+  }
+}
+
+/* ── compact: phones and short landscape screens ─────────────────────────── */
+
+@media (max-width: 767px), (max-width: 1023px) and (max-height: 500px) {
+  .editor-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .editor-page[data-pane='edit'] .editor-preview,
+  .editor-page[data-pane='preview'] .editor-panel,
+  .editor-page[data-pane='preview'] .editor-tabs {
+    display: none;
+  }
+  /* With the category strip hidden, the preview is the only row and must fill it. */
+  .editor-page[data-pane='preview'] .editor-grid {
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .editor-panel {
+    border-right: 0;
+    padding: 16px max(16px, env(safe-area-inset-right)) 24px max(16px, env(safe-area-inset-left));
+  }
+  .pane-switch {
+    display: flex;
+    flex-shrink: 0;
+    gap: 8px;
+    padding: 8px max(12px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    background: var(--panel);
+    border-top: 1px solid var(--line);
+  }
+  .pane-switch button {
+    flex: 1;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--muted);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .pane-switch button.on {
+    background: var(--accent-soft);
+    color: var(--text);
+  }
+  .publish-btn {
+    padding: 0 14px;
+  }
+  .preview-toolbar {
+    padding: 8px 12px;
+  }
+  .preview-toolbar > .muted {
+    display: none;
+  }
+
+  /* Dialogs and the font picker become bottom sheets. */
+  .modal-backdrop {
+    align-items: end;
+    padding: 0;
+  }
+  .modal {
+    width: 100%;
+    max-height: 92dvh;
+    border-radius: 16px 16px 0 0;
+    padding: 20px max(16px, env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  }
+  .modal-actions {
+    position: sticky;
+    bottom: calc(-16px - env(safe-area-inset-bottom));
+    margin: 0 -16px calc(-16px - env(safe-area-inset-bottom));
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: var(--panel);
+    border-top: 1px solid var(--line);
+  }
+  .modal-actions .btn {
+    flex: 1;
+  }
+  .change {
+    grid-template-columns: 1fr auto;
+    row-gap: 2px;
+  }
+  .change code {
+    grid-column: 1 / -1;
+  }
+  .font-popover {
+    position: fixed;
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 200;
+    max-height: 80dvh;
+    border-radius: 16px 16px 0 0;
+    padding: 14px max(14px, env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+    /* The oversized spread doubles as a scrim behind the sheet. */
+    box-shadow: 0 0 0 100vmax rgb(10 12 16 / 0.45), 0 -12px 40px rgb(16 24 40 / 0.25);
+  }
+  .font-list {
+    max-height: 50dvh;
+  }
+  .container {
+    padding: 20px max(16px, env(safe-area-inset-right)) 40px max(16px, env(safe-area-inset-left));
+  }
+  .tenant-head {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+}
+
+/* Very narrow phones (≤ 400px): drop the save-state pill; Publish shows the change count. */
+@media (max-width: 400px) {
+  .editor-title .pill {
+    display: none;
+  }
+}
+
+/* Short landscape phones: reclaim vertical space. */
+@media (max-height: 500px) and (max-width: 1023px) {
+  .topbar {
+    height: 48px;
+  }
+  .pane-switch {
+    padding-top: 4px;
+    padding-bottom: calc(4px + env(safe-area-inset-bottom));
+  }
+  .pane-switch button {
+    min-height: 40px;
+  }
+}
+
+/* ── Touch sizing ────────────────────────────────────────────────────────── */
+
+@media (pointer: coarse), (max-width: 1023px) {
+  input,
+  select {
+    height: 44px;
+    font-size: 16px;
+  }
+  .btn {
+    height: 44px;
+    padding: 0 16px;
+  }
+  .btn.small {
+    height: 40px;
+    font-size: 14px;
+  }
+  .segmented button {
+    min-height: 40px;
+    padding: 0 12px;
+    font-size: 14px;
+  }
+  .editor-tabs button {
+    min-height: 44px;
+  }
+  .back-link {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+    font-size: 18px;
+  }
+  .brand {
+    min-height: 44px;
+    min-width: 44px;
+    justify-content: center;
+  }
+  .font-cats button {
+    min-width: 44px;
+  }
+  .color-input input[type='color'] {
+    width: 44px;
+  }
+  .color-input input[type='text'] {
+    font-size: 16px;
+  }
+  .bezier input {
+    font-size: 15px;
+  }
+  .tf .reset {
+    min-height: 32px;
+    padding: 0 8px;
+    margin-right: -8px;
+    font-size: 13px;
+  }
+  .font-trigger {
+    height: 48px;
+  }
+  .font-option {
+    min-height: 48px;
+  }
+  .switch {
+    min-height: 44px;
+  }
+  .switch input {
+    width: 22px;
+    height: 22px;
+  }
+  .key-row code {
+    font-size: 13px;
+  }
+}
