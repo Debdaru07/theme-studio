@@ -1,0 +1,20 @@
+{
+  "name": "@dts/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "start": "tsx src/main.ts",
+    "seed": "tsx src/seed.ts",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@dts/schema": "*",
+    "@fastify/cors": "^11.0.0",
+    "@fastify/jwt": "^10.0.0",
+    "fastify": "^5.6.0",
+    "zod": "^4.1.0"
+  }
+}
