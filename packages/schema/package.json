@@ -1,0 +1,19 @@
+{
+  "name": "@dts/schema",
+  "version": "0.1.0",
+  "description": "Dynamic Theming System token schema, defaults, resolver and contrast checks",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./fixtures/*": "./fixtures/*"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json",
+    "fixtures": "tsx scripts/build-fixtures.ts"
+  },
+  "dependencies": {
+    "@material/material-color-utilities": "^0.3.0",
+    "zod": "^4.1.0"
+  }
+}
