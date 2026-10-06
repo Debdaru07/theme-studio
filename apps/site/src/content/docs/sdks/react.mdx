@@ -1,0 +1,149 @@
+---
+title: React SDK
+description: "@dts/react: ThemeProvider and hooks over @dts/web, for React 19."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+`@dts/react` is a `<ThemeProvider>` plus hooks, built on the [Web SDK](/sdks/web/). It re-exports everything from
+`@dts/web`, so one import is enough. Theme Studio's own live preview uses it.
+
+## Install
+
+```sh
+npm install @dts/react react   # react ^19 is a peer dependency
+```
+
+Not on npm yet; inside this monorepo it is a workspace package.
+
+## Quickstart
+
+```tsx
+import { createThemeClient, ThemeProvider, useTheme, cssVar } from '@dts/react';
+
+const client = createThemeClient({ endpoint: 'http://localhost:8787', key: 'pk_demo_acme' });
+
+export function App() {
+  return (
+    <ThemeProvider client={client} mode="system">
+      <Home />
+    </ThemeProvider>
+  );
+}
+
+function Home() {
+  const { theme, colors, breakpoint, status } = useTheme();
+  return <h1 style={{ color: colors.primary, padding: cssVar('pagePadding') }}>{theme.assets.appName}</h1>;
+}
+```
+
+The provider writes the [CSS variables](/sdks/web/#css-variables) onto `<html>`, so plain CSS works too.
+
+## Configuration
+
+| Prop | Default | Purpose |
+| --- | --- | --- |
+| `client` | | Theme client from `createThemeClient`. Loaded on mount unless `autoLoad={false}`. |
+| `theme` | | An explicit theme (for example a draft). Takes precedence over `client`. |
+| `fallback` | `DEFAULT_THEME` | Used when there is neither `theme` nor `client`. |
+| `mode` | `'system'` | `'light'`, `'dark'` or `'system'`. |
+| `scope` | `'root'` | `'root'` writes vars on `<html>`; `'element'` renders a wrapper `<div>` and scopes vars to it. |
+| `breakpoint` | `'auto'` | Fixed, or `'auto'`: viewport width for `root`, the wrapper's width for `element`. |
+| `loadFonts` | `true` | Inject Google Fonts links. |
+| `autoLoad` | `true` | Call `client.load()` on mount. |
+| `className`, `style` | | Wrapper props (`scope="element"` only). |
+
+### Scoped themes
+
+```tsx
+<ThemeProvider theme={draftTheme} mode={mode} scope="element" className="device-frame" style={{ width: 390 }}>
+  <SampleScreens />
+</ThemeProvider>
+```
+
+Several scoped providers can coexist on one page, each with its own theme, mode and container breakpoint. The
+[live demo on the home page](/#try-it) is exactly this.
+
+## Accessing tokens
+
+```tsx
+import { useTheme, useToken, cssVar } from '@dts/react';
+
+function Badge() {
+  const { colors } = useTheme();
+  const gap = useToken('spacing.scale.sm');      // number, typed
+  const primary = useToken('color.primary');     // current mode
+  return <span style={{ background: colors.infoContainer, color: colors.onInfoContainer, border: `1px solid ${primary}`, padding: gap, borderRadius: cssVar('badge.radius') }}>New</span>;
+}
+```
+
+`useTheme()` returns `{ theme, mode, colors, breakpoint, status, source, error, client, rootElement }`.
+`source` is `'prop'` when the theme came from the `theme` prop.
+
+## Navigation patterns
+
+```tsx
+import { useNavigationPattern } from '@dts/react';
+
+function Shell({ children }: { children: React.ReactNode }) {
+  const pattern = useNavigationPattern(); // 'bottomBar' | 'rail' | 'drawer' | 'sidebar' | 'topTabs'
+  switch (pattern) {
+    case 'bottomBar': return <><main>{children}</main><BottomBar /></>;
+    case 'rail':      return <div className="row"><Rail /><main>{children}</main></div>;
+    case 'sidebar':   return <div className="row"><Sidebar /><main>{children}</main></div>;
+    case 'drawer':    return <><TopBarWithMenu /><main>{children}</main></>;
+    case 'topTabs':   return <><TopTabs /><main>{children}</main></>;
+  }
+}
+```
+
+With `scope="element"`, `useBreakpoint()` and `useNavigationPattern()` follow the wrapper's width, not the window.
+
+## Motion & page transitions
+
+```tsx
+import { useMotion } from '@dts/react';
+
+function Panel({ open }: { open: boolean }) {
+  const { duration, easingCss, pageTransition, reduced } = useMotion();
+  return (
+    <div style={{ transition: `transform ${duration.medium}ms ${easingCss.emphasized}`, transform: open ? 'none' : 'translateX(100%)' }} />
+  );
+}
+```
+
+`pageTransition` is `'none'` and durations are `0` when the user prefers reduced motion and the theme respects it.
+Map `pageTransition` to your router's transition (for example the View Transitions API or Framer Motion variants).
+`usePrefersReducedMotion()` exposes the raw media query.
+
+## Caching & offline behaviour
+
+Identical to the [Web SDK](/sdks/web/#caching--offline-behaviour): the provider subscribes to the client
+(`useSyncExternalStore`), shows the cached theme immediately, revalidates with `If-None-Match`, and keeps the
+current theme on errors. Check `status` and `error` from `useTheme()` to surface problems. Call
+`client.refresh()` (for example on window focus) to sync again.
+
+## API reference
+
+| Export | Returns |
+| --- | --- |
+| `<ThemeProvider client? theme? fallback? mode? scope? breakpoint? loadFonts? autoLoad? className? style?>` | Context provider that applies the theme |
+| `useTheme()` | `{ theme, mode, colors, breakpoint, status, source, error, client, rootElement }` |
+| `useToken(path)` | Typed value: `useToken('color.primary')`, `useToken('spacing.scale.md')` |
+| `useBreakpoint()` | `'mobile' \| 'tablet' \| 'desktop' \| 'wide'` (container-based when scoped) |
+| `useNavigationPattern()` | `navigation.pattern[breakpoint]` |
+| `useMotion()` | `{ duration, easing, easingCss, pageTransition, reduced }` |
+| `usePrefersReducedMotion()` | `boolean` |
+| `ThemeContext`, `ThemeContextValue`, `ThemeProviderProps` | Context and types |
+| everything from `@dts/web` | `createThemeClient`, `cssVar`, `applyTheme`, … ([Web API](/sdks/web/#api-reference)) |
+
+## Troubleshooting
+
+**`useTheme()` throws.** The component is outside a `<ThemeProvider>`.
+
+**SSR flash.** The provider applies variables in a layout effect. For server rendering, inline
+`themeStylesheet(theme)` in `<head>` as described in the [Web SDK](/sdks/web/#ssr).
+
+<Aside>
+Create the client once (module scope or `useMemo`), not on every render. A new client means a new load.
+</Aside>

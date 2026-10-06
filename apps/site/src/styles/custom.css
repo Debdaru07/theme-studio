@@ -1,0 +1,102 @@
+/* Accent close to #3B5BDB (hue ~228). Dark mode first (Starlight default), then light. */
+:root {
+  --sl-color-accent-low: hsl(228, 45%, 20%);
+  --sl-color-accent: hsl(228, 75%, 62%);
+  --sl-color-accent-high: hsl(228, 100%, 87%);
+}
+:root[data-theme='light'] {
+  --sl-color-accent-low: hsl(228, 85%, 92%);
+  --sl-color-accent: hsl(228, 69%, 55%); /* #3B5BDB */
+  --sl-color-accent-high: hsl(228, 70%, 30%);
+}
+
+/* ── Landing ─────────────────────────────────────────────────────────────── */
+.cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0 !important;
+}
+.landing-section-title {
+  margin-top: 2.5rem !important;
+}
+
+/* How-it-works flow: plain HTML, themed with Starlight variables so it follows light/dark. */
+.flow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  align-items: stretch;
+  margin-top: 1rem !important;
+}
+.flow-step {
+  position: relative;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.75rem;
+  background: var(--sl-color-bg-nav);
+  padding: 0.9rem 1rem;
+  margin: 0 1.25rem 0 0 !important;
+}
+.flow-step:last-child {
+  margin-right: 0 !important;
+}
+.flow-step:not(:last-child)::after {
+  content: '→';
+  position: absolute;
+  right: -1.15rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--sl-color-accent);
+  font-weight: 700;
+}
+.flow-step .flow-kicker {
+  display: block;
+  font-size: var(--sl-text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--sl-color-accent);
+  font-weight: 600;
+  margin: 0 !important;
+}
+.flow-step strong {
+  display: block;
+  color: var(--sl-color-white);
+  margin: 0.15rem 0 0 !important;
+}
+.flow-step p,
+.flow-step code {
+  font-size: var(--sl-text-sm);
+}
+.flow-step p {
+  margin: 0.35rem 0 0 !important;
+  color: var(--sl-color-gray-2);
+}
+.flow-layers {
+  margin-top: 0.75rem !important;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-3);
+  text-align: center;
+}
+@media (max-width: 50rem) {
+  .flow {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  .flow-step {
+    margin: 0 !important;
+  }
+  .flow-step:not(:last-child)::after {
+    content: '↓';
+    right: auto;
+    left: 50%;
+    top: auto;
+    bottom: -1.45rem;
+    transform: translateX(-50%);
+  }
+}
+
+/* Live demo frame */
+.demo-shell {
+  margin-top: 1rem !important;
+  min-height: 22rem;
+}

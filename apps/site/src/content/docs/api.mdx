@@ -1,0 +1,117 @@
+---
+title: API reference
+description: The public GET /v1/theme endpoint, the theme JSON Schema, and the admin endpoints.
+---
+
+import { Aside, Code } from '@astrojs/starlight/components';
+import { API_URL } from '../../config.ts';
+
+export const curlFirst = `curl -i -H "X-Theme-Key: pk_demo_acme" ${API_URL}/v1/theme`;
+export const curlAgain = `curl -i -H "X-Theme-Key: pk_demo_acme" -H 'If-None-Match: "0a2bf3a7c02c4617"' ${API_URL}/v1/theme`;
+
+The Theme API is a Fastify service. Apps only ever call **one public endpoint**; everything else is used by
+Theme Studio with a signed-in user.
+
+Hosted API: <a href={API_URL}>{API_URL}</a> · local: `http://localhost:8787`
+
+## `GET /v1/theme`
+
+Returns the client's latest **published, fully resolved** theme. Public and read-only: the publishable key
+identifies the client and grants nothing else.
+
+### Request
+
+| Header | Required | Value |
+| --- | --- | --- |
+| `X-Theme-Key` | yes | The client's publishable key, `pk_…`. (A `?key=` query parameter is accepted as a fallback for quick tests.) |
+| `If-None-Match` | no | The `ETag` from the previous `200`. Weak (`W/"…"`) and comma-separated lists are accepted. |
+| `Accept` | no | `application/json` |
+
+<Code code={curlFirst} lang="sh" />
+
+### Responses
+
+| Status | When | Body |
+| --- | --- | --- |
+| `200 OK` | A published theme exists and `If-None-Match` does not match | Resolved theme JSON. Headers: `ETag: "<meta.hash>"`, `Cache-Control: no-cache` |
+| `304 Not Modified` | `If-None-Match` matches the current `ETag` | Empty. Keep using your cached copy. |
+| `401 Unauthorized` | Header missing, or unknown key | `{ "error": "Missing X-Theme-Key header" }` / `{ "error": "Unknown theme key" }` |
+| `404 Not Found` | The client exists but has never published | `{ "error": "No published theme for this client" }` |
+
+`Cache-Control: no-cache` lets HTTP caches store the theme but forces revalidation, so a conditional request with
+`If-None-Match` is cheap (an empty `304`). CORS allows any origin and exposes `ETag`, so browser apps can read it.
+
+<Code code={curlAgain} lang="sh" />
+
+### Response body
+
+A complete theme as described in [Tokens](/concepts/tokens/), with `meta`:
+
+```json
+{
+  "schemaVersion": 1,
+  "meta": { "tenant": "northwind", "client": "acme", "version": 7, "publishedAt": "2026-10-06T09:00:00.000Z", "hash": "0a2bf3a7c02c4617" },
+  "color": {
+    "light": { "primary": "#1D4ED8", "onPrimary": "#FFFFFF", "primaryContainer": "#DCE1FF", "…": "…" },
+    "dark":  { "primary": "#B7C4FF", "onPrimary": "#002682", "…": "…" }
+  },
+  "typography": { "fontFamily": { "primary": "Roboto", "secondary": "Poppins", "mono": "JetBrains Mono" }, "styles": { "…": "…" }, "responsiveScale": { "…": "…" } },
+  "spacing": { "…": "…" }, "sizing": { "…": "…" }, "shape": { "…": "…" }, "elevation": { "…": "…" },
+  "motion": { "…": "…" }, "navigation": { "…": "…" }, "components": { "…": "…" }, "effects": { "…": "…" },
+  "assets": { "appName": "Acme Fleet", "logo": { "light": null, "dark": null }, "favicon": null }
+}
+```
+
+Every token is present and every value is a literal: no references, no seeds, no partial objects.
+
+## JSON Schema
+
+<a href="/theme.schema.json">`/theme.schema.json`</a> is the JSON Schema (draft 2020-12) of a resolved theme,
+generated from the Zod schema in `packages/schema` (`npm run fixtures` regenerates it). Use it to validate themes
+in other languages or to get editor autocompletion:
+
+```json
+{ "$schema": "https://YOUR-DOCS-SITE/theme.schema.json" }
+```
+
+<Aside>
+SDKs reject a `schemaVersion` they do not support and keep their current theme: the Flutter SDK throws
+`DtUnsupportedSchemaVersionException` (status `invalid`), and the JS client reports a `ThemeFetchError`.
+</Aside>
+
+## Admin endpoints
+
+Used by Theme Studio. Authenticate with `POST /auth/login`, then send `Authorization: Bearer <token>` (JWT, valid
+12 h). Errors are JSON `{ "error": "…" }`; validation failures are `400` (bad request body) or `422`
+(`{ "error": "Invalid theme", "issues": [{ "path", "message" }] }`), and a publish that fails the contrast gate is
+`422` with the contrast report.
+
+| Method & path | Who | Purpose |
+| --- | --- | --- |
+| `GET /health` | anyone | `{ "ok": true }` |
+| `POST /auth/login` | anyone | `{ email, password }` → `{ token, user }` |
+| `GET /me` | signed in | Current user |
+| `GET /tenants` | signed in | Tenants visible to the user (all for platform admins) |
+| `POST /tenants` | platform admin | Create a tenant `{ slug, name }` |
+| `POST /tenants/:id/users` | tenant admin | Create a tenant admin `{ email, name, password }` |
+| `GET /tenants/:id/clients` | tenant members | Clients the user may edit, with their latest published version |
+| `POST /tenants/:id/clients` | tenant admin | Create a client `{ slug, name }` |
+| `GET /tenants/:id/theme` | tenant members | Base theme: draft, published summary and layer, `hasUnpublishedChanges` |
+| `PUT /tenants/:id/theme/draft` | tenant admin | Save the base theme draft `{ layer }` |
+| `POST /tenants/:id/theme/preview` | tenant admin | Resolve a layer without saving → theme + contrast report |
+| `POST /tenants/:id/theme/publish` | tenant admin | Publish the base draft `{ note? }`; rebases published clients |
+| `GET /tenants/:id/theme/versions` | tenant members | Base theme version history |
+| `GET /clients/:id` | client editors | Client and its tenant |
+| `GET /clients/:id/users` | client editors | Client editor accounts |
+| `POST /clients/:id/users` | tenant admin | Create a client editor `{ email, name, password }` |
+| `GET /clients/:id/theme` | client editors | Draft, published base layer, published summary and layer |
+| `PUT /clients/:id/theme/draft` | client editors | Save the client draft `{ layer }` (role-checked per token) |
+| `POST /clients/:id/theme/preview` | client editors | Resolve on top of the base without saving → theme + contrast report |
+| `POST /clients/:id/theme/publish` | client editors | Publish `{ note? }` → new immutable version |
+| `GET /clients/:id/theme/versions` | client editors | Version history |
+| `GET /clients/:id/theme/versions/:version` | client editors | One version (layer + resolved theme) |
+| `POST /clients/:id/theme/versions/:version/rollback` | client editors | Re-publish an old version as a new one |
+| **`GET /v1/theme`** | **public** (`X-Theme-Key`) | Resolved published theme for SDKs |
+
+"Tenant members" means platform admins and users of that tenant. "Client editors" means the client's own editors
+plus admins of its tenant and platform admins. See [Roles & permissions](/concepts/roles/).

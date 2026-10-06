@@ -1,0 +1,214 @@
+---
+title: Web SDK
+description: "@dts/web: a framework-agnostic theme client and CSS custom properties (--dts-*)."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+`@dts/web` fetches the client's published theme, caches it, and applies it as CSS custom properties. It works
+with any framework or none. The [React SDK](/sdks/react/) and the [React Native SDK](/sdks/react-native/) are built
+on it.
+
+## Install
+
+```sh
+npm install @dts/web
+```
+
+Inside this monorepo it is already a workspace package. It is not published to npm yet. During development the
+packages export their TypeScript source, so use a bundler that compiles TS (Vite, esbuild, Next.js).
+
+## Quickstart
+
+```ts
+import { createThemeClient, applyTheme } from '@dts/web';
+
+const client = createThemeClient({ endpoint: 'http://localhost:8787', key: 'pk_demo_acme' });
+
+let dispose = applyTheme(client.current, { mode: 'system' }); // bundled default or cached theme
+client.subscribe(({ theme }) => {
+  dispose();
+  dispose = applyTheme(theme, { mode: 'system' });
+});
+await client.load(); // cache (instant), then GET /v1/theme with If-None-Match
+```
+
+Then style with variables:
+
+```css
+.button {
+  height: var(--dts-button-height);
+  padding-inline: var(--dts-button-padding-x);
+  border-radius: var(--dts-button-radius);
+  background: var(--dts-color-primary);
+  color: var(--dts-color-on-primary);
+  font: var(--dts-text-label-large-font-style) var(--dts-text-label-large-weight) var(--dts-text-label-large-size) /
+    var(--dts-text-label-large-line-height) var(--dts-text-label-large-family);
+  transition: background var(--dts-duration-short) var(--dts-easing-standard);
+}
+```
+
+## Configuration
+
+### `createThemeClient(options)`
+
+| Option | Default | Purpose |
+| --- | --- | --- |
+| `endpoint` | required | API origin, for example `http://localhost:8787`. `/v1/theme` is appended. |
+| `key` | required | Publishable key (`pk_…`), sent as `X-Theme-Key`. |
+| `storage` | safe `localStorage` wrapper | Any `{ getItem, setItem }`, sync or async. Use `memoryStorage()` for SSR or tests. |
+| `fetch` | `globalThis.fetch` | Custom fetch (tests, polyfills). |
+| `fallback` | `DEFAULT_THEME` | Theme used when there is neither cache nor network. |
+| `storageKey` | `dts:theme:<key>` | Cache key, distinct per client. |
+
+The client exposes `current`, `status` (`idle` / `loading` / `ready` / `error`), `source` (`fallback` / `cache` /
+`network`), `error`, `getSnapshot()`, `load()`, `refresh()` and `subscribe(listener)`. `load()` and `refresh()`
+never reject; they resolve with the best theme available.
+
+### `applyTheme(theme, options)`
+
+| Option | Default | Purpose |
+| --- | --- | --- |
+| `root` | `document.documentElement` | Element that receives the variables and the `data-dts-mode` / `data-dts-breakpoint` attributes. |
+| `mode` | `'system'` | `'light'`, `'dark'` or `'system'` (follows `prefers-color-scheme` live). |
+| `breakpoint` | `'auto'` | A fixed breakpoint, or `'auto'`: a `ResizeObserver` on `root` (window width for `<html>`). |
+| `loadFonts` | `true` | Inject Google Fonts `<link>`s for the theme's families and weights. |
+| `onChange` | | Called with `{ mode, breakpoint, width }` initially and on every change. |
+
+It returns a dispose function that removes every property and attribute it set and detaches listeners.
+
+**Scoped previews.** `applyTheme(theme, { root: frameEl, mode: 'dark' })` themes one element only. With
+`breakpoint: 'auto'` a 390px-wide frame behaves like a phone. Theme Studio's live preview works this way.
+
+### SSR
+
+`themeStylesheet(theme, ':root')` returns CSS text with the light variables, a `[data-dts-mode="dark"]` block and
+`@media (min-width)` layout blocks. Inline it in `<head>` to avoid a flash of unthemed content, then hydrate with
+`applyTheme`.
+
+## Accessing tokens
+
+From CSS, use the [variables](#css-variables). From TypeScript:
+
+```ts
+import { cssVar, cssVarName, getToken, motionTokens, breakpointFor, navigationPattern } from '@dts/web';
+
+cssVar('color.onPrimaryContainer');           // 'var(--dts-color-on-primary-container)', type-checked path
+cssVar('space.md', '12px');                    // with a CSS fallback
+cssVarName('button.radius');                   // '--dts-button-radius'
+
+const theme = client.current;
+getToken(theme, 'dark', 'color.primary');      // color for the given mode
+getToken(theme, 'light', 'spacing.scale.md');  // 12 (typed)
+```
+
+## Navigation patterns
+
+The SDK gives you the pattern; you render the navigation:
+
+```ts
+const bp = breakpointFor(window.innerWidth, theme);   // 'mobile' | 'tablet' | 'desktop' | 'wide'
+const pattern = navigationPattern(theme, bp);         // 'bottomBar' | 'rail' | 'drawer' | 'sidebar' | 'topTabs'
+```
+
+`applyTheme` also sets `data-dts-breakpoint` on the root, so CSS can switch layouts without JavaScript, and
+`theme.navigation.showLabels`, `.indicator` and `.appBar` describe the details.
+
+## Motion & page transitions
+
+Durations and easings are variables (`--dts-duration-medium`, `--dts-easing-emphasized`). For JS animations or
+view transitions, `motionTokens` applies reduced motion for you:
+
+```ts
+const m = motionTokens(theme, { prefersReducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches });
+m.duration.medium;      // ms, 0 when reduced
+m.easingCss.emphasized; // 'cubic-bezier(0.3, 0, 0, 1)'
+m.pageTransition;       // 'fade' | 'slide' | 'scale' | 'sharedAxis' | 'none' ('none' when reduced)
+```
+
+Reduced motion applies only when the user asks for it **and** the theme sets `motion.respectReducedMotion`.
+
+## Caching & offline behaviour
+
+| Situation | Result |
+| --- | --- |
+| Cache present | Applied immediately (`source: 'cache'`), then revalidated |
+| `200` | New theme cached with its `ETag`; listeners notified (`source: 'network'`) |
+| `304` | Nothing changes; `status` becomes `ready` |
+| `401` / `404` / network error | Current theme kept; `status: 'error'`, `error.status` set (`0` for network) |
+| No cache, no network | Bundled platform default (`DEFAULT_THEME`) or your `fallback` |
+
+The default storage never throws (private mode, quota, no `window`). A stale cache never overwrites a theme that
+already came from the network. Concurrent `refresh()` calls share one request.
+
+## CSS variables
+
+All names are `--dts-` plus the token path in kebab case (`onPrimaryContainer` → `on-primary-container`).
+Lengths are always `px`, durations `ms`.
+
+| Variable | Source |
+| --- | --- |
+| `--dts-color-<role>` | `color[mode]`, every role: `--dts-color-primary`, `--dts-color-on-surface-muted`, … |
+| `--dts-space-{xs,sm,md,lg,xl,2xl,3xl}` | `spacing.scale` |
+| `--dts-radius-{none,xs,sm,md,lg,xl,full}` | `shape.radius` |
+| `--dts-border-{thin,thick}` | `shape.borderWidth` |
+| `--dts-corner-style` | `rounded` or `cut` |
+| `--dts-font-{primary,secondary,mono}` | Font stacks with a generic fallback |
+| `--dts-text-<style>-{family,size,weight,line-height,letter-spacing,font-style}` | The 10 text styles, for example `--dts-text-body-medium-size`; `font-style` is `italic` or `normal` |
+| `--dts-shadow-level{0…5}`, `--dts-card-shadow`, `--dts-dialog-shadow` | Full `box-shadow` for the mode (`none` when transparent) |
+| `--dts-duration-{short,medium,long}` | `motion.duration` (`ms`) |
+| `--dts-easing-{standard,emphasized,decelerate,accelerate}` | `cubic-bezier(…)` |
+| `--dts-z-{dropdown,sticky,overlay,modal,toast}` | `elevation.zIndex` |
+| `--dts-opacity-{hover,pressed,disabled}` | `effects.opacity` |
+| `--dts-focus-ring-{width,offset}`, `--dts-blur-{sm,md}` | `effects` |
+| `--dts-control-height-{sm,md,lg}`, `--dts-icon-{sm,md,lg}`, `--dts-min-touch-target`, `--dts-app-bar-height` | `sizing`, `navigation.appBar.height` |
+| `--dts-button-{radius,height,padding-x,text-transform}` | `components.button` |
+| `--dts-input-{radius,height}` | `components.input` |
+| `--dts-card-{radius,padding,border}` | `components.card`, `spacing.component.cardPadding`; `border` is a full shorthand or `none` |
+| `--dts-dialog-{radius,padding}` | `components.dialog`, `spacing.component.dialogPadding` |
+| `--dts-chip-radius`, `--dts-badge-radius` | `components.chip`, `components.badge` |
+| `--dts-list-gap`, `--dts-form-gap` | `spacing.component` |
+| `--dts-page-padding`, `--dts-section-gap`, `--dts-card-gap`, `--dts-content-max-width` | `spacing.layout` for the current breakpoint (`none` when unconstrained) |
+| `--dts-gradient-brand` | Only when `effects.gradient.enabled` |
+
+The root element also gets `color-scheme`, `data-dts-mode="light|dark"` and `data-dts-breakpoint`.
+
+<Aside>
+Text style sizes are not multiplied by `typography.responsiveScale`. If you want responsive display and headline
+sizes on the web, scale them in your CSS per `data-dts-breakpoint`.
+</Aside>
+
+## API reference
+
+| Export | Purpose |
+| --- | --- |
+| `createThemeClient(options)` | Fetch + cache client (`ThemeClient`). |
+| `applyTheme(theme, options)` | Write variables onto an element; returns `dispose()`. |
+| `themeStylesheet(theme, selector?)` | CSS text for SSR. |
+| `toCssVariables(theme, mode, breakpoint?)` | All variables as a `{ name: value }` record. |
+| `staticVariables`, `modeVariables`, `layoutVariables` | The same, split by what they depend on. |
+| `cssVar(path, fallback?)`, `cssVarName(path)`, `CSS_VAR_PREFIX`, `kebab` | Variable names. |
+| `getToken(theme, mode, path)` | Typed token lookup. |
+| `breakpointFor(width, theme)`, `navigationPattern(theme, bp)` | Layout helpers. |
+| `motionTokens(theme, { prefersReducedMotion })`, `cubicBezierCss` | Motion helpers. |
+| `colorsFor(theme, mode)`, `parseHex`, `rgba`, `boxShadow`, `brandGradient`, `fontStack` | Value helpers. |
+| `loadGoogleFonts(theme)`, `googleFontsUrls(theme)`, `themeFontVariants(theme)`, `themeFontWeights(theme)` | Fonts (weights plus italic variants per family). |
+| `localStorageAdapter()`, `memoryStorage()` | Storage adapters. |
+| `DEFAULT_THEME` | Bundled platform default. |
+| `ThemeFetchError` | `error.status`: HTTP status or `0`. |
+| Types | `Theme`, `ThemeClient`, `ThemeClientOptions`, `ThemeSnapshot`, `ThemeStatus`, `ThemeSource`, `ThemeStorage`, `ApplyThemeOptions`, `CssVarPath`, `TokenPath`, `ColorMode`, `ModePreference`, `MotionTokens`, … |
+
+`@dts/web/core` is a DOM-free entry point (client, storage and token helpers, no CSS or fonts) for non-browser
+runtimes.
+
+## Troubleshooting
+
+**Variables are missing.** Check that `applyTheme` ran on the element you are styling (or an ancestor). With
+`root` set, variables do not exist outside that element.
+
+**`status: 'error'` with `error.status === 0`.** A network error or blocked request. The API sends permissive
+CORS headers and exposes `ETag`; check the `endpoint` (no trailing `/v1/theme`) and that the API is reachable
+(a sleeping free-tier API can take 30–60 s to wake, see [Deploy](/deploy/)).
+
+**Flash of the default theme on load.** Inline `themeStylesheet(cachedOrServerTheme)` during SSR, or call
+`applyTheme` before first paint with the cached theme.

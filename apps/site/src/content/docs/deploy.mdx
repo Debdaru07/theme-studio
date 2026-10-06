@@ -1,0 +1,124 @@
+---
+title: Deploy on free tiers
+description: Run the Theme API on Render, the database on Turso, and Theme Studio plus these docs on Cloudflare Pages, all on free plans.
+---
+
+import { Aside, Steps, Code } from '@astrojs/starlight/components';
+import { API_URL, ADMIN_URL, REPO_URL } from '../../config.ts';
+
+export const adminEnv = `VITE_API_URL=${API_URL}
+VITE_DEMO_LOGINS=true
+NODE_VERSION=24`;
+export const siteEnv = `PUBLIC_API_URL=${API_URL}
+PUBLIC_ADMIN_URL=${ADMIN_URL}
+PUBLIC_REPO_URL=${REPO_URL}
+NODE_VERSION=24`;
+export const smoke = `curl ${API_URL}/health
+curl -i -H "X-Theme-Key: pk_demo_acme" ${API_URL}/v1/theme`;
+
+| Piece | Host | Free tier notes |
+| --- | --- | --- |
+| Theme API (`apps/server`) | **Render** free web service | Sleeps after 15 min without traffic. The first request after that takes about 30–60 s. |
+| Database | **Turso** (libSQL, SQLite-compatible) | Free plan is plenty for themes. |
+| Theme Studio (`apps/admin`) | **Cloudflare Pages** | Static build. |
+| This docs site (`apps/site`) | **Cloudflare Pages** | Static build. |
+
+<Aside type="tip" title="Cold starts don't break apps">
+SDKs render their cached theme immediately and revalidate in the background, so a sleeping API only delays
+picking up a *new* theme. Apps never wait on it to draw. Only the very first launch with an empty cache shows the
+bundled default until the API answers.
+</Aside>
+
+## Environment variables
+
+**Theme API (Render)**
+
+| Variable | Value |
+| --- | --- |
+| `TURSO_DATABASE_URL` | `libsql://<db>-<org>.turso.io` |
+| `TURSO_AUTH_TOKEN` | Database token from Turso |
+| `JWT_SECRET` | Long random string. Required in production; the blueprint generates one. |
+| `SEED_DEMO` | `true` seeds the Northwind demo (tenant, Acme and Globex clients, demo logins). |
+| `ADMIN_PASSWORD` | Password for the platform admin (`admin@dts.local`). Without it, the platform admin is **not** created. |
+| `NODE_VERSION` | `24` |
+
+**Theme Studio (Cloudflare Pages)**
+
+| Variable | Value |
+| --- | --- |
+| `VITE_API_URL` | The Render URL of the API, no trailing slash |
+| `VITE_DEMO_LOGINS` | `true` shows one-click demo sign-in buttons (tenant admin and client editor) |
+
+`VITE_*` values are baked in at build time: redeploy after changing them.
+
+## Checklist
+
+<Steps>
+
+1. **Create the database on Turso.** With the [Turso CLI](https://docs.turso.tech/cli/introduction):
+
+   ```sh
+   turso db create theme-studio
+   turso db show --url theme-studio        # → TURSO_DATABASE_URL
+   turso db tokens create theme-studio     # → TURSO_AUTH_TOKEN
+   ```
+
+   The API creates its tables on first start.
+
+2. **Deploy the API on Render.** Render → **New → Blueprint** → pick the repository. Render reads `render.yaml`
+   at the repo root: a free Node web service that installs the server workspace, starts it with
+   `npm run start -w @dts/server`, and health-checks `/health`.
+
+3. **Fill in the secrets** Render asks for: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` and `ADMIN_PASSWORD`.
+   `JWT_SECRET` is generated, `SEED_DEMO=true` and `NODE_VERSION=24` are preset. Deploy.
+
+4. **Smoke-test the API** once the deploy is live (the first call may take up to a minute while it wakes):
+
+   <Code code={smoke} lang="sh" />
+
+5. **Deploy Theme Studio on Cloudflare Pages.** Workers & Pages → **Create → Pages → Connect to Git** → pick the
+   repository, then:
+
+   | Setting | Value |
+   | --- | --- |
+   | Framework preset | None |
+   | Root directory | `/` (repository root, so npm workspaces resolve) |
+   | Build command | `npm run build -w @dts/admin` |
+   | Build output directory | `apps/admin/dist` |
+
+   Environment variables:
+
+   <Code code={adminEnv} lang="ini" />
+
+   Pages serves `index.html` for unknown paths when the build has no `404.html`, so client-side routes work.
+
+6. **Deploy this docs site on Cloudflare Pages** as a second Pages project from the same repository:
+
+   | Setting | Value |
+   | --- | --- |
+   | Framework preset | Astro (or None) |
+   | Root directory | `/` |
+   | Build command | `npm run build -w @dts/site` |
+   | Build output directory | `apps/site/dist` |
+
+   Environment variables (all optional; these are the defaults):
+
+   <Code code={siteEnv} lang="ini" />
+
+7. **Sign in to Theme Studio** at the Pages URL with a demo account (or `admin@dts.local` and your
+   `ADMIN_PASSWORD`), change a color, and publish. `GET /v1/theme` returns the new version immediately.
+
+8. **Point your apps at the hosted API**: use the Render URL as the SDK `endpoint` and the client's publishable
+   key (`pk_demo_acme`, `pk_demo_globex` for the demo).
+
+</Steps>
+
+<Aside type="caution">
+Demo data has well-known passwords. For anything beyond a demo, set `SEED_DEMO=false`, create your own tenant as
+the platform admin, and keep `VITE_DEMO_LOGINS` unset.
+</Aside>
+
+## Keeping the API awake (optional)
+
+Free Render services sleep by design. If cold starts bother you in Theme Studio, upgrade the service, or accept that
+the first sign-in after a quiet period is slow. Apps are unaffected thanks to caching.

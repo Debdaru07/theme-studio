@@ -1,0 +1,200 @@
+---
+title: React Native SDK
+description: "@dts/react-native: provider, hooks and StyleSheet-ready helpers for React Native."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+`@dts/react-native` provides a provider, hooks, and pure helpers that turn the resolved theme into values you can
+pass to `StyleSheet`. It reuses the DOM-free theme client from `@dts/web/core` and re-exports it.
+
+## Install
+
+```sh
+npm install @dts/react-native
+# optional, for a persistent cache:
+npm install @react-native-async-storage/async-storage
+```
+
+`react` (^19) and `react-native` (>=0.76) are peer dependencies. AsyncStorage is **not** a dependency: pass any
+`{ getItem, setItem }` as `storage`. Not on npm yet; inside this monorepo it is a workspace package.
+
+## Quickstart
+
+```tsx
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Text, View } from 'react-native';
+import { createThemeClient, ThemeProvider, useTheme, textStyle, shadow, radius } from '@dts/react-native';
+
+// AsyncStorage already has the { getItem, setItem } shape the client needs.
+const client = createThemeClient({ endpoint: 'https://themes.example.com', key: 'pk_demo_acme', storage: AsyncStorage });
+
+export default function App() {
+  return (
+    <ThemeProvider client={client} mode="system">
+      <Card />
+    </ThemeProvider>
+  );
+}
+
+function Card() {
+  const { theme, colors, mode, breakpoint } = useTheme();
+  return (
+    <View
+      style={{
+        backgroundColor: colors.surface,
+        borderRadius: radius(theme, 'md'),
+        padding: theme.spacing.component.cardPadding,
+        ...shadow(theme, theme.components.card.elevation, mode),
+      }}
+    >
+      <Text style={[textStyle(theme, 'headline', breakpoint), { color: colors.onSurface }]}>{theme.assets.appName}</Text>
+    </View>
+  );
+}
+```
+
+## Configuration
+
+`createThemeClient` takes the same options as the [Web SDK](/sdks/web/#createthemeclientoptions) (`endpoint`, `key`,
+`storage`, `fetch`, `fallback`, `storageKey`). Without `storage` the cache is a no-op outside the browser, so pass
+AsyncStorage (or MMKV, or anything with `getItem` / `setItem`) for offline support.
+
+| `<ThemeProvider>` prop | Default | Purpose |
+| --- | --- | --- |
+| `client` | | Theme client. Loaded on mount unless `autoLoad={false}`. |
+| `theme` | | Explicit theme; takes precedence over `client`. |
+| `fallback` | `DEFAULT_THEME` | Used when there is neither `theme` nor `client`. |
+| `mode` | `'system'` | `'light'`, `'dark'` or `'system'` (`useColorScheme`). |
+| `autoLoad` | `true` | Call `client.load()` on mount. |
+
+## Accessing tokens
+
+`useTheme()` returns `{ theme, mode, colors, breakpoint, status, source, error, client }`. Values are plain numbers
+and hex strings, ready for styles. `breakpoint` comes from `useWindowDimensions`.
+
+| Helper | Output |
+| --- | --- |
+| `textStyle(theme, name, breakpoint?, { fontFamily? })` | `{ fontFamily, fontSize, fontWeight, lineHeight, letterSpacing, fontStyle }`. `display` / `headline` are scaled by `responsiveScale[breakpoint]`. `fontStyle` is `'italic'` when the style's `italic` is set. |
+| `textStyles(theme, breakpoint?, options?)` | All 10 styles, handy for `StyleSheet.create`. |
+| `shadow(theme, level, mode)` | `{ shadowColor, shadowOffset, shadowOpacity, shadowRadius, elevation }` for iOS and Android. |
+| `radius(theme, name, { cut? })` | Number. RN cannot draw chamfered corners, so `cornerStyle: 'cut'` themes get `0` (sharp) except `full`. Use `{ cut: 'radius' }` for the raw value. |
+| `easing(theme, name)` / `easingFunction(theme, name, Easing)` | `[x1, y1, x2, y2]`, or `Easing.bezier(...)` from RN or Reanimated. |
+| `screenAnimation(theme, { reducedMotion? })` | `{ animation, animationDuration }` for native-stack. |
+| `useToken(path)` | Typed lookup: `useToken('color.primary')`, `useToken('spacing.scale.md')`. |
+
+### Fonts
+
+Themes name Google Fonts families. Load them in the app (for example `expo-font` with `@expo-google-fonts/*`).
+Android ignores `fontWeight` for custom fonts, so map family, weight and italic to the registered name:
+
+```ts
+const styles = textStyles(theme, breakpoint, {
+  fontFamily: (family, weight, italic) => `${family.replace(/ /g, '')}_${weight}${italic ? 'Italic' : ''}`,
+});
+```
+
+## Navigation patterns
+
+`useNavigationPattern()` returns `navigation.pattern[breakpoint]`. Use it to pick a React Navigation navigator:
+
+```tsx
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { useNavigationPattern } from '@dts/react-native';
+
+const Tabs = createBottomTabNavigator();
+const Drawer = createDrawerNavigator();
+
+function RootNavigator() {
+  const pattern = useNavigationPattern(); // 'bottomBar' | 'rail' | 'drawer' | 'sidebar' | 'topTabs'
+  if (pattern === 'drawer' || pattern === 'sidebar') {
+    return (
+      <Drawer.Navigator screenOptions={{ drawerType: pattern === 'sidebar' ? 'permanent' : 'front' }}>
+        {screens(Drawer)}
+      </Drawer.Navigator>
+    );
+  }
+  return <Tabs.Navigator>{screens(Tabs)}</Tabs.Navigator>;
+}
+```
+
+## Motion & page transitions
+
+```tsx
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { screenAnimation, useReducedMotion, useTheme } from '@dts/react-native';
+
+const Stack = createNativeStackNavigator();
+
+function AppStack() {
+  const { theme } = useTheme();
+  const reducedMotion = useReducedMotion();
+  return <Stack.Navigator screenOptions={screenAnimation(theme, { reducedMotion })}>{/* screens */}</Stack.Navigator>;
+}
+```
+
+| `motion.pageTransition` | native-stack `animation` |
+| --- | --- |
+| `fade` | `fade` |
+| `slide` | `slide_from_right` |
+| `scale` | `fade_from_bottom` |
+| `sharedAxis` | `slide_from_right` |
+| `none` | `none` |
+
+`animationDuration` (iOS) is `motion.duration.medium`. For `Animated` / Reanimated, `useMotion()` returns
+`{ duration, easing, easingCss, pageTransition, reduced }` with durations zeroed under reduced motion (from
+`AccessibilityInfo`, when the theme respects it):
+
+```ts
+import { Animated, Easing } from 'react-native';
+import { easingFunction, useMotion, useTheme } from '@dts/react-native';
+
+const { theme } = useTheme();
+const { duration } = useMotion();
+Animated.timing(value, {
+  toValue: 1,
+  duration: duration.medium,
+  easing: easingFunction(theme, 'emphasized', Easing),
+  useNativeDriver: true,
+}).start();
+```
+
+## Caching & offline behaviour
+
+The same client as the [Web SDK](/sdks/web/#caching--offline-behaviour): cache first (from your `storage`), then
+`GET /v1/theme` with `If-None-Match`; on `304` nothing changes; on errors the current theme stays and `status` is
+`'error'`; with no cache and no network the bundled `DEFAULT_THEME` renders. The SDK does not refresh on app
+foreground by itself. Call `client.refresh()` from an `AppState` listener if you want that:
+
+```ts
+useEffect(() => {
+  const sub = AppState.addEventListener('change', (s) => s === 'active' && client.refresh());
+  return () => sub.remove();
+}, []);
+```
+
+## API reference
+
+| Export | Purpose |
+| --- | --- |
+| `ThemeProvider` | Provider (`client`, `theme`, `fallback`, `mode`, `autoLoad`). |
+| `useTheme`, `useToken`, `useBreakpoint`, `useNavigationPattern`, `useMotion`, `useReducedMotion` | Hooks. |
+| `textStyle`, `textStyles`, `shadow`, `radius`, `easing`, `easingFunction`, `screenAnimation` | Style helpers. |
+| `ThemeContext`, `NativeThemeContextValue`, `ThemeProviderProps`, `RNTextStyle`, `RNShadowStyle`, `TextStyleOptions`, `NativeStackAnimation` | Context and types. |
+| everything from `@dts/web/core` | `createThemeClient`, `memoryStorage`, `DEFAULT_THEME`, `getToken`, `motionTokens`, `breakpointFor`, `ThemeFetchError`, … |
+
+## Troubleshooting
+
+**Android: requests to `http://localhost` fail.** On the emulator use `http://10.0.2.2:8787` (or
+`adb reverse tcp:8787 tcp:8787` and keep `localhost`). Android blocks cleartext HTTP by default; for local
+development set `android:usesCleartextTraffic="true"` on `<application>` in a debug-only manifest.
+
+**iOS: plain HTTP is blocked** by App Transport Security. Use HTTPS or add a dev-only ATS exception.
+
+**Custom fonts show the wrong weight on Android.** Use the `fontFamily` mapping option described in [Fonts](#fonts).
+
+<Aside>
+`radius()` returns `0` for `cut` corner themes, because React Native cannot draw chamfers. Pass `{ cut: 'radius' }`
+if you prefer rounded corners over sharp ones.
+</Aside>

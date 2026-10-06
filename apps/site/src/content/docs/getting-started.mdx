@@ -1,0 +1,164 @@
+---
+title: Getting started
+description: Concepts in two minutes, running Theme Studio locally, and integrating an SDK in three steps.
+---
+
+import { Aside, Steps, Tabs, TabItem, LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+## Concepts in 2 minutes
+
+Theme Studio is runtime theming for multi-tenant SaaS:
+
+| Term | Meaning |
+| --- | --- |
+| **Platform** | Theme Studio itself. Owns the defaults and the tokens nobody else may touch (spacing scale, breakpoints, touch targets). |
+| **Tenant** (agency) | A company that builds one product and sells it to many clients. Owns the **base theme**: the product look. |
+| **Client** | One of the tenant's customers. Owns a **client theme**: partial overrides on top of the base (brand colors, fonts, shape, motion, navigation, assets). |
+| **Token** | A named design value, such as `color.light.primary`, `spacing.scale.md` or `motion.pageTransition`. See [Tokens](/concepts/tokens/). |
+| **Draft / version** | Edits autosave to a draft. Publishing creates an immutable, numbered version. Apps only ever see published versions. |
+| **Publishable key** | `pk_…`, one per client. Apps send it as `X-Theme-Key` to `GET /v1/theme`. It is read-only and safe to ship in an app. |
+| **Resolved theme** | What apps receive: the platform, tenant and client layers merged, references replaced, colors derived and validated. One flat JSON. |
+
+The server does all the hard work (merging, references, color generation, contrast checks), so the
+[SDKs](/sdks/flutter/) stay thin: fetch, cache, map to the platform's native theming.
+
+## Run locally
+
+Requires **Node 22.13+** (24 recommended). Flutter 3.38+ is only needed for the Flutter SDK.
+
+<Steps>
+
+1. Install dependencies from the repository root:
+
+   ```sh
+   npm install
+   ```
+
+2. Start the Theme API. It listens on `http://localhost:8787` and seeds demo data on first run.
+
+   ```sh
+   npm run dev:server
+   ```
+
+3. In a second terminal, start Theme Studio (the admin app) on `http://localhost:5173`:
+
+   ```sh
+   npm run dev:admin
+   ```
+
+4. Sign in with a demo account. In dev the sign-in page also offers these as buttons.
+
+   | Role | Email | Password |
+   | --- | --- | --- |
+   | Tenant admin (Northwind Studio) | `owner@northwind.test` | `northwind123` |
+   | Client editor (Acme only) | `editor@acme.test` | `acme12345` |
+   | Platform admin | `admin@dts.local` | `admin12345` |
+
+5. Fetch a published theme the way an SDK does. The demo publishable keys are `pk_demo_acme` and `pk_demo_globex`.
+
+   ```sh
+   curl -i -H "X-Theme-Key: pk_demo_globex" http://localhost:8787/v1/theme
+   ```
+
+</Steps>
+
+<Aside type="tip" title="Docker">
+`docker compose up --build` runs the API and the admin together. Set `JWT_SECRET` for anything beyond a local demo.
+</Aside>
+
+## Integrate an SDK in 3 steps
+
+<Steps>
+
+1. **Add the package.** None of the SDKs are on a public registry yet; use the workspace package or a path / git dependency.
+2. **Create a client** with your API endpoint and the client's publishable key.
+3. **Wrap your app** in the provider. It renders the cached theme instantly, then revalidates with `If-None-Match`.
+
+</Steps>
+
+<Tabs syncKey="sdk">
+<TabItem label="Flutter">
+
+```yaml title="pubspec.yaml"
+dependencies:
+  dynamic_theme:
+    path: ../sdks/flutter   # or a git: reference to the repo
+```
+
+```dart title="lib/main.dart"
+import 'package:dynamic_theme/dynamic_theme.dart';
+import 'package:flutter/material.dart';
+
+final client = DynamicThemeClient('http://localhost:8787', 'pk_demo_acme');
+
+void main() => runApp(DynamicThemeApp(
+      client: client,
+      home: Builder(builder: (context) => Padding(
+        padding: EdgeInsets.all(context.dt.layout.pagePadding),
+        child: DtButton(label: 'Hello', onPressed: () {}),
+      )),
+    ));
+```
+
+</TabItem>
+<TabItem label="Web">
+
+```ts
+import { createThemeClient, applyTheme } from '@dts/web';
+
+const client = createThemeClient({ endpoint: 'http://localhost:8787', key: 'pk_demo_acme' });
+
+let dispose = applyTheme(client.current, { mode: 'system' });
+client.subscribe(({ theme }) => {
+  dispose();
+  dispose = applyTheme(theme, { mode: 'system' });
+});
+await client.load();
+```
+
+</TabItem>
+<TabItem label="React">
+
+```tsx
+import { createThemeClient, ThemeProvider } from '@dts/react';
+
+const client = createThemeClient({ endpoint: 'http://localhost:8787', key: 'pk_demo_acme' });
+
+export function App() {
+  return (
+    <ThemeProvider client={client} mode="system">
+      <Home />
+    </ThemeProvider>
+  );
+}
+```
+
+</TabItem>
+<TabItem label="React Native">
+
+```tsx
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createThemeClient, ThemeProvider } from '@dts/react-native';
+
+const client = createThemeClient({ endpoint: 'https://themes.example.com', key: 'pk_demo_acme', storage: AsyncStorage });
+
+export default function App() {
+  return (
+    <ThemeProvider client={client} mode="system">
+      <Home />
+    </ThemeProvider>
+  );
+}
+```
+
+</TabItem>
+</Tabs>
+
+## Next
+
+<CardGrid>
+  <LinkCard title="Tokens" href="/concepts/tokens/" description="Every token category and what it contains." />
+  <LinkCard title="Theme layers & resolution" href="/concepts/layers/" description="How platform, agency and client layers combine." />
+  <LinkCard title="Flutter SDK" href="/sdks/flutter/" description="The primary SDK: ThemeData, context.dt, adaptive navigation." />
+  <LinkCard title="Deploy on free tiers" href="/deploy/" description="Render + Turso + Cloudflare Pages." />
+</CardGrid>

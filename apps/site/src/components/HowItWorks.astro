@@ -1,0 +1,27 @@
+---
+/** "How it works" flow. Plain HTML styled with Starlight tokens, so it works in light and dark. */
+---
+
+<div class="flow" role="list" aria-label="How a theme reaches your app">
+  <div class="flow-step" role="listitem">
+    <span class="flow-kicker">1 · Edit</span>
+    <strong>Theme Studio</strong>
+    <p>Clients and agencies edit tokens with a live phone / tablet / desktop preview, then publish.</p>
+  </div>
+  <div class="flow-step" role="listitem">
+    <span class="flow-kicker">2 · Resolve</span>
+    <strong>Theme API</strong>
+    <p>Merges platform → agency → client, resolves <code>{'{refs}'}</code>, derives colors, checks contrast.</p>
+  </div>
+  <div class="flow-step" role="listitem">
+    <span class="flow-kicker">3 · Serve</span>
+    <strong><code>GET /v1/theme</code></strong>
+    <p>One resolved, flat JSON per client. <code>ETag</code> + <code>If-None-Match</code> → <code>304</code> when unchanged.</p>
+  </div>
+  <div class="flow-step" role="listitem">
+    <span class="flow-kicker">4 · Apply</span>
+    <strong>SDKs</strong>
+    <p>Flutter, Web, React, React Native map it natively at runtime. Cached for offline.</p>
+  </div>
+</div>
+<p class="flow-layers">platform defaults → agency base theme → client overrides ⟶ one resolved theme per publishable key</p>

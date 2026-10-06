@@ -1,0 +1,63 @@
+---
+title: Roles & permissions
+description: What clients, agencies and the platform each control, and how locked tokens behave.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## Users and what they can reach
+
+| Role | Scope | Can |
+| --- | --- | --- |
+| `platform_admin` | Everything | Create tenants; everything a tenant admin can do, for every tenant. |
+| `tenant_admin` | One tenant (agency) | Edit and publish the tenant base theme; create clients and client editors; edit, publish and roll back any of the tenant's client themes. |
+| `client_editor` | One client | Edit, publish and roll back their own client theme. Version history records who published. |
+
+## Who may edit which tokens
+
+Every token path has a policy: the **least privileged layer** allowed to change it. A more privileged layer can
+always edit what a less privileged one can (platform ⊇ tenant ⊇ client). The most specific rule wins. This is
+`POLICY` in `packages/schema/src/policy.ts`:
+
+| Path | Editable by |
+| --- | --- |
+| `color` | client |
+| `typography.fontFamily` | client |
+| `typography.styles` | tenant |
+| `typography.responsiveScale` | tenant |
+| `spacing.scale` | platform |
+| `spacing.layout` | client |
+| `spacing.component.cardPadding`, `spacing.component.dialogPadding` | client |
+| `spacing.component` (other) | tenant |
+| `sizing` | platform |
+| `shape` | client |
+| `elevation` | tenant |
+| `motion` | client |
+| `navigation` | client |
+| `components` | tenant |
+| `components.*.variant` | client |
+| `effects` | tenant |
+| `assets` | client |
+| anything not listed | platform |
+
+In short:
+
+- **Clients** control brand colors, fonts, layout spacing, card and dialog padding, shape, motion, navigation,
+  component variants and brand assets.
+- **Agencies** also control text styles and the responsive scale, other component spacing, elevation, component
+  sizing and effects.
+- **The platform** owns the spacing scale, breakpoints, icon and control sizes, and the minimum touch target.
+
+## Locked tokens
+
+Theme Studio shows tokens the current user may not change with a lock and the reason
+(`Locked: only tenant level may change this token`). The API enforces the same rule on every draft save.
+
+The check is on **changes**, not on presence. An agency can set a tenant-level token on a client's theme (for
+example a larger `components.button.height` for one client), and the client editor keeps that value when they save
+their own edits. They just cannot change or remove it. Only paths that differ between the stored draft and the
+new one are checked against the editor's role.
+
+<Aside>
+Unknown token paths are rejected for every role, so a typo can never silently do nothing.
+</Aside>

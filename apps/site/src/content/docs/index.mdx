@@ -1,0 +1,68 @@
+---
+title: Runtime theming for multi-tenant SaaS
+description: Runtime, per-client theming for multi-tenant SaaS. Agencies build once, every client gets its own brand, edited visually and published live to Flutter, Web, React and React Native apps with no rebuild.
+template: splash
+hero:
+  title: Theme Studio
+  tagline: Runtime, per-client theming for multi-tenant SaaS. Agencies build one product, every client gets its own brand, edited visually and published live to Flutter, Web, React and React Native apps with no rebuild or store release.
+---
+
+import { Card, CardGrid, LinkButton } from '@astrojs/starlight/components';
+import HowItWorks from '../../components/HowItWorks.astro';
+import LiveDemo from '../../components/LiveDemo.tsx';
+import { ADMIN_URL, REPO_URL } from '../../config.ts';
+
+<div class="cta-row">
+  <LinkButton href={ADMIN_URL} icon="external">Open Theme Studio</LinkButton>
+  <LinkButton href="/getting-started/" variant="secondary" icon="right-arrow">Read the docs</LinkButton>
+  <LinkButton href={REPO_URL} variant="minimal" icon="github" iconPlacement="start">GitHub</LinkButton>
+</div>
+
+## What you get
+
+<CardGrid>
+  <Card title="Visual editor, live device preview" icon="laptop">
+    Edit tokens by category and watch phone, tablet and desktop frames update instantly, in light and dark. The
+    preview uses the same React SDK your apps use.
+  </Card>
+  <Card title="Layered themes" icon="seti:folder">
+    Platform defaults → agency base theme → client overrides. Agencies set the product look once; each client
+    changes only what makes it theirs.
+  </Card>
+  <Card title="Palettes from brand colors" icon="star">
+    Give a `primary` seed and get full light and dark palettes (containers, `on*` colors, surfaces) from Material's
+    HCT tonal palettes. Any derived color can be overridden.
+  </Card>
+  <Card title="WCAG contrast gate" icon="approve-check">
+    Core text/background pairs must pass AA (4.5:1) in both modes or publishing is blocked. Everything else
+    warns inline.
+  </Card>
+  <Card title="Navigation & motion tokens" icon="rocket">
+    Bottom bar, rail, drawer, sidebar or top tabs per breakpoint; durations, easings and page transitions that
+    respect reduced motion.
+  </Card>
+  <Card title="Versioning & rollback" icon="random">
+    Drafts autosave. Publishing creates an immutable version; roll back to any earlier one in a click.
+  </Card>
+  <Card title="Four SDKs" icon="puzzle">
+    [Flutter](/sdks/flutter/), [Web](/sdks/web/) (CSS variables), [React](/sdks/react/) and
+    [React Native](/sdks/react-native/). Cache first, then a conditional request; a bundled default when offline.
+  </Card>
+  <Card title="One resolved JSON" icon="document">
+    The server does merging, references and color derivation. SDKs receive a flat, validated theme and only map
+    it. See the [API reference](/api/).
+  </Card>
+</CardGrid>
+
+## How it works
+
+<HowItWorks />
+
+## Try it
+
+Two published client themes from the same agency (Northwind), rendered by `@dts/react`'s `<ThemeProvider scope="element">`.
+The card below is styled only with the `--dts-*` CSS variables the [Web SDK](/sdks/web/#css-variables) writes.
+
+<div class="demo-shell">
+  <LiveDemo client:only="react" />
+</div>

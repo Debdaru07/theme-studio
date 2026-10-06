@@ -1,0 +1,55 @@
+---
+title: Tokens
+description: The token categories in a resolved theme, what each contains, and who may edit it.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+A resolved theme is one JSON object with `schemaVersion: 1`, an optional `meta` block and eleven token
+categories. The schema is written in Zod in `packages/schema/src/tokens.ts`; a
+[JSON Schema](/theme.schema.json) is generated from it for non-TypeScript SDKs and tools.
+
+## Categories
+
+| Category | Contains | Editable by |
+| --- | --- | --- |
+| `color` | Two schemes, `light` and `dark`, with identical token names. **Brand and semantic roles** `primary`, `secondary`, `accent`, `success`, `warning`, `error`, `info`, each with `on<Role>`, `<role>Container` and `on<Role>Container`. **Surfaces** `background`, `surface`, `surfaceContainerLow`, `surfaceContainer`, `surfaceContainerHigh`. **Text** `onSurface`, `onSurfaceMuted`, `onSurfaceDisabled`. **Lines** `outline`, `outlineMuted`. **Misc** `focusRing`, `scrim`. Uppercase `#RRGGBB` or `#RRGGBBAA`. | client |
+| `typography` | `fontFamily` (`primary`, `secondary`, `mono`); 10 `styles`, each with `family`, `size`, `weight`, `lineHeight`, `letterSpacing`, `italic`; `responsiveScale` per breakpoint. See [Typography](/concepts/typography/). | fonts: client · styles and scale: tenant |
+| `spacing` | `scale` on a 4px grid (`xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `3xl`); `layout` per breakpoint (`pagePadding`, `sectionGap`, `cardGap`, `contentMaxWidth`, where `null` means unconstrained); `component` (`cardPadding`, `dialogPadding`, `listGap`, `formGap`). | scale: platform · layout, card and dialog padding: client · other component spacing: tenant |
+| `sizing` | `breakpoints` (min widths for `tablet`, `desktop`, `wide`; `mobile` starts at 0); `icon` and `controlHeight` (`sm`, `md`, `lg`); `minTouchTarget`. | platform |
+| `shape` | `radius` (`none`, `xs`, `sm`, `md`, `lg`, `xl`, `full`); `borderWidth` (`thin`, `thick`); `cornerStyle` (`rounded` or `cut`). | client |
+| `elevation` | `shadowColor` per mode; `levels` `level0`–`level5` (`offsetY`, `blur`, `spread`, `opacity`); `zIndex` (`dropdown`, `sticky`, `overlay`, `modal`, `toast`). | tenant |
+| `motion` | `duration` (`short`, `medium`, `long`, in ms); `easing` (`standard`, `emphasized`, `decelerate`, `accelerate`, as cubic-bezier `[x1, y1, x2, y2]`); `pageTransition` (`fade`, `slide`, `scale`, `sharedAxis`, `none`); `respectReducedMotion`. | client |
+| `navigation` | `pattern` per breakpoint (`bottomBar`, `rail`, `drawer`, `sidebar`, `topTabs`); `showLabels` (`always`, `selected`, `never`); `indicator` (`pill`, `underline`, `none`); `appBar` (`centeredTitle`, `elevated`, `height`). | client |
+| `components` | `button` (`variant` filled / tonal / outlined, `radius`, `height`, `paddingX`, `textTransform`); `input` (`variant` filled / outlined, `radius`, `height`); `card` (`radius`, `elevation` 0–5, `bordered`); `dialog` (`radius`, `elevation`); `chip` and `badge` (`radius`). | tenant · `*.variant`: client |
+| `effects` | `opacity` (`hover`, `pressed`, `disabled`); `focusRing` (`width`, `offset`); `blur` (`sm`, `md`); `gradient` (`enabled`, `angle`, `stops`, a list of color role names resolved per mode). | tenant |
+| `assets` | `appName`; `logo` (`light`, `dark` URLs); `favicon`. | client |
+
+The **breakpoints** used by every per-breakpoint token are `mobile`, `tablet`, `desktop` and `wide`.
+
+<Aside>
+Icons and illustrations are not theme tokens yet (deferred to v2).
+</Aside>
+
+## `meta`
+
+Published themes carry a `meta` block that SDKs use for caching and diagnostics:
+
+```json
+"meta": {
+  "tenant": "northwind",
+  "client": "acme",
+  "version": 7,
+  "publishedAt": "2026-10-06T09:00:00.000Z",
+  "hash": "0a2bf3a7c02c4617"
+}
+```
+
+`client` is `null` for a tenant base theme. The API's `ETag` is the quoted `hash`.
+
+## What apps receive vs. what editors store
+
+Apps always get the **resolved** shape above: every token present, every value a literal. Editors store a
+**layer**: a partial object where any leaf may be a [reference](/concepts/layers/#references) such as
+`"{shape.radius.md}"`, and colors may be given as `color.seed.*`. How layers become a resolved theme is covered in
+[Theme layers & resolution](/concepts/layers/).

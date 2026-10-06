@@ -1,0 +1,321 @@
+---
+title: Flutter SDK
+description: dynamic_theme. Runtime ThemeData, context.dt tokens, adaptive navigation and page transitions for Flutter.
+---
+
+import { Aside, Code, Tabs, TabItem } from '@astrojs/starlight/components';
+import { REPO_URL } from '../../../config.ts';
+
+export const gitDep = `dependencies:
+  dynamic_theme:
+    git:
+      url: ${REPO_URL}.git
+      path: sdks/flutter`;
+
+`dynamic_theme` fetches a client's **resolved, published theme** at runtime and applies it natively:
+Material 3 `ThemeData` for light and dark, a `ThemeExtension<DtTokens>` for the tokens Material has no slot for,
+page transitions, and an adaptive navigation scaffold. It only parses and maps. Merging layers and deriving
+colors happen on the server.
+
+Requires Flutter **3.38+** (Dart 3.10+). Dependencies: `http`, `shared_preferences`, `google_fonts`.
+
+## Install
+
+The package is not on pub.dev yet. Depend on it by path or git:
+
+<Tabs>
+<TabItem label="Path">
+
+```yaml title="pubspec.yaml"
+dependencies:
+  dynamic_theme:
+    path: ../sdks/flutter
+```
+
+</TabItem>
+<TabItem label="Git">
+
+<Code code={gitDep} lang="yaml" title="pubspec.yaml" />
+
+</TabItem>
+</Tabs>
+
+## Quickstart
+
+```dart title="lib/main.dart"
+import 'package:dynamic_theme/dynamic_theme.dart';
+import 'package:flutter/material.dart';
+
+final client = DynamicThemeClient('http://localhost:8787', 'pk_demo_acme');
+
+void main() => runApp(DynamicThemeApp(
+      client: client,                 // cache first, then GET /v1/theme with If-None-Match
+      pollInterval: const Duration(minutes: 5),
+      home: Builder(builder: (context) => Padding(
+        padding: EdgeInsets.all(context.dt.layout.pagePadding),
+        child: DtButton(label: 'Hello', onPressed: () {}),
+      )),
+    ));
+```
+
+`DynamicThemeApp` is a `MaterialApp` whose `theme` / `darkTheme` come from the client. It rebuilds when a new
+theme arrives, refreshes when the app resumes, and polls if you pass `pollInterval`. The title defaults to
+`assets.appName`.
+
+## Configuration
+
+### The client
+
+```dart
+DynamicThemeClient(
+  String endpoint,               // API origin; /v1/theme is appended
+  String publishableKey, {       // pk_…, sent as X-Theme-Key
+  http.Client? httpClient,
+  ThemeCache? cache,             // default: SharedPreferencesThemeCache()
+  DtTheme? fallbackTheme,        // default: the bundled platform default
+  Duration timeout = const Duration(seconds: 10),
+})
+```
+
+Or create one and wait for the cached theme before the first frame, which avoids a flash of the default theme:
+
+```dart
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final client = await DynamicTheme.init(
+    publishableKey: 'pk_demo_acme',
+    endpoint: const String.fromEnvironment('DTS_ENDPOINT', defaultValue: 'http://localhost:8787'),
+    // waitForNetwork: true,      // also wait for the first sync
+  );
+  runApp(DynamicThemeApp(client: client, home: const HomePage()));
+}
+```
+
+### `DynamicThemeApp` options
+
+| Option | Default | Purpose |
+| --- | --- | --- |
+| `client` | required | The `DynamicThemeClient`. |
+| `themeMode` | `ThemeMode.system` | Light, dark or follow the OS. |
+| `pollInterval` | `null` | Periodic `refresh()`. |
+| `refreshOnResume` | `true` | `refresh()` on `AppLifecycleState.resumed`. |
+| `fonts` | `DtFonts.resolver` | Font resolver (see [Fonts](#fonts)). |
+| `home`, `routes`, `initialRoute`, `onGenerateRoute`, `navigatorKey`, `scaffoldMessengerKey`, `title`, `builder`, `locale`, `localizationsDelegates`, `supportedLocales`, `debugShowCheckedModeBanner` | | Passed to `MaterialApp`. |
+
+### `MaterialApp.router` and custom setups
+
+Use `DynamicThemeBuilder` and wire `ThemeData` yourself:
+
+```dart
+DynamicThemeBuilder(
+  client: client,
+  pollInterval: const Duration(minutes: 5),
+  builder: (context, data) => MaterialApp.router(
+    routerConfig: router,
+    theme: data.light,
+    darkTheme: data.dark,
+    title: data.theme.assets.appName,
+  ),
+)
+```
+
+`data` is a `DynamicThemeData` with `theme` (`DtTheme`), `light`, `dark`, `state` (`DtThemeState`) and
+`breakpoint`. Anywhere below, `DynamicTheme.of(context)` returns the same object. `DynamicThemeBuilder` also takes
+`refreshOnResume`, `autoInit` (call `client.init()` on mount, default `true`), `responsiveTypography`
+(default `true`) and `fonts`.
+
+To map a theme without a client (tests, previews), use `DtThemeBuilder(theme, breakpoint: Breakpoint.mobile)`
+and read `.light`, `.dark` or `.build(brightness)`.
+
+## Accessing tokens
+
+Standard Material widgets pick up the theme automatically: `ColorScheme` (with `accent` mapped to `tertiary`),
+`TextTheme`, and button, input, card, dialog, chip, navigation and app bar themes.
+
+For everything else, use `context.dt`:
+
+```dart
+final dt = context.dt;
+
+Container(
+  padding: EdgeInsets.all(dt.componentSpacing.cardPadding),
+  margin: EdgeInsets.only(bottom: dt.layout.cardGap),        // current breakpoint
+  decoration: BoxDecoration(
+    color: dt.colors.successContainer,                        // current brightness
+    borderRadius: BorderRadius.circular(dt.shape.radius.md),
+    boxShadow: dt.shadow(2),
+  ),
+  child: Text('Saved', style: TextStyle(color: dt.colors.onSuccessContainer)),
+);
+```
+
+| `context.dt.` | Type / meaning |
+| --- | --- |
+| `colors` | `DtColorScheme`: every color role for the current brightness (`success`, `onSurfaceMuted`, `outlineMuted`, …). |
+| `spacing` | `DtSpacingScale`: `xs`, `sm`, `md`, `lg`, `xl`, `xxl` (JSON `2xl`), `xxxl` (JSON `3xl`). |
+| `layout` | `DtLayout` for the current breakpoint: `pagePadding`, `sectionGap`, `cardGap`, `contentMaxWidth` (nullable). |
+| `componentSpacing` | `cardPadding`, `dialogPadding`, `listGap`, `formGap`. |
+| `sizing`, `shape`, `zIndex`, `effects`, `components`, `typography`, `assets` | The matching token groups. |
+| `breakpoint` | `Breakpoint.mobile`, `tablet`, `desktop` or `wide`, from `MediaQuery` width. |
+| `navigation`, `navPattern` | Navigation tokens, and the `DtNavPattern` for the current breakpoint. |
+| `motion` | `DtMotion`: `duration.short/medium/long` (`Duration`), `easing.standard/…` (`Cubic`), `pageTransition`. |
+| `reduceMotion` | `true` when the theme respects reduced motion and the OS asks for it. |
+| `animationDuration(d)` | `d`, or `Duration.zero` when `reduceMotion`. |
+| `shadow(level)` | `List<BoxShadow>` for elevation level 0–5 in the current brightness. |
+| `gradient` | `LinearGradient?` (only when `effects.gradient.enabled`). |
+| `logo` | Logo URL for the current brightness, or `null`. |
+
+`DtButton(label:, onPressed:, icon:, variant:, style:)` renders the theme's button variant (filled, tonal or
+outlined) and applies `textTransform` to the label.
+
+## Navigation patterns
+
+`DtAdaptiveScaffold` follows `navigation.pattern[breakpoint]`: a bottom `NavigationBar`, a `NavigationRail`, a modal
+`NavigationDrawer`, a permanent sidebar, or a `TabBar` under the app bar. The body is padded by
+`layout.pagePadding` and limited to `layout.contentMaxWidth`.
+
+```dart
+class HomeShell extends StatefulWidget {
+  const HomeShell({super.key});
+  @override
+  State<HomeShell> createState() => _HomeShellState();
+}
+
+class _HomeShellState extends State<HomeShell> {
+  int _index = 0;
+
+  @override
+  Widget build(BuildContext context) => DtAdaptiveScaffold(
+        title: const Text('Fleet'),
+        selectedIndex: _index,
+        onDestinationSelected: (i) => setState(() => _index = i),
+        destinations: const [
+          DtDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: 'Home'),
+          DtDestination(icon: Icon(Icons.local_shipping_outlined), label: 'Vehicles'),
+          DtDestination(icon: Icon(Icons.settings_outlined), label: 'Settings'),
+        ],
+        body: const [HomePage(), VehiclesPage(), SettingsPage()][_index],
+      );
+}
+```
+
+Other options: `actions`, `floatingActionButton`, `padBody` (set `false` for edge-to-edge scrollables),
+`pattern` (force one, for previews) and `sidebarHeader` (defaults to `assets.appName`). At least two
+destinations are required.
+
+## Motion & page transitions
+
+`ThemeData.pageTransitionsTheme` uses `DtPageTransitionsBuilder` for every platform, so plain
+`Navigator.push(MaterialPageRoute(...))` animates with the theme's `motion.pageTransition` (`fade`, `slide`,
+`scale`, `sharedAxis` or `none`), `duration.medium` and the `emphasized` easing. When `respectReducedMotion` is
+on and the OS disables animations, routes switch instantly.
+
+For your own animations, read the tokens:
+
+```dart
+final m = context.dt.motion;
+AnimatedContainer(
+  duration: context.dt.animationDuration(m.duration.short),
+  curve: m.easing.standard,
+  color: selected ? context.dt.colors.primaryContainer : context.dt.colors.surface,
+);
+```
+
+For a custom `PageRoute`, call `DtPageTransitionsBuilder.buildTransition(motion, context, animation, secondaryAnimation, child)`.
+
+## Fonts
+
+Fonts load through `google_fonts`. A family that is not in its catalog falls back to a plain `fontFamily`.
+To stop fetching (tests, or apps that bundle fonts):
+
+```dart
+DtFonts.resolver = DtFonts.system;          // globally
+DynamicThemeApp(client: client, fonts: DtFonts.system, home: ...);   // per app
+```
+
+Text styles honour each style's `italic` flag, and `display` / `headline` follow
+`typography.responsiveScale` for the window's breakpoint.
+
+## Caching & offline behaviour
+
+```text
+init() → cache (instant) → GET /v1/theme with If-None-Match → 200: cache + rebuild · 304: keep
+failure → keep current theme · nothing cached → bundled default
+```
+
+| Situation | `state.source` | `state.status` |
+| --- | --- | --- |
+| First launch, before any response | `bundled` | `syncing` |
+| Cached theme found | `cache` | `syncing`, then `upToDate` |
+| `200` | `network` | `upToDate` (theme cached with its `ETag`) |
+| `304 Not Modified` | unchanged | `upToDate` |
+| Network error, timeout or `5xx` | unchanged | `offline` |
+| `401` / `403` | unchanged | `unauthorized` |
+| `404` (nothing published) | unchanged | `notPublished` |
+| `200` with a body this SDK cannot parse | unchanged | `invalid` |
+
+The cache is keyed by endpoint and publishable key, so switching clients never mixes themes. The bundled
+fallback is `fallbackTheme` if given, else the package's `assets/default_theme.json`, else a copy compiled into
+the SDK. Listen to changes with `client.state` (`ValueListenable<DtThemeState>`) or `client.changes` (a stream);
+call `client.refresh()` to sync on demand and `client.clearCache()` to forget the cached theme.
+
+<Aside type="tip" title="Free-tier API cold starts">
+A sleeping API (see [Deploy](/deploy/)) can take 30–60 s to answer the first request. The client times out after
+10 s by default, keeps rendering the cached theme, and picks up changes on the next resume or poll.
+</Aside>
+
+## API reference
+
+| Export | Purpose |
+| --- | --- |
+| `DynamicThemeClient` | Fetch + cache. `state`, `changes`, `theme`, `init()`, `loadCache()`, `refresh()`, `clearCache()`, `dispose()`. |
+| `DynamicTheme.init(...)` / `.of(context)` / `.maybeOf(context)` | Create a client and await the cache; read `DynamicThemeData`. |
+| `DynamicThemeApp` | `MaterialApp` themed by a client. |
+| `DynamicThemeBuilder`, `DynamicThemeData` | Builder for `MaterialApp.router` and other setups. |
+| `DtThemeState`, `DtThemeSource`, `DtSyncStatus`, `DtHttpException` | Sync state, source (`bundled` / `cache` / `network`) and status. |
+| `ThemeCache`, `SharedPreferencesThemeCache`, `MemoryThemeCache`, `CachedTheme` | Cache storage. |
+| `DtThemeBuilder` | `DtTheme` → `ThemeData` (`.light`, `.dark`, `.build(brightness)`). |
+| `DtTokens`, `DtContext`, `context.dt` | `ThemeExtension` with all tokens, and the context accessor. |
+| `DtAdaptiveScaffold`, `DtDestination` | Adaptive navigation scaffold. |
+| `DtButton` | Variant-aware primary button. |
+| `DtPageTransitionsBuilder` | Theme-driven page transitions. |
+| `DtFonts`, `DtFontResolver` | Font resolution (`google`, `system`). |
+| `DtTheme` and model classes (`DtColorScheme`, `DtTypography`, `DtMotion`, `DtNavigation`, `DtNavPattern`, `Breakpoint`, …) | Parsed theme. `DtTheme.fromJson` / `.fromJsonString`, `DtTheme.fallback`. |
+| `DtThemeFormatException`, `DtUnsupportedSchemaVersionException` | Malformed JSON (with a JSON path), or `schemaVersion` newer than 1. |
+| `parseHexColor`, `toHexColor` | Hex ↔ `Color`. |
+
+## Troubleshooting
+
+**Windows: `flutter test` / `flutter build` fail when the Flutter SDK path contains a space**
+(for example `C:\Flutter SDK`). The `objective_c` native-assets build hook, pulled in via
+`path_provider` / `google_fonts`, breaks on it. Install Flutter at a path without spaces, or use a junction:
+
+```bat
+mklink /J C:\flutter "C:\Flutter SDK"
+```
+
+**Android: `http://localhost` does not work.** On the emulator, `localhost` is the emulator itself; use
+`http://10.0.2.2:8787`. Android also blocks cleartext HTTP by default. For local development, allow it in the
+debug manifest (never in release):
+
+```xml title="android/app/src/debug/AndroidManifest.xml"
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application android:usesCleartextTraffic="true" />
+</manifest>
+```
+
+**iOS: plain HTTP is blocked** by App Transport Security. Use HTTPS, or add an ATS exception for your dev
+host in `Info.plist`.
+
+**`status` is `unauthorized`.** The publishable key is wrong or belongs to a different deployment.
+**`notPublished`** means the client exists but has never published; publish once in Theme Studio.
+
+**Fonts don't load in tests.** Set `DtFonts.resolver = DtFonts.system` in `setUp`.
+
+**Try it offline.** The example app (`sdks/flutter/example`) has an offline demo (the cloud icon) that serves the
+bundled Acme and Globex fixtures through the same client code path:
+
+```sh
+cd sdks/flutter/example
+flutter run -d chrome --dart-define=DTS_ENDPOINT=http://localhost:8787
+```

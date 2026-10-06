@@ -1,0 +1,69 @@
+---
+title: Typography
+description: Font families, the ten text styles, weights, italics and the responsive scale.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## Font families
+
+`typography.fontFamily` has three slots, editable by **clients**:
+
+| Slot | Default | Used for |
+| --- | --- | --- |
+| `primary` | `Inter` | Titles, body and labels |
+| `secondary` | `{typography.fontFamily.primary}` | `display` and `headline` (so it follows `primary` unless set) |
+| `mono` | `JetBrains Mono` | Code and tabular figures |
+
+Families are **Google Fonts** names (custom font uploads are out of scope for now). Theme Studio's font picker
+lists the Google Fonts catalog and previews each family. SDKs load them as follows:
+
+| SDK | Font loading |
+| --- | --- |
+| Flutter | `google_fonts` package; families missing from its catalog fall back to a plain `fontFamily`. Set `DtFonts.resolver = DtFonts.system` to disable fetching. |
+| Web / React | `applyTheme` (and `<ThemeProvider>`) inject Google Fonts `<link>`s for each family with the weights the theme uses, plus italic variants for styles set in italics. Pass `loadFonts: false` to opt out. |
+| React Native | Load fonts in the app (for example `@expo-google-fonts/*`) and map names with `textStyle(..., { fontFamily })`. |
+
+## Text styles
+
+Ten styles, editable by **agencies** (tenant level), so a product's type scale stays consistent across clients:
+
+| Style | Default family | Size / line height (px) | Weight |
+| --- | --- | --- | --- |
+| `display` | secondary | 45 / 52 | 400 |
+| `headline` | secondary | 28 / 36 | 600 |
+| `titleLarge` | primary | 22 / 28 | 600 |
+| `titleMedium` | primary | 16 / 24 | 600 |
+| `bodyLarge` | primary | 16 / 24 | 400 |
+| `bodyMedium` | primary | 14 / 20 | 400 |
+| `bodySmall` | primary | 12 / 16 | 400 |
+| `labelLarge` | primary | 14 / 20 | 500 |
+| `labelMedium` | primary | 12 / 16 | 500 |
+| `caption` | primary | 11 / 16 | 400 |
+
+Each style has:
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `family` | string | Usually a reference to a `fontFamily` slot, resolved to a family name before apps see it. |
+| `size` | px | |
+| `weight` | 100–900 | Multiples of 100. |
+| `lineHeight` | px | Absolute, not a multiplier. |
+| `letterSpacing` | px | −5 to 5. |
+| `italic` | boolean | Renders the style in italics. Flutter maps it to `FontStyle.italic`, Web to `--dts-text-<style>-font-style`, React Native to `fontStyle`. |
+
+<Aside title="italic is newer than v1">
+`italic` was added after schema v1 shipped. The server always sends it, but a theme cached by an app before the
+change may not have it. SDKs treat a missing `italic` as `false`. If you read raw theme JSON yourself, do the same.
+</Aside>
+
+## Responsive scale
+
+`typography.responsiveScale` is a multiplier per breakpoint (0.5–2), applied to **`display` and `headline`
+only**, both size and line height. Defaults: `mobile 0.9`, `tablet 1`, `desktop 1`, `wide 1.1`.
+
+| SDK | How the scale is applied |
+| --- | --- |
+| Flutter | `DynamicThemeApp` / `DynamicThemeBuilder` rebuild typography when the window crosses a breakpoint (`responsiveTypography: true` by default). |
+| React Native | `textStyle(theme, 'headline', breakpoint)` scales when you pass the breakpoint from `useTheme()`. |
+| Web / React | CSS variables carry the unscaled values; multiply in CSS if you need it. |

@@ -1,0 +1,58 @@
+---
+title: Contrast & publishing
+description: The WCAG contrast gate, drafts, immutable versions, rollback and base-theme rebasing.
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+## Contrast checks
+
+Every resolved theme gets a contrast report (WCAG 2.1 relative luminance), checked in **both** light and dark mode.
+
+| Pair (foreground / background) | Minimum | Effect when failing |
+| --- | --- | --- |
+| `onSurface` / `surface` | 4.5:1 | **Blocks publish** |
+| `onSurface` / `background` | 4.5:1 | **Blocks publish** |
+| `onPrimary` / `primary`, `onSecondary` / `secondary`, `onAccent` / `accent` | 4.5:1 | **Blocks publish** |
+| `on<Role>Container` / `<role>Container` for every brand and semantic role | 4.5:1 | Warning |
+| `onSuccess` / `success`, `onWarning` / `warning`, `onError` / `error`, `onInfo` / `info` | 4.5:1 | Warning |
+| `onSurface` / `surfaceContainerHigh` | 4.5:1 | Warning |
+| `onSurfaceMuted` / `surface`, `onSurfaceMuted` / `background` | 4.5:1 | Warning |
+| `outline` / `surface` | 3:1 | Warning |
+| `focusRing` / `background` | 3:1 | Warning |
+
+The core pairs are where text sits on the brand and on the page. Theme Studio shows all failures inline while
+you edit; only core pairs stop the Publish button. The API enforces the same gate: a publish that fails it returns
+`422` with the contrast report.
+
+## Lifecycle
+
+<Steps>
+
+1. **Draft.** Edits in Theme Studio autosave to a draft (`PUT …/theme/draft`). Drafts are private to editors;
+   apps never see them.
+2. **Preview.** The live preview resolves the draft on top of the published base in the browser, using the same
+   resolver and the same React SDK apps use.
+3. **Publish.** `POST …/theme/publish` (with an optional note) resolves the draft, validates it, checks contrast and
+   stores an **immutable version**: the layer, the resolved JSON and its hash. `GET /v1/theme` serves it
+   immediately with a new `ETag`.
+4. **Rollback.** `POST …/theme/versions/:version/rollback` copies an old version's layer into the draft and
+   publishes it as a **new** version (note: `Rollback to vN`). History is never rewritten.
+
+</Steps>
+
+## Publishing a base theme rebases clients
+
+Client themes are overrides on top of the agency's base. When a tenant admin publishes a new base theme, the API
+re-resolves **every client that has a published theme**: it takes the client's current published layer, resolves
+it on the new base, and publishes it as a new client version noted `Rebased on base theme vN`. Apps pick it up on
+their next sync.
+
+A client whose layer would fail the core contrast checks on the new base is **skipped** (its previous version stays
+live). The publish response lists `rebased` and `skipped` clients with the reason.
+
+<Aside type="tip">
+There is no push channel yet, so a published change appears on the app's next sync. The Flutter SDK syncs on
+launch, on app resume and on an optional `pollInterval`. The JS SDKs sync on `client.load()` (the React providers
+call it on mount); call `client.refresh()` whenever you want to check again.
+</Aside>

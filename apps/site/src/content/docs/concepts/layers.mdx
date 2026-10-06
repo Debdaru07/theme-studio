@@ -1,0 +1,86 @@
+---
+title: Theme layers & resolution
+description: How platform defaults, the agency base theme and client overrides combine into one resolved theme.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## Three layers
+
+```text
+platform defaults ─┐
+tenant base theme ─┼─► deep merge ─► resolve {refs} ─► derive colors ─► validate ─► resolved theme
+client overrides  ─┘                                                    (schema + contrast)
+```
+
+| Layer | Stored by | Typical content |
+| --- | --- | --- |
+| **Platform defaults** | Theme Studio (`PLATFORM_DEFAULTS` in `@dts/schema`) | A complete theme: every token has a value. |
+| **Tenant base theme** | Agency (tenant admin) | The product look: type scale, component sizing, elevation, effects, default brand. |
+| **Client theme** | Agency or the client's editor | Partial overrides: brand colors, fonts, layout spacing, shape, motion, navigation, variants, assets. |
+
+Every layer is optional and partial. Layers are deep-merged in order (later wins), so a client that sets only
+`color.seed.primary` inherits everything else from the agency and the platform.
+
+Resolution happens **on the server**, once, at publish time. SDKs never merge layers or derive colors.
+
+## References
+
+Any leaf in a layer may point at another token with `{path}`:
+
+```json
+{
+  "components": {
+    "button": { "radius": "{shape.radius.md}" },
+    "card": { "radius": "{shape.radius.lg}" }
+  }
+}
+```
+
+After merging, the resolver replaces each reference with the referenced value, following chains. So if a client
+changes `shape.radius.md`, every component that references it follows. Unknown paths and circular references
+(`a → b → a`) are rejected with the offending path.
+
+## Seed-based colors
+
+Colors can be given as **seeds** instead of (or as well as) individual tokens:
+
+```json
+{
+  "color": {
+    "seed": { "primary": "#1D4ED8", "secondary": "#0EA5E9" },
+    "light": { "primaryContainer": "#DBE4FF" }
+  }
+}
+```
+
+Seed keys are `primary`, `secondary`, `accent`, `neutral`, `success`, `warning`, `error` and `info`. From the seeds
+the server derives the full `light` and `dark` schemes using Material's HCT tonal palettes, the same algorithm as
+Flutter's `ColorScheme.fromSeed`:
+
+- In light mode a brand role is the seed itself, so clients get their exact brand hex. Dark mode uses a lighter
+  tone so the color stays readable on dark surfaces.
+- `on*`, `*Container` and `on*Container` colors are derived from each role's palette.
+- Surfaces, text and outline colors come from the `neutral` seed; `focusRing` follows `primary`.
+- An explicit `color.light.*` / `color.dark.*` value always wins over the derived one.
+
+### Changing a seed drops lower-layer overrides of that seed
+
+When a layer sets a seed, explicit color overrides from **lower** layers that were derived from that seed are
+discarded. A client that sets a new `primary` seed therefore gets a fresh, consistent primary family
+(`primary`, `onPrimary`, `primaryContainer`, `onPrimaryContainer`, `focusRing`) instead of the agency's old
+hand-tuned `primaryContainer` sitting next to the new brand color. Overrides in the **same or a higher** layer are
+kept, so a client can set a seed and then fine-tune one derived token.
+
+<Aside type="caution">
+Which seed a token belongs to is decided by its name: tokens containing `primary`, `secondary`, `accent`,
+`success`, `warning`, `error` or `info` belong to that seed, `focusRing` to `primary`, and everything else
+(surfaces, `onSurface*`, outlines, `scrim`) to `neutral`.
+</Aside>
+
+## Validation
+
+A resolved theme must pass the schema: all tokens present, uppercase hex colors, weights in steps of 100 from
+100 to 900, enums within their allowed values. On save, the API also checks that every path in the layer exists
+and that the editor's role may change it (see [Roles & permissions](/concepts/roles/)). Finally the color
+contrast report decides whether the theme can be published (see [Contrast & publishing](/concepts/publishing/)).
