@@ -31,7 +31,8 @@ Three deliverables:
   /schema          @dts/schema   – token schema (Zod), defaults, resolver, color derivation,
                                    contrast checks, JSON Schema export, conformance fixtures
 /apps
-  /server          @dts/server   – Fastify REST API, SQLite (node:sqlite), seed data
+  /server          @dts/server   – Fastify REST API, libSQL (SQLite locally / Turso), seed data
+  /site            @dts/site     – product & SDK docs (Astro Starlight)
   /admin           @dts/admin    – React admin + live preview
 /sdks
   /web             @dts/web            – framework-agnostic core: fetch, cache, CSS variables
@@ -199,5 +200,13 @@ and publishing packages to npm or pub.dev.
    checked in both modes. Every other pair is a warning only.
 5. **Dev packaging:** JS workspace packages export their TypeScript source directly (run with `tsx`, Vite and Vitest).
    A build step for publishing is added when the packages are released.
-6. **Database:** Node's built-in `node:sqlite` (no native build step on Windows). It sits behind a small
-   repository layer so it can be swapped for Postgres later.
+6. **Database:** libSQL via `@libsql/client`. It's a local SQLite file in development and Turso in production, with
+   the same SQL in both. It sits behind a small repository layer (`apps/server/src/repo.ts`). It replaced
+   `node:sqlite` so the API can run on free hosts that have no persistent disk.
+7. **Permissions are checked per changed token, at the editor's role** (`validateLayerChange`). An agency admin
+   may set agency-level tokens on one client's theme; that client's editors keep them but cannot change them.
+   Publishing only checks that tokens exist.
+8. **Typography:** the font picker covers the Google Fonts catalog (`apps/admin/scripts/build-fonts.mjs`
+   regenerates the list). Weight choices are limited to the weights a family ships, and every text style has an
+   `italic` flag. SDKs treat a missing `italic` as `false`, so themes cached before it existed still load.
+9. **Hosting (free tier):** API on Render, DB on Turso, admin and docs on Cloudflare Pages. See [DEPLOY.md](DEPLOY.md).

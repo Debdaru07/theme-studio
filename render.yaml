@@ -1,0 +1,26 @@
+# Render blueprint for the Theme API (free web service). Database: Turso (set the two TURSO_* values).
+# Render → New → Blueprint → pick this repo. See docs/DEPLOY.md.
+services:
+  - type: web
+    name: theme-studio-api
+    runtime: node
+    plan: free
+    # tsx is a dev dependency of the workspace root; NODE_ENV=production would otherwise skip it.
+    buildCommand: npm ci --workspace @dts/server --include-workspace-root --include=dev
+    startCommand: npm run start -w @dts/server
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SEED_DEMO
+        value: "true"
+      - key: TURSO_DATABASE_URL
+        sync: false
+      - key: TURSO_AUTH_TOKEN
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false

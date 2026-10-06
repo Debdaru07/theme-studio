@@ -15,7 +15,8 @@ Design and decisions: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 | Path | What |
 | --- | --- |
 | [packages/schema](packages/schema) | Token schema (Zod), platform defaults, resolver, color generation, contrast checks, JSON Schema, shared test themes |
-| [apps/server](apps/server) | Theme API: Fastify + SQLite (`node:sqlite`), auth and roles, drafts, publishing, history, public SDK endpoint |
+| [apps/server](apps/server) | Theme API: Fastify + libSQL (SQLite locally, Turso in production), auth and roles, drafts, publishing, history, public SDK endpoint |
+| [apps/site](apps/site) | Product and SDK documentation site (Astro Starlight) |
 | [apps/admin](apps/admin) | Theme Studio: React admin with a live preview |
 | [sdks/flutter](sdks/flutter) | `dynamic_theme`: ThemeData, `context.dt` tokens, adaptive navigation, page transitions, example app |
 | [sdks/web](sdks/web) | `@dts/web`: client, cache, CSS variables (`--dts-*`) |
@@ -55,6 +56,12 @@ flutter run -d chrome --dart-define=DTS_ENDPOINT=http://localhost:8787
 
 Docker (API and admin): `docker compose up --build`. Set `JWT_SECRET` for anything beyond a local demo.
 
+## Deploy (free tier)
+
+API on Render, database on Turso, Theme Studio and the docs site on Cloudflare Pages. Step-by-step checklist:
+[docs/DEPLOY.md](docs/DEPLOY.md). The server uses libSQL, so locally it's a SQLite file (`file:data/dts.db`,
+override with `DATABASE_URL`) and in production it's Turso (`TURSO_DATABASE_URL` + `TURSO_AUTH_TOKEN`).
+
 ## Development
 
 ```sh
@@ -73,6 +80,11 @@ at a path without spaces, or run it through a directory junction (`mklink /J C:\
 ## Who can change what
 
 Clients change brand colors, fonts, layout spacing, shape, motion, navigation, component variants and brand
-assets. Agencies also control text sizes, elevation, component sizing and effects. The platform owns the spacing
-scale, breakpoints and touch targets. Core text/background color pairs must pass WCAG AA (4.5:1) to publish;
-other pairs only warn. See `POLICY` in [packages/schema/src/policy.ts](packages/schema/src/policy.ts).
+assets. Agencies also control text sizes, weights, elevation, component sizing and effects. The platform owns the
+spacing scale, breakpoints and touch targets. See `POLICY` in [packages/schema/src/policy.ts](packages/schema/src/policy.ts).
+
+Editors act at their own role's level on any theme they can open. An agency admin can set agency-level tokens
+(say, a larger button height) on one client's theme; that client's editors keep the value but can't change or
+remove it. Locked fields in Theme Studio show who manages them.
+
+Core text/background color pairs must pass WCAG AA (4.5:1) to publish; other pairs only warn.
