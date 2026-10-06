@@ -1,0 +1,19 @@
+Core Theming Pattern, 
+
+
+* Brand Colors : primary, secondary, accent
+* Neutral / Surface Colors : surface, surfaceDark
+* Text Colors : onSurface, onSurfaceMuted, onSurfaceDark, onSurfaceDarkMuted
+* Branding Text Colors : ,
+* Branding Surface Colors : ,
+* Semantics : success, error, warning.
+
+Type of Color / Purpose / Used where ? 
+
+* Brand Colors / Identity / Primary buttons, links, active states, selected tabs, progress
+* Neutral -or- Surface / Background hierarchy / App bg, cards, sheets, dialogs, app bars
+* Text Colors / Readability / Headings, body text, captions, disabled text
+* Branding Text Colors / Text on brand Backgrounds / Text -or- icons on Primary, Secondary, Accent buttons or banners (onPrimary, onSecondary)
+
+* Branding Surface Colors / Brand-tinted backgrounds / PrimaryContainer, SecondaryContainer, promotional cards, chips, badges
+* Semantic Colors / Status & Feedback / Success, Error, Warning, Info, Loading, validation

@@ -1,0 +1,9 @@
+Different themes for a SaaS for different clients, 
+
+* What's the benefit ?
+- We can build a SaaS but for pitching to different clients which has their own themes and brands, we need a tightly coupled dynamic-themeing system. 
+
+* How can they use ?
+- A company enrolls on our subscription for handling dynamic theming for clients coming with pre-rich knowledge of color-palettes, definitions and defining its themes. 
+
+Now when that company tries to pitch to its various clients, they need to make entries against each client for their brandings. 

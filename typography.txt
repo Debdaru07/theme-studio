@@ -1,0 +1,100 @@
+# SaaS Typography Notes
+
+## Goal
+
+A typography system should provide **consistency, readability, scalability, accessibility, and brand flexibility**.
+
+---
+
+## 1. Font Family Tokens
+
+```text
+Primary
+Secondary (Optional)
+Monospace
+```
+
+| Token     | Usage                                           |
+| --------- | ----------------------------------------------- |
+| Primary   | Entire application UI (95% of use cases)        |
+| Secondary | Marketing pages, hero sections, branded content |
+| Monospace | Code, logs, IDs, OTPs, tabular numbers          |
+
+> Keep fonts configurable so each client can override them without changing the design system.
+
+---
+
+## 2. Typography Tokens
+
+```text
+Display
+Headline
+Title
+Body
+Label
+Caption
+```
+
+| Token    | Usage                                 |
+| -------- | ------------------------------------- |
+| Display  | Hero sections, onboarding             |
+| Headline | Screen/Page titles                    |
+| Title    | Card titles, section headers, dialogs |
+| Body     | General content, tables, descriptions |
+| Label    | Buttons, inputs, tabs, navigation     |
+| Caption  | Helper text, timestamps, metadata     |
+
+---
+
+## 3. Each Typography Token Defines
+
+* Font Family
+* Font Size
+* Font Weight
+* Line Height
+* Letter Spacing
+
+---
+
+## 4. Best Practices
+
+* Use **semantic tokens**, not hardcoded sizes.
+* Maintain **8–12 text styles**.
+* Use **1 primary font** throughout the app.
+* Never hardcode `TextStyle`; always reference typography tokens.
+* Support OS font scaling and accessibility.
+
+---
+
+## 5. Responsive Typography
+
+Keep the same typography tokens across all devices.
+
+| Device        | Scale                                |
+| ------------- | ------------------------------------ |
+| Mobile        | 0.9–1.0×                             |
+| Tablet        | 1.0×                                 |
+| Desktop       | 1.0–1.1×                             |
+| Large Desktop | 1.1–1.2× (mainly Display & Headline) |
+
+> Typically, only **Display** and **Headline** scale. **Body**, **Label**, and **Caption** remain constant for readability.
+
+---
+
+## Final Hierarchy
+
+```text
+Typography
+├── Font Families
+│   ├── Primary
+│   ├── Secondary
+│   └── Monospace
+│
+└── Text Styles
+    ├── Display
+    ├── Headline
+    ├── Title
+    ├── Body
+    ├── Label
+    └── Caption
+```

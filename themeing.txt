@@ -1,0 +1,21 @@
+A SaaS Theme comprises of the following category of items : 
+
+1. Colors - Brand, Surfaces, States, Text Colors, Semantics.
+
+2. Typography - Font Family, sizes, weights, line-heights
+
+3. Spacing - Margins, Paddings, gaps, layout grid.
+
+4. Sizing - Icon Sizes, button heights, input heights, breakpoints.
+
+5. Shapes - Border radius, corner styles, stroke widths
+
+6. Elevation - Shadows, overlays, z-index, depth
+
+7. Components - Buttons, Cards, Inputs, Dialogs, Chips, etc.
+
+8. Motion - Durations, easing curves, animations.
+
+9. Icons and Illustrations - Icon Set, style (outlined/filled), illustration language. 
+
+10. Effects - Blur, Opacity, gradients, glassmorphism, focus rings.

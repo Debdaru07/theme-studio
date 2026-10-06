@@ -1,0 +1,122 @@
+# SaaS Spacing Notes
+
+## Goal
+
+A spacing system provides **consistency, rhythm, readability, and scalable layouts** across the application.
+
+---
+
+## 1. Base Spacing Scale
+
+Use a single base grid (**4px** or **8px**).
+
+Example:
+
+```text
+4, 8, 12, 16, 20, 24, 32, 40, 48, 64
+```
+
+Avoid arbitrary values (e.g., 13px, 21px).
+
+---
+
+## 2. Spacing Tokens
+
+```text
+xs
+sm
+md
+lg
+xl
+2xl
+3xl
+```
+
+Example:
+
+| Token | Value |
+| ----- | ----: |
+| xs    |     4 |
+| sm    |     8 |
+| md    |    12 |
+| lg    |    16 |
+| xl    |    24 |
+| 2xl   |    32 |
+| 3xl   |    48 |
+
+Always reference tokens instead of raw values.
+
+---
+
+## 3. Client Customization
+
+### Can Override
+
+* Page padding
+* Section gaps
+* Card padding
+* Dialog padding
+
+### Should Not Override
+
+* Button padding
+* Input padding
+* Icon spacing
+* Touch target sizes
+* Base spacing scale
+
+> Keep component ergonomics consistent across all clients.
+
+---
+
+## 4. Responsive Spacing
+
+Keep the spacing scale unchanged.
+
+Only adjust **layout spacing**.
+
+| Element      | Mobile | Desktop |
+| ------------ | ------ | ------- |
+| Page Padding | 16     | 32      |
+| Section Gap  | 24     | 48      |
+| Card Gap     | 16     | 24      |
+
+Component internal spacing generally remains constant.
+
+---
+
+## 5. Architecture
+
+```text
+Spacing
+├── Scale
+│   ├── xs
+│   ├── sm
+│   ├── md
+│   ├── lg
+│   ├── xl
+│   ├── 2xl
+│   └── 3xl
+│
+├── Layout
+│   ├── Page Padding
+│   ├── Section Gap
+│   └── Content Max Width
+│
+└── Component
+    ├── Card Padding
+    ├── Dialog Padding
+    ├── List Gap
+    └── Form Gap
+```
+
+---
+
+## Best Practices
+
+* Build on a **4px or 8px grid**.
+* Use **semantic spacing tokens**.
+* Never use magic numbers.
+* Let clients customize **layout**, not **component ergonomics**.
+* Handle responsiveness through **layout tokens**, not component spacing.
+* Keep the system small (7–10 spacing tokens).
