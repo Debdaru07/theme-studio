@@ -14,6 +14,7 @@ export { POLICY, canEdit, editableBy, type Layer } from './policy.ts';
 export {
   resolveTheme,
   validateLayer,
+  validateLayerChange,
   ThemeValidationError,
   type ResolvedTheme,
   type ThemeIssue,

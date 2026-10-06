@@ -16,4 +16,4 @@ export {
   type CssVarPath,
 } from './css.ts';
 export { applyTheme, type AppliedThemeState, type ApplyThemeOptions } from './apply.ts';
-export { googleFontsUrls, loadGoogleFonts, themeFontWeights } from './fonts.ts';
+export { googleFontsUrls, loadGoogleFonts, themeFontVariants, themeFontWeights, type FontVariant } from './fonts.ts';

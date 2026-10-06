@@ -2,6 +2,8 @@ import 'breakpoint.dart';
 import 'json.dart';
 
 /// One text style. [lineHeight] and [letterSpacing] are absolute px.
+///
+/// [italic] is `false` when absent from the JSON (older servers and cached themes).
 class DtTextStyle {
   const DtTextStyle({
     required this.family,
@@ -9,6 +11,7 @@ class DtTextStyle {
     required this.weight,
     required this.lineHeight,
     required this.letterSpacing,
+    this.italic = false,
   });
 
   factory DtTextStyle.fromJson(JsonReader r) => DtTextStyle(
@@ -17,6 +20,7 @@ class DtTextStyle {
         weight: r.integer('weight'),
         lineHeight: r.number('lineHeight'),
         letterSpacing: r.number('letterSpacing'),
+        italic: r.optBoolean('italic') ?? false,
       );
 
   final String family;
@@ -26,17 +30,26 @@ class DtTextStyle {
   final int weight;
   final double lineHeight;
   final double letterSpacing;
+  final bool italic;
 
   /// Flutter's `TextStyle.height` multiplier.
   double get heightFactor => size == 0 ? 1 : lineHeight / size;
 
-  DtTextStyle copyWith({String? family, double? size, int? weight, double? lineHeight, double? letterSpacing}) =>
+  DtTextStyle copyWith({
+    String? family,
+    double? size,
+    int? weight,
+    double? lineHeight,
+    double? letterSpacing,
+    bool? italic,
+  }) =>
       DtTextStyle(
         family: family ?? this.family,
         size: size ?? this.size,
         weight: weight ?? this.weight,
         lineHeight: lineHeight ?? this.lineHeight,
         letterSpacing: letterSpacing ?? this.letterSpacing,
+        italic: italic ?? this.italic,
       );
 
   /// Scales size and line height together (letter spacing is kept).
@@ -49,6 +62,7 @@ class DtTextStyle {
         'weight': weight,
         'lineHeight': jsonNum(lineHeight),
         'letterSpacing': jsonNum(letterSpacing),
+        'italic': italic,
       };
 }
 

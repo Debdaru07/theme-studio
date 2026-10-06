@@ -12,6 +12,7 @@ export interface RNTextStyle {
   fontWeight: FontWeight;
   lineHeight: number;
   letterSpacing: number;
+  fontStyle: 'normal' | 'italic';
 }
 
 /** Structurally compatible with RN's `ViewStyle` shadow props (iOS) + `elevation` (Android). */
@@ -29,7 +30,7 @@ export interface TextStyleOptions {
    * `@expo-google-fonts/*`: `(f, w) => \`${f.replace(/ /g, '')}_${w}\``. Android ignores `fontWeight`
    * for custom fonts, so a per-weight family name is usually needed there.
    */
-  fontFamily?: (family: string, weight: number) => string;
+  fontFamily?: (family: string, weight: number, italic: boolean) => string;
 }
 
 const SCALED_STYLES: ReadonlySet<TextStyleName> = new Set(['display', 'headline']);
@@ -42,12 +43,14 @@ const round1 = (n: number) => Math.round(n * 10) / 10;
 export function textStyle(theme: Theme, name: TextStyleName, breakpoint?: Breakpoint, options: TextStyleOptions = {}): RNTextStyle {
   const s = theme.typography.styles[name];
   const scale = breakpoint && SCALED_STYLES.has(name) ? theme.typography.responsiveScale[breakpoint] : 1;
+  const italic = !!s.italic; // missing in themes cached before `italic` existed
   return {
-    fontFamily: options.fontFamily ? options.fontFamily(s.family, s.weight) : s.family,
+    fontFamily: options.fontFamily ? options.fontFamily(s.family, s.weight, italic) : s.family,
     fontSize: round1(s.size * scale),
     fontWeight: String(s.weight) as FontWeight,
     lineHeight: round1(s.lineHeight * scale),
     letterSpacing: s.letterSpacing,
+    fontStyle: italic ? 'italic' : 'normal',
   };
 }
 

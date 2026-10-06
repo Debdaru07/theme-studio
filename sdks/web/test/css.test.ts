@@ -10,6 +10,7 @@ import {
   cssVarName,
   getToken,
   kebab,
+  googleFontsUrls,
   motionTokens,
   themeStylesheet,
   toCssVariables,
@@ -136,6 +137,28 @@ describe('specific fixture values', () => {
   it('bordered cards reference the outline-muted color var', () => {
     const t: Theme = { ...acme, components: { ...acme.components, card: { ...acme.components.card, bordered: true } } };
     expect(toCssVariables(t, 'light')['--dts-card-border']).toBe('1px solid var(--dts-color-outline-muted)');
+  });
+});
+
+describe('italic text styles', () => {
+  const withItalicCaption = () => {
+    const t = structuredClone(acme);
+    t.typography.styles.caption.italic = true;
+    return t;
+  };
+
+  it('emits font-style per text style', () => {
+    expect(toCssVariables(acme, 'light')['--dts-text-caption-font-style']).toBe('normal');
+    expect(toCssVariables(withItalicCaption(), 'light')['--dts-text-caption-font-style']).toBe('italic');
+  });
+
+  it('requests the ital axis only for families used in italics', () => {
+    const urls = googleFontsUrls(withItalicCaption());
+    const roboto = urls.find((u) => u.includes('family=Roboto:'))!;
+    expect(roboto).toContain(':ital,wght@0,');
+    expect(roboto).toContain(';1,400');
+    expect(urls.find((u) => u.includes('family=Poppins:'))).toContain(':wght@');
+    expect(googleFontsUrls(acme).every((u) => !u.includes('ital'))).toBe(true);
   });
 });
 

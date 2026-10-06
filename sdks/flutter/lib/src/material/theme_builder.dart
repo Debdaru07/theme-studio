@@ -82,6 +82,7 @@ class DtThemeBuilder {
         TextStyle(
           fontSize: s.size,
           fontWeight: _weight(s.weight),
+          fontStyle: s.italic ? FontStyle.italic : FontStyle.normal,
           height: s.heightFactor,
           letterSpacing: s.letterSpacing,
           leadingDistribution: TextLeadingDistribution.even,

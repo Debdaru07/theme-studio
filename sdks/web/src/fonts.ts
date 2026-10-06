@@ -22,29 +22,50 @@ const SYSTEM_FAMILIES = new Set([
   'segoe ui',
 ]);
 
-/** Family → sorted weights used by the theme (fontFamily slots get 400/500/600/700). */
-export function themeFontWeights(theme: Theme): Map<string, number[]> {
-  const map = new Map<string, Set<number>>();
-  const add = (family: string, weight: number) => {
+export interface FontVariant {
+  weight: number;
+  italic: boolean;
+}
+
+/** Family → sorted variants used by the theme (fontFamily slots get upright 400/500/600/700). */
+export function themeFontVariants(theme: Theme): Map<string, FontVariant[]> {
+  const map = new Map<string, Map<string, FontVariant>>();
+  const add = (family: string, weight: number, italic: boolean) => {
     if (SYSTEM_FAMILIES.has(family.toLowerCase())) return;
-    let set = map.get(family);
-    if (!set) map.set(family, (set = new Set()));
-    set.add(weight);
+    let variants = map.get(family);
+    if (!variants) map.set(family, (variants = new Map()));
+    variants.set(`${italic ? 1 : 0},${weight}`, { weight, italic });
   };
   const ff = theme.typography.fontFamily;
-  for (const family of [ff.primary, ff.secondary, ff.mono]) for (const w of [400, 500, 600, 700]) add(family, w);
-  for (const s of Object.values(theme.typography.styles)) add(s.family, s.weight);
-  return new Map([...map].map(([f, ws]) => [f, [...ws].sort((a, b) => a - b)]));
+  for (const family of [ff.primary, ff.secondary, ff.mono]) for (const w of [400, 500, 600, 700]) add(family, w, false);
+  for (const s of Object.values(theme.typography.styles)) add(s.family, s.weight, !!s.italic);
+  return new Map(
+    [...map].map(([f, vs]) => [
+      f,
+      [...vs.values()].sort((a, b) => Number(a.italic) - Number(b.italic) || a.weight - b.weight),
+    ]),
+  );
+}
+
+/** Family → sorted weights used by the theme, upright and italic combined. */
+export function themeFontWeights(theme: Theme): Map<string, number[]> {
+  return new Map(
+    [...themeFontVariants(theme)].map(([f, vs]) => [f, [...new Set(vs.map((v) => v.weight))].sort((a, b) => a - b)]),
+  );
 }
 
 /**
- * Google Fonts CSS2 URLs — one per family, so a weight a family lacks only affects that family.
+ * Google Fonts CSS2 URLs — one per family, so a variant a family lacks only affects that family.
+ * The `ital` axis is requested only for families that a style sets in italics.
  */
 export function googleFontsUrls(theme: Theme): string[] {
-  return [...themeFontWeights(theme)].map(
-    ([family, weights]) =>
-      `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family).replace(/%20/g, '+')}:wght@${weights.join(';')}&display=swap`,
-  );
+  return [...themeFontVariants(theme)].map(([family, variants]) => {
+    const name = encodeURIComponent(family).replace(/%20/g, '+');
+    const axes = variants.some((v) => v.italic)
+      ? `ital,wght@${variants.map((v) => `${v.italic ? 1 : 0},${v.weight}`).join(';')}`
+      : `wght@${variants.map((v) => v.weight).join(';')}`;
+    return `https://fonts.googleapis.com/css2?family=${name}:${axes}&display=swap`;
+  });
 }
 
 /** Inject `<link rel="stylesheet">` tags for the theme's Google Fonts (deduped by href). */

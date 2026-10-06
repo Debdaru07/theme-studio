@@ -83,6 +83,8 @@ class JsonReader {
     return v;
   }
 
+  bool? optBoolean(String key) => _map[key] == null ? null : boolean(key);
+
   Color color(String key) {
     final v = _map[key];
     if (v is! String) _fail(key, 'a hex color', v);

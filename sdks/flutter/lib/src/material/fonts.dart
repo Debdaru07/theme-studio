@@ -8,15 +8,21 @@ typedef DtFontResolver = TextStyle Function(String family, TextStyle style);
 abstract final class DtFonts {
   /// Loads [family] via `google_fonts`, falling back to a plain `fontFamily`
   /// (platform font lookup) when the family is not in the Google Fonts catalog.
+  /// The style's `fontWeight` and `fontStyle` select the Google Fonts variant.
   static TextStyle google(String family, TextStyle style) {
     try {
-      return GoogleFonts.getFont(family, textStyle: style);
+      return GoogleFonts.getFont(
+        family,
+        textStyle: style,
+        fontWeight: style.fontWeight,
+        fontStyle: style.fontStyle,
+      );
     } catch (_) {
       return system(family, style);
     }
   }
 
-  /// Sets `fontFamily` only; never fetches anything. Use in tests or offline builds
+  /// Sets `fontFamily` only (weight and `fontStyle` are kept); never fetches anything. Use in tests or offline builds
   /// that bundle their fonts.
   static TextStyle system(String family, TextStyle style) => style.copyWith(fontFamily: family);
 

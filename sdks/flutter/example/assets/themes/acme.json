@@ -105,70 +105,80 @@
         "size": 45,
         "weight": 400,
         "lineHeight": 52,
-        "letterSpacing": 0
+        "letterSpacing": 0,
+        "italic": false
       },
       "headline": {
         "family": "Poppins",
         "size": 28,
         "weight": 600,
         "lineHeight": 36,
-        "letterSpacing": 0
+        "letterSpacing": 0,
+        "italic": false
       },
       "titleLarge": {
         "family": "Roboto",
         "size": 22,
         "weight": 600,
         "lineHeight": 28,
-        "letterSpacing": 0
+        "letterSpacing": 0,
+        "italic": false
       },
       "titleMedium": {
         "family": "Roboto",
         "size": 16,
         "weight": 600,
         "lineHeight": 24,
-        "letterSpacing": 0.15
+        "letterSpacing": 0.15,
+        "italic": false
       },
       "bodyLarge": {
         "family": "Roboto",
         "size": 16,
         "weight": 400,
         "lineHeight": 24,
-        "letterSpacing": 0.15
+        "letterSpacing": 0.15,
+        "italic": false
       },
       "bodyMedium": {
         "family": "Roboto",
         "size": 14,
         "weight": 400,
         "lineHeight": 20,
-        "letterSpacing": 0.25
+        "letterSpacing": 0.25,
+        "italic": false
       },
       "bodySmall": {
         "family": "Roboto",
         "size": 12,
         "weight": 400,
         "lineHeight": 16,
-        "letterSpacing": 0.4
+        "letterSpacing": 0.4,
+        "italic": false
       },
       "labelLarge": {
         "family": "Roboto",
         "size": 14,
         "weight": 500,
         "lineHeight": 20,
-        "letterSpacing": 0.1
+        "letterSpacing": 0.1,
+        "italic": false
       },
       "labelMedium": {
         "family": "Roboto",
         "size": 12,
         "weight": 500,
         "lineHeight": 16,
-        "letterSpacing": 0.5
+        "letterSpacing": 0.5,
+        "italic": false
       },
       "caption": {
         "family": "Roboto",
         "size": 11,
         "weight": 400,
         "lineHeight": 16,
-        "letterSpacing": 0.5
+        "letterSpacing": 0.5,
+        "italic": false
       }
     },
     "responsiveScale": {

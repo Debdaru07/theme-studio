@@ -8,7 +8,7 @@ export const CSS_VAR_PREFIX = '--dts-';
 type SpaceKey = keyof Theme['spacing']['scale'];
 type RadiusKey = keyof Theme['shape']['radius'];
 type TextStyleName = keyof Theme['typography']['styles'];
-type TextProp = 'family' | 'size' | 'weight' | 'lineHeight' | 'letterSpacing';
+type TextProp = 'family' | 'size' | 'weight' | 'lineHeight' | 'letterSpacing' | 'fontStyle';
 
 /** Every CSS variable `toCssVariables` emits, as a dot path (`color.onPrimary` → `--dts-color-on-primary`). */
 export type CssVarPath =
@@ -162,6 +162,8 @@ export function staticVariables(theme: Theme): Record<string, string> {
     set(`text.${name}.weight`, s.weight);
     set(`text.${name}.lineHeight`, px(s.lineHeight));
     set(`text.${name}.letterSpacing`, px(s.letterSpacing));
+    // `italic` is newer than schema v1; older cached themes omit it.
+    set(`text.${name}.fontStyle`, s.italic ? 'italic' : 'normal');
   }
 
   for (const [k, v] of Object.entries(t.motion.duration)) set(`duration.${k as keyof Theme['motion']['duration']}`, `${v}ms`);

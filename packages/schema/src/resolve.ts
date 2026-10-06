@@ -48,10 +48,10 @@ function getKnownPaths(): Set<string> {
 }
 
 /**
- * Checks a stored layer before saving: every path must exist and be editable by `layer`.
+ * Checks a stored layer: every path must exist and, when `editor` is given, be editable by it.
  * Value checks happen when the layer is resolved.
  */
-export function validateLayer(input: unknown, layer: Layer): ThemeIssue[] {
+export function validateLayer(input: unknown, editor?: Layer): ThemeIssue[] {
   if (!isPlainObject(input)) return [{ path: '', message: 'Theme layer must be an object' }];
   const known = getKnownPaths();
   const issues: ThemeIssue[] = [];
@@ -59,12 +59,32 @@ export function validateLayer(input: unknown, layer: Layer): ThemeIssue[] {
     if (!known.has(path)) {
       // A whole sub-object replaced by a reference or array lands here too.
       issues.push({ path, message: 'Unknown token' });
-    } else if (!canEdit(layer, path)) {
-      issues.push({ path, message: `Locked: only ${editableBy(path)} level may change this token` });
+    } else if (editor && !canEdit(editor, path)) {
+      issues.push({ path, message: lockedMessage(path) });
     }
   }
   return issues;
 }
+
+/**
+ * Checks an edit from `prev` to `next` made by `editor`. Only tokens that changed (including
+ * removed ones) must be editable, so a client editor keeps tokens their agency set on their theme
+ * but cannot change or remove them.
+ */
+export function validateLayerChange(prev: unknown, next: unknown, editor: Layer): ThemeIssue[] {
+  const issues = validateLayer(next);
+  if (!isPlainObject(next)) return issues;
+  const unknown = new Set(issues.map((i) => i.path));
+  const before = isPlainObject(prev) ? prev : {};
+  for (const path of new Set([...leafPaths(before), ...leafPaths(next)])) {
+    if (unknown.has(path)) continue;
+    const changed = JSON.stringify(getPath(before, path)) !== JSON.stringify(getPath(next, path));
+    if (changed && !canEdit(editor, path)) issues.push({ path, message: lockedMessage(path) });
+  }
+  return issues;
+}
+
+const lockedMessage = (path: string) => `Locked: only ${editableBy(path)} level may change this token`;
 
 // ── Resolution ───────────────────────────────────────────────────────────────
 

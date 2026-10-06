@@ -104,6 +104,53 @@ void main() {
     });
   });
 
+  group('text style italic', () {
+    test('fixtures carry italic: false', () {
+      final s = fixture('acme').typography.styles;
+      expect(s.display.italic, isFalse);
+      expect(s.caption.italic, isFalse);
+    });
+
+    test('missing italic defaults to false (older servers / caches)', () {
+      final json = fixtureJson('acme');
+      final styles = (json['typography'] as Map)['styles'] as Map;
+      for (final style in styles.values) {
+        (style as Map).remove('italic');
+      }
+      final t = DtTheme.fromJson(json);
+      expect(t.typography.styles.bodyLarge.italic, isFalse);
+      expect(t.typography.styles.display.italic, isFalse);
+    });
+
+    test('italic: true parses and round-trips through toJson', () {
+      final json = fixtureJson('acme');
+      ((json['typography'] as Map)['styles'] as Map)['headline']['italic'] = true;
+      final t = DtTheme.fromJson(json);
+      expect(t.typography.styles.headline.italic, isTrue);
+      expect(t.typography.styles.bodyLarge.italic, isFalse);
+      final out = t.toJson();
+      expect(((out['typography'] as Map)['styles'] as Map)['headline']['italic'], isTrue);
+      expect(((out['typography'] as Map)['styles'] as Map)['bodyLarge']['italic'], isFalse);
+      expect(out, equals(json));
+    });
+
+    test('non-boolean italic is a format error', () {
+      final json = fixtureJson('acme');
+      ((json['typography'] as Map)['styles'] as Map)['caption']['italic'] = 'yes';
+      expect(
+        () => DtTheme.fromJson(json),
+        throwsA(isA<DtThemeFormatException>().having((e) => e.path, 'path', 'typography.styles.caption.italic')),
+      );
+    });
+
+    test('copyWith and scaled keep italic', () {
+      final s = fixture('acme').typography.styles.display;
+      expect(s.copyWith(italic: true).italic, isTrue);
+      expect(s.copyWith(italic: true).scaled(2).italic, isTrue);
+      expect(s.copyWith(size: 10).italic, isFalse);
+    });
+  });
+
   test('hex helpers', () {
     expect(parseHexColor('#1d4ed8'), const Color(0xFF1D4ED8));
     expect(parseHexColor('#1D4ED880'), const Color(0x801D4ED8));

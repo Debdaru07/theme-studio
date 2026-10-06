@@ -92,6 +92,8 @@ export const TextStyleSchema = z.strictObject({
   lineHeight: px,
   /** Letter spacing in px. */
   letterSpacing: z.number().min(-5).max(5),
+  /** Added after v1 shipped; SDKs treat a missing value as `false`. */
+  italic: z.boolean(),
 });
 export type TextStyle = z.infer<typeof TextStyleSchema>;
 

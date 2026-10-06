@@ -524,6 +524,9 @@
                   "type": "number",
                   "minimum": -5,
                   "maximum": 5
+                },
+                "italic": {
+                  "type": "boolean"
                 }
               },
               "required": [
@@ -531,7 +534,8 @@
                 "size",
                 "weight",
                 "lineHeight",
-                "letterSpacing"
+                "letterSpacing",
+                "italic"
               ],
               "additionalProperties": false
             },
@@ -562,6 +566,9 @@
                   "type": "number",
                   "minimum": -5,
                   "maximum": 5
+                },
+                "italic": {
+                  "type": "boolean"
                 }
               },
               "required": [
@@ -569,7 +576,8 @@
                 "size",
                 "weight",
                 "lineHeight",
-                "letterSpacing"
+                "letterSpacing",
+                "italic"
               ],
               "additionalProperties": false
             },
@@ -600,6 +608,9 @@
                   "type": "number",
                   "minimum": -5,
                   "maximum": 5
+                },
+                "italic": {
+                  "type": "boolean"
                 }
               },
               "required": [
@@ -607,7 +618,8 @@
                 "size",
                 "weight",
                 "lineHeight",
-                "letterSpacing"
+                "letterSpacing",
+                "italic"
               ],
               "additionalProperties": false
             },
@@ -638,6 +650,9 @@
                   "type": "number",
                   "minimum": -5,
                   "maximum": 5
+                },
+                "italic": {
+                  "type": "boolean"
                 }
               },
               "required": [
@@ -645,7 +660,8 @@
                 "size",
                 "weight",
                 "lineHeight",
-                "letterSpacing"
+                "letterSpacing",
+                "italic"
               ],
               "additionalProperties": false
             },
@@ -676,6 +692,9 @@
                   "type": "number",
                   "minimum": -5,
                   "maximum": 5
+                },
+                "italic": {
+                  "type": "boolean"
                 }
               },
               "required": [
@@ -683,7 +702,8 @@
                 "size",
                 "weight",
                 "lineHeight",
-                "letterSpacing"
+                "letterSpacing",
+                "italic"
               ],
               "additionalProperties": false
             },
@@ -714,6 +734,9 @@
                   "type": "number",
                   "minimum": -5,
                   "maximum": 5
+                },
+                "italic": {
+                  "type": "boolean"
                 }
               },
               "required": [
@@ -721,7 +744,8 @@
                 "size",
                 "weight",
                 "lineHeight",
-                "letterSpacing"
+                "letterSpacing",
+                "italic"
               ],
               "additionalProperties": false
             },
@@ -752,6 +776,9 @@
                   "type": "number",
                   "minimum": -5,
                   "maximum": 5
+                },
+                "italic": {
+                  "type": "boolean"
                 }
               },
               "required": [
@@ -759,7 +786,8 @@
                 "size",
                 "weight",
                 "lineHeight",
-                "letterSpacing"
+                "letterSpacing",
+                "italic"
               ],
               "additionalProperties": false
             },
@@ -790,6 +818,9 @@
                   "type": "number",
                   "minimum": -5,
                   "maximum": 5
+                },
+                "italic": {
+                  "type": "boolean"
                 }
               },
               "required": [
@@ -797,7 +828,8 @@
                 "size",
                 "weight",
                 "lineHeight",
-                "letterSpacing"
+                "letterSpacing",
+                "italic"
               ],
               "additionalProperties": false
             },
@@ -828,6 +860,9 @@
                   "type": "number",
                   "minimum": -5,
                   "maximum": 5
+                },
+                "italic": {
+                  "type": "boolean"
                 }
               },
               "required": [
@@ -835,7 +870,8 @@
                 "size",
                 "weight",
                 "lineHeight",
-                "letterSpacing"
+                "letterSpacing",
+                "italic"
               ],
               "additionalProperties": false
             },
@@ -866,6 +902,9 @@
                   "type": "number",
                   "minimum": -5,
                   "maximum": 5
+                },
+                "italic": {
+                  "type": "boolean"
                 }
               },
               "required": [
@@ -873,7 +912,8 @@
                 "size",
                 "weight",
                 "lineHeight",
-                "letterSpacing"
+                "letterSpacing",
+                "italic"
               ],
               "additionalProperties": false
             }

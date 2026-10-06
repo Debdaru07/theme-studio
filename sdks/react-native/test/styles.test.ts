@@ -17,6 +17,7 @@ describe('textStyle', () => {
       fontWeight: '400',
       lineHeight: 20,
       letterSpacing: 0.25,
+      fontStyle: 'normal',
     });
     expect(textStyle(acme, 'titleLarge').fontWeight).toBe('600');
     expect(textStyle(globex, 'labelLarge').fontFamily).toBe('Nunito Sans');
@@ -37,6 +38,18 @@ describe('textStyle', () => {
   it('supports a font family resolver (expo-google-fonts naming)', () => {
     const style = textStyle(globex, 'headline', undefined, { fontFamily: (f, w) => `${f.replace(/ /g, '')}_${w}` });
     expect(style.fontFamily).toBe('Merriweather_600');
+  });
+
+  it('maps italic, and treats a missing italic (older themes) as normal', () => {
+    const italic = structuredClone(acme);
+    italic.typography.styles.caption.italic = true;
+    expect(textStyle(italic, 'caption').fontStyle).toBe('italic');
+    expect(textStyle(italic, 'caption', undefined, { fontFamily: (f, w, i) => `${f}_${w}${i ? 'i' : ''}` }).fontFamily).toBe(
+      'Roboto_400i',
+    );
+    const legacy = structuredClone(acme) as unknown as { typography: { styles: Record<string, { italic?: boolean }> } };
+    delete legacy.typography.styles.caption!.italic;
+    expect(textStyle(legacy as unknown as Theme, 'caption').fontStyle).toBe('normal');
   });
 
   it('textStyles returns all 10 styles', () => {

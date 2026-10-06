@@ -169,6 +169,60 @@ void main() {
     expect(DtThemeBuilder(theme).light.cardTheme.elevation, 0);
   });
 
+  group('italic', () {
+    DtTheme withItalic(bool? italic) {
+      final json = fixtureJson('acme');
+      for (final style in (((json['typography'] as Map)['styles'] as Map).values)) {
+        if (italic == null) {
+          (style as Map).remove('italic');
+        } else {
+          (style as Map)['italic'] = italic;
+        }
+      }
+      return DtTheme.fromJson(json);
+    }
+
+    List<TextStyle> slots(TextTheme tt) => [
+          tt.displayLarge!, tt.displayMedium!, tt.displaySmall!,
+          tt.headlineLarge!, tt.headlineMedium!, tt.headlineSmall!,
+          tt.titleLarge!, tt.titleMedium!, tt.titleSmall!,
+          tt.bodyLarge!, tt.bodyMedium!, tt.bodySmall!,
+          tt.labelLarge!, tt.labelMedium!, tt.labelSmall!,
+        ];
+
+    test('italic: true maps to FontStyle.italic on every TextTheme slot', () {
+      final tt = DtThemeBuilder(withItalic(true)).light.textTheme;
+      for (final s in slots(tt)) {
+        expect(s.fontStyle, FontStyle.italic);
+      }
+    });
+
+    test('italic: false and missing italic map to FontStyle.normal', () {
+      for (final italic in [false, null]) {
+        final tt = DtThemeBuilder(withItalic(italic)).light.textTheme;
+        for (final s in slots(tt)) {
+          expect(s.fontStyle, FontStyle.normal);
+        }
+      }
+    });
+
+    test('only the italic style is italic', () {
+      final json = fixtureJson('acme');
+      ((json['typography'] as Map)['styles'] as Map)['caption']['italic'] = true;
+      final tt = DtThemeBuilder(DtTheme.fromJson(json)).light.textTheme;
+      expect(tt.labelSmall!.fontStyle, FontStyle.italic);
+      expect(tt.labelMedium!.fontStyle, FontStyle.normal);
+    });
+
+    test('font resolvers keep fontStyle', () {
+      const base = TextStyle(fontSize: 14, fontStyle: FontStyle.italic, fontWeight: FontWeight.w700);
+      expect(DtFonts.system('Poppins', base).fontStyle, FontStyle.italic);
+      expect(DtFonts.google('Definitely Not A Font', base).fontStyle, FontStyle.italic);
+      final custom = DtThemeBuilder(withItalic(true), fonts: DtFonts.system).light.textTheme;
+      expect(custom.bodyMedium!.fontStyle, FontStyle.italic);
+    });
+  });
+
   test('unknown font family falls back gracefully with the google resolver', () {
     final style = DtFonts.google('Definitely Not A Font', const TextStyle(fontSize: 14));
     expect(style.fontFamily, 'Definitely Not A Font');

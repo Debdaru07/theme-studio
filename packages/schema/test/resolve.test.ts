@@ -9,6 +9,7 @@ import {
   normalizeHex,
   resolveTheme,
   validateLayer,
+  validateLayerChange,
   type ThemeInput,
 } from '../src/index.ts';
 
@@ -114,6 +115,21 @@ describe('policy', () => {
       'client',
     );
     expect(issues.map((i) => i.path).sort()).toEqual(['foo.bar', 'sizing.minTouchTarget']);
+  });
+
+  it('validateLayerChange only checks tokens that changed', () => {
+    const agencySet = { components: { button: { height: 44 } }, color: { seed: { primary: '#123456' } } };
+    // Client editor edits their brand color: the agency's button height is kept, not rejected.
+    expect(validateLayerChange(agencySet, { ...agencySet, color: { seed: { primary: '#654321' } } }, 'client')).toEqual([]);
+    // ...but cannot change or remove it.
+    expect(validateLayerChange(agencySet, { components: { button: { height: 30 } } }, 'client').map((i) => i.path)).toContain(
+      'components.button.height',
+    );
+    expect(validateLayerChange(agencySet, { color: agencySet.color }, 'client').map((i) => i.path)).toEqual([
+      'components.button.height',
+    ]);
+    // The agency may set it on a client theme.
+    expect(validateLayerChange({}, agencySet, 'tenant')).toEqual([]);
   });
 
   it('accepts the demo client layers', () => {
