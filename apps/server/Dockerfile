@@ -7,7 +7,7 @@ RUN npm ci --ignore-scripts
 
 ENV HOST=0.0.0.0 \
     PORT=8787 \
-    DTS_DB=/data/dts.db
+    DATABASE_URL=file:/data/dts.db
 RUN mkdir -p /data && chown node:node /data
 VOLUME /data
 EXPOSE 8787

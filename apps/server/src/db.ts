@@ -1,8 +1,13 @@
 import { mkdirSync } from 'node:fs';
-import { dirname } from 'node:path';
-import { DatabaseSync } from 'node:sqlite';
+import { dirname, resolve } from 'node:path';
+import { createClient, type Client, type InStatement, type Transaction } from '@libsql/client';
 
-export type Db = DatabaseSync;
+/**
+ * libSQL: a local SQLite file in development (`file:data/dts.db`) and Turso in production
+ * (`libsql://…` + auth token). Same SQL and driver in both.
+ */
+export type Db = Client;
+export type Executor = Pick<Client | Transaction, 'execute'>;
 
 const MIGRATIONS: string[] = [
   `
@@ -61,33 +66,52 @@ const MIGRATIONS: string[] = [
   `,
 ];
 
-export function openDb(path: string): Db {
-  if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
-  const db = new DatabaseSync(path);
-  db.exec('PRAGMA foreign_keys = ON;');
-  if (path !== ':memory:') db.exec('PRAGMA journal_mode = WAL;');
-  migrate(db);
+export interface DbOptions {
+  url: string;
+  authToken?: string;
+}
+
+export async function openDb({ url, authToken }: DbOptions): Promise<Db> {
+  if (url.startsWith('file:') && !url.includes(':memory:')) {
+    mkdirSync(dirname(resolve(url.slice('file:'.length))), { recursive: true });
+  }
+  const db = createClient({ url, authToken });
+  if (url.startsWith('file:')) await db.execute('PRAGMA foreign_keys = ON');
+  await migrate(db);
   return db;
 }
 
-function migrate(db: Db) {
-  const { user_version: current } = db.prepare('PRAGMA user_version').get() as { user_version: number };
+async function migrate(db: Db) {
+  await db.execute('CREATE TABLE IF NOT EXISTS _migrations (version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL)');
+  const { rows } = await db.execute('SELECT COALESCE(MAX(version), 0) AS v FROM _migrations');
+  const current = Number(rows[0]?.v ?? 0);
   for (let i = current; i < MIGRATIONS.length; i++) {
-    tx(db, () => {
-      db.exec(MIGRATIONS[i]!);
-      db.exec(`PRAGMA user_version = ${i + 1}`);
-    });
+    const statements: InStatement[] = splitSql(MIGRATIONS[i]!);
+    statements.push({ sql: 'INSERT INTO _migrations (version, applied_at) VALUES (?, ?)', args: [i + 1, new Date().toISOString()] });
+    await db.batch(statements, 'write');
   }
 }
 
-export function tx<T>(db: Db, fn: () => T): T {
-  db.exec('BEGIN');
+/** Splits a migration into statements (our migrations contain no semicolons inside literals). */
+function splitSql(sql: string): string[] {
+  return sql
+    .replace(/--[^\n]*/g, '')
+    .split(';')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+/** Runs `fn` inside a write transaction, committing on success and rolling back on error. */
+export async function tx<T>(db: Db, fn: (t: Transaction) => Promise<T>): Promise<T> {
+  const t = await db.transaction('write');
   try {
-    const out = fn();
-    db.exec('COMMIT');
+    const out = await fn(t);
+    await t.commit();
     return out;
   } catch (e) {
-    db.exec('ROLLBACK');
+    await t.rollback();
     throw e;
+  } finally {
+    t.close();
   }
 }

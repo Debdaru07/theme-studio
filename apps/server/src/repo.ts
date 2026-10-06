@@ -1,6 +1,7 @@
 import { randomBytes, randomUUID } from 'node:crypto';
+import type { InValue, Row } from '@libsql/client';
 import type { Theme, ThemeInput } from '@dts/schema';
-import type { Db } from './db.ts';
+import { tx, type Db, type Executor } from './db.ts';
 
 export type Role = 'platform_admin' | 'tenant_admin' | 'client_editor';
 export type OwnerType = 'tenant' | 'client';
@@ -51,104 +52,119 @@ export interface Version extends VersionSummary {
 
 const now = () => new Date().toISOString();
 
-/** Thin data-access layer over SQLite. Keeps SQL out of route handlers so the store can be swapped. */
+/**
+ * Thin data-access layer over libSQL. Keeps SQL out of route handlers. `withTx` gives a Repo bound
+ * to a write transaction.
+ */
 export class Repo {
-  constructor(private readonly db: Db) {}
+  constructor(
+    private readonly exec: Executor,
+    private readonly db?: Db,
+  ) {}
+
+  /** Runs `fn` with a Repo bound to one write transaction. */
+  withTx<T>(fn: (repo: Repo) => Promise<T>): Promise<T> {
+    if (!this.db) return fn(this); // already inside a transaction
+    return tx(this.db, (t) => fn(new Repo(t)));
+  }
+
+  private async all<T>(sql: string, args: InValue[] = []): Promise<T[]> {
+    const rs = await this.exec.execute({ sql, args });
+    return rs.rows.map((r) => plain<T>(r, rs.columns));
+  }
+
+  private async one<T>(sql: string, args: InValue[] = []): Promise<T | undefined> {
+    return (await this.all<T>(sql, args))[0];
+  }
+
+  private async run(sql: string, args: InValue[] = []): Promise<void> {
+    await this.exec.execute({ sql, args });
+  }
 
   // ── Tenants ────────────────────────────────────────────────────────────────
 
-  createTenant(slug: string, name: string): Tenant {
+  async createTenant(slug: string, name: string): Promise<Tenant> {
     const t = { id: randomUUID(), slug, name, createdAt: now() };
-    this.db.prepare('INSERT INTO tenants (id, slug, name, created_at) VALUES (?, ?, ?, ?)').run(t.id, slug, name, t.createdAt);
+    await this.run('INSERT INTO tenants (id, slug, name, created_at) VALUES (?, ?, ?, ?)', [t.id, slug, name, t.createdAt]);
     return t;
   }
 
-  listTenants(): Tenant[] {
-    return this.db.prepare('SELECT id, slug, name, created_at AS createdAt FROM tenants ORDER BY name').all() as unknown as Tenant[];
+  listTenants(): Promise<Tenant[]> {
+    return this.all('SELECT id, slug, name, created_at AS createdAt FROM tenants ORDER BY name');
   }
 
-  getTenant(id: string): Tenant | undefined {
-    return this.db.prepare('SELECT id, slug, name, created_at AS createdAt FROM tenants WHERE id = ?').get(id) as
-      | Tenant
-      | undefined;
+  getTenant(id: string): Promise<Tenant | undefined> {
+    return this.one('SELECT id, slug, name, created_at AS createdAt FROM tenants WHERE id = ?', [id]);
   }
 
   // ── Clients ────────────────────────────────────────────────────────────────
 
-  createClient(tenantId: string, slug: string, name: string, publishableKey = newPublishableKey()): Client {
+  async createClient(tenantId: string, slug: string, name: string, publishableKey = newPublishableKey()): Promise<Client> {
     const c = { id: randomUUID(), tenantId, slug, name, publishableKey, createdAt: now() };
-    this.db
-      .prepare('INSERT INTO clients (id, tenant_id, slug, name, publishable_key, created_at) VALUES (?, ?, ?, ?, ?, ?)')
-      .run(c.id, tenantId, slug, name, publishableKey, c.createdAt);
+    await this.run(
+      'INSERT INTO clients (id, tenant_id, slug, name, publishable_key, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+      [c.id, tenantId, slug, name, publishableKey, c.createdAt],
+    );
     return c;
   }
 
   private static CLIENT_COLS =
     'id, tenant_id AS tenantId, slug, name, publishable_key AS publishableKey, created_at AS createdAt';
 
-  listClients(tenantId: string): Client[] {
-    return this.db
-      .prepare(`SELECT ${Repo.CLIENT_COLS} FROM clients WHERE tenant_id = ? ORDER BY name`)
-      .all(tenantId) as unknown as Client[];
+  listClients(tenantId: string): Promise<Client[]> {
+    return this.all(`SELECT ${Repo.CLIENT_COLS} FROM clients WHERE tenant_id = ? ORDER BY name`, [tenantId]);
   }
 
-  getClient(id: string): Client | undefined {
-    return this.db.prepare(`SELECT ${Repo.CLIENT_COLS} FROM clients WHERE id = ?`).get(id) as Client | undefined;
+  getClient(id: string): Promise<Client | undefined> {
+    return this.one(`SELECT ${Repo.CLIENT_COLS} FROM clients WHERE id = ?`, [id]);
   }
 
-  getClientByKey(key: string): Client | undefined {
-    return this.db.prepare(`SELECT ${Repo.CLIENT_COLS} FROM clients WHERE publishable_key = ?`).get(key) as
-      | Client
-      | undefined;
+  getClientByKey(key: string): Promise<Client | undefined> {
+    return this.one(`SELECT ${Repo.CLIENT_COLS} FROM clients WHERE publishable_key = ?`, [key]);
   }
 
   // ── Users ──────────────────────────────────────────────────────────────────
 
-  createUser(u: Omit<User, 'id'> & { passwordHash: string }): User {
+  async createUser(u: Omit<User, 'id'> & { passwordHash: string }): Promise<User> {
     const id = randomUUID();
-    this.db
-      .prepare(
-        'INSERT INTO users (id, email, name, password_hash, role, tenant_id, client_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      )
-      .run(id, u.email, u.name, u.passwordHash, u.role, u.tenantId, u.clientId, now());
+    await this.run(
+      'INSERT INTO users (id, email, name, password_hash, role, tenant_id, client_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [id, u.email, u.name, u.passwordHash, u.role, u.tenantId, u.clientId, now()],
+    );
     return { id, email: u.email, name: u.name, role: u.role, tenantId: u.tenantId, clientId: u.clientId };
   }
 
   private static USER_COLS = 'id, email, name, role, tenant_id AS tenantId, client_id AS clientId';
 
-  getUser(id: string): User | undefined {
-    return this.db.prepare(`SELECT ${Repo.USER_COLS} FROM users WHERE id = ?`).get(id) as User | undefined;
+  getUser(id: string): Promise<User | undefined> {
+    return this.one(`SELECT ${Repo.USER_COLS} FROM users WHERE id = ?`, [id]);
   }
 
-  getUserWithHash(email: string): (User & { passwordHash: string }) | undefined {
-    return this.db
-      .prepare(`SELECT ${Repo.USER_COLS}, password_hash AS passwordHash FROM users WHERE email = ?`)
-      .get(email) as (User & { passwordHash: string }) | undefined;
+  getUserWithHash(email: string): Promise<(User & { passwordHash: string }) | undefined> {
+    return this.one(`SELECT ${Repo.USER_COLS}, password_hash AS passwordHash FROM users WHERE email = ?`, [email]);
   }
 
-  listClientUsers(clientId: string): User[] {
-    return this.db
-      .prepare(`SELECT ${Repo.USER_COLS} FROM users WHERE client_id = ? ORDER BY name`)
-      .all(clientId) as unknown as User[];
+  listClientUsers(clientId: string): Promise<User[]> {
+    return this.all(`SELECT ${Repo.USER_COLS} FROM users WHERE client_id = ? ORDER BY name`, [clientId]);
   }
 
   // ── Drafts ─────────────────────────────────────────────────────────────────
 
-  getDraft(ownerType: OwnerType, ownerId: string): Draft | undefined {
-    const row = this.db
-      .prepare('SELECT layer, updated_at AS updatedAt, updated_by AS updatedBy FROM drafts WHERE owner_type = ? AND owner_id = ?')
-      .get(ownerType, ownerId) as { layer: string; updatedAt: string; updatedBy: string | null } | undefined;
+  async getDraft(ownerType: OwnerType, ownerId: string): Promise<Draft | undefined> {
+    const row = await this.one<{ layer: string; updatedAt: string; updatedBy: string | null }>(
+      'SELECT layer, updated_at AS updatedAt, updated_by AS updatedBy FROM drafts WHERE owner_type = ? AND owner_id = ?',
+      [ownerType, ownerId],
+    );
     return row && { ...row, layer: JSON.parse(row.layer) as ThemeInput };
   }
 
-  saveDraft(ownerType: OwnerType, ownerId: string, layer: ThemeInput, userId: string | null): Draft {
+  async saveDraft(ownerType: OwnerType, ownerId: string, layer: ThemeInput, userId: string | null): Promise<Draft> {
     const d = { layer, updatedAt: now(), updatedBy: userId };
-    this.db
-      .prepare(
-        `INSERT INTO drafts (owner_type, owner_id, layer, updated_at, updated_by) VALUES (?, ?, ?, ?, ?)
-         ON CONFLICT (owner_type, owner_id) DO UPDATE SET layer = excluded.layer, updated_at = excluded.updated_at, updated_by = excluded.updated_by`,
-      )
-      .run(ownerType, ownerId, JSON.stringify(layer), d.updatedAt, userId);
+    await this.run(
+      `INSERT INTO drafts (owner_type, owner_id, layer, updated_at, updated_by) VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT (owner_type, owner_id) DO UPDATE SET layer = excluded.layer, updated_at = excluded.updated_at, updated_by = excluded.updated_by`,
+      [ownerType, ownerId, JSON.stringify(layer), d.updatedAt, userId],
+    );
     return d;
   }
 
@@ -156,42 +172,38 @@ export class Repo {
 
   private static VERSION_SUMMARY_COLS = `v.version, v.hash, v.note, v.published_at AS publishedAt, u.name AS publishedBy`;
 
-  listVersions(ownerType: OwnerType, ownerId: string): VersionSummary[] {
-    return this.db
-      .prepare(
-        `SELECT ${Repo.VERSION_SUMMARY_COLS} FROM versions v LEFT JOIN users u ON u.id = v.published_by
-         WHERE v.owner_type = ? AND v.owner_id = ? ORDER BY v.version DESC`,
-      )
-      .all(ownerType, ownerId) as unknown as VersionSummary[];
+  listVersions(ownerType: OwnerType, ownerId: string): Promise<VersionSummary[]> {
+    return this.all(
+      `SELECT ${Repo.VERSION_SUMMARY_COLS} FROM versions v LEFT JOIN users u ON u.id = v.published_by
+       WHERE v.owner_type = ? AND v.owner_id = ? ORDER BY v.version DESC`,
+      [ownerType, ownerId],
+    );
   }
 
-  getVersion(ownerType: OwnerType, ownerId: string, version?: number): Version | undefined {
-    const row = this.db
-      .prepare(
-        `SELECT ${Repo.VERSION_SUMMARY_COLS}, v.layer, v.resolved FROM versions v LEFT JOIN users u ON u.id = v.published_by
-         WHERE v.owner_type = ? AND v.owner_id = ? ${version === undefined ? '' : 'AND v.version = ?'}
-         ORDER BY v.version DESC LIMIT 1`,
-      )
-      .get(...([ownerType, ownerId, version].filter((x) => x !== undefined) as (string | number)[])) as
-      | (VersionSummary & { layer: string; resolved: string })
-      | undefined;
+  async getVersion(ownerType: OwnerType, ownerId: string, version?: number): Promise<Version | undefined> {
+    const row = await this.one<VersionSummary & { layer: string; resolved: string }>(
+      `SELECT ${Repo.VERSION_SUMMARY_COLS}, v.layer, v.resolved FROM versions v LEFT JOIN users u ON u.id = v.published_by
+       WHERE v.owner_type = ? AND v.owner_id = ? ${version === undefined ? '' : 'AND v.version = ?'}
+       ORDER BY v.version DESC LIMIT 1`,
+      version === undefined ? [ownerType, ownerId] : [ownerType, ownerId, version],
+    );
     return row && { ...row, layer: JSON.parse(row.layer), resolved: JSON.parse(row.resolved) };
   }
 
   /** Raw resolved JSON + hash of the latest client version, for the hot public endpoint. */
-  getPublishedJson(clientId: string): { resolved: string; hash: string } | undefined {
-    return this.db
-      .prepare(
-        `SELECT resolved, hash FROM versions WHERE owner_type = 'client' AND owner_id = ? ORDER BY version DESC LIMIT 1`,
-      )
-      .get(clientId) as { resolved: string; hash: string } | undefined;
+  getPublishedJson(clientId: string): Promise<{ resolved: string; hash: string } | undefined> {
+    return this.one(
+      `SELECT resolved, hash FROM versions WHERE owner_type = 'client' AND owner_id = ? ORDER BY version DESC LIMIT 1`,
+      [clientId],
+    );
   }
 
-  nextVersion(ownerType: OwnerType, ownerId: string): number {
-    const row = this.db
-      .prepare('SELECT COALESCE(MAX(version), 0) + 1 AS next FROM versions WHERE owner_type = ? AND owner_id = ?')
-      .get(ownerType, ownerId) as { next: number };
-    return row.next;
+  async nextVersion(ownerType: OwnerType, ownerId: string): Promise<number> {
+    const row = await this.one<{ next: number }>(
+      'SELECT COALESCE(MAX(version), 0) + 1 AS next FROM versions WHERE owner_type = ? AND owner_id = ?',
+      [ownerType, ownerId],
+    );
+    return Number(row?.next ?? 1);
   }
 
   insertVersion(
@@ -199,26 +211,33 @@ export class Repo {
     ownerId: string,
     v: { version: number; layer: ThemeInput; resolved: Theme; hash: string; note: string | null; publishedAt: string },
     userId: string | null,
-  ) {
-    this.db
-      .prepare(
-        `INSERT INTO versions (owner_type, owner_id, version, layer, resolved, hash, note, published_at, published_by)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      )
-      .run(ownerType, ownerId, v.version, JSON.stringify(v.layer), JSON.stringify(v.resolved), v.hash, v.note, v.publishedAt, userId);
+  ): Promise<void> {
+    return this.run(
+      `INSERT INTO versions (owner_type, owner_id, version, layer, resolved, hash, note, published_at, published_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [ownerType, ownerId, v.version, JSON.stringify(v.layer), JSON.stringify(v.resolved), v.hash, v.note, v.publishedAt, userId],
+    );
   }
 
   /** Clients of a tenant that have at least one published version. */
-  publishedClientIds(tenantId: string): string[] {
-    return (
-      this.db
-        .prepare(
-          `SELECT DISTINCT c.id FROM clients c JOIN versions v ON v.owner_type = 'client' AND v.owner_id = c.id
-           WHERE c.tenant_id = ?`,
-        )
-        .all(tenantId) as { id: string }[]
-    ).map((r) => r.id);
+  async publishedClientIds(tenantId: string): Promise<string[]> {
+    const rows = await this.all<{ id: string }>(
+      `SELECT DISTINCT c.id FROM clients c JOIN versions v ON v.owner_type = 'client' AND v.owner_id = c.id
+       WHERE c.tenant_id = ?`,
+      [tenantId],
+    );
+    return rows.map((r) => r.id);
   }
+}
+
+/** libSQL rows are array-like with named accessors; convert to a plain object. */
+function plain<T>(row: Row, columns: string[]): T {
+  const out: Record<string, unknown> = {};
+  columns.forEach((c, i) => {
+    const v = row[i];
+    out[c] = typeof v === 'bigint' ? Number(v) : v;
+  });
+  return out as T;
 }
 
 export function newPublishableKey(): string {

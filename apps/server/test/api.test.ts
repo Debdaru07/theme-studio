@@ -1,18 +1,39 @@
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import type { FastifyInstance } from 'fastify';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.ts';
-import { openDb } from '../src/db.ts';
+import { openDb, type Db } from '../src/db.ts';
 import { DEMO_KEYS, DEMO_USERS, seedDemo } from '../src/demo.ts';
 
 let app: FastifyInstance;
+let db: Db;
 let ids: { tenantId: string; clients: { acme: string; globex: string } };
+const dir = mkdtempSync(join(tmpdir(), 'dts-test-'));
+let n = 0;
 
+// A temp file per test: libSQL runs transactions on their own connection, which an in-memory DB would not share.
 beforeEach(async () => {
-  const db = openDb(':memory:');
-  const seeded = seedDemo(db);
+  db = await openDb({ url: `file:${join(dir, `test-${n++}.db`).replace(/\\/g, '/')}` });
+  const seeded = await seedDemo(db);
   if (!seeded.created) throw new Error('seed failed');
   ids = seeded;
   app = await buildApp({ db, jwtSecret: 'test-secret-test-secret-test-secret' });
+});
+
+afterEach(async () => {
+  await app.close();
+  db.close();
+});
+
+// Windows may still hold the files briefly after close; leftovers in the OS temp dir are harmless.
+afterAll(() => {
+  try {
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  } catch {
+    /* left for the OS to clean up */
+  }
 });
 
 async function login(who: keyof typeof DEMO_USERS) {
@@ -139,6 +160,29 @@ describe('client theme lifecycle', () => {
       'components.button.height',
       'sizing.minTouchTarget',
     ]);
+  });
+
+  it('lets the agency set agency-level tokens on a client; the client keeps but cannot change them', async () => {
+    const url = `/clients/${ids.clients.acme}/theme`;
+    const agency = await login('tenant');
+    const draft = (await app.inject({ method: 'GET', url, headers: agency })).json().draft;
+    const withHeight = { ...draft, components: { ...draft.components, button: { ...draft.components.button, height: 44 } } };
+    const set = await app.inject({ method: 'PUT', url: `${url}/draft`, headers: agency, payload: { layer: withHeight } });
+    expect(set.statusCode).toBe(200);
+
+    const client = await login('acmeEditor');
+    // Editing their brand color keeps the agency's button height.
+    const recolor = { ...withHeight, color: { seed: { ...withHeight.color.seed, primary: '#0E7490' } } };
+    expect((await app.inject({ method: 'PUT', url: `${url}/draft`, headers: client, payload: { layer: recolor } })).statusCode).toBe(200);
+    // Changing or removing it is refused.
+    const changed = { ...recolor, components: { ...recolor.components, button: { ...recolor.components.button, height: 30 } } };
+    const res = await app.inject({ method: 'PUT', url: `${url}/draft`, headers: client, payload: { layer: changed } });
+    expect(res.statusCode).toBe(422);
+    expect(res.json().issues[0].path).toBe('components.button.height');
+
+    // And it still publishes.
+    expect((await app.inject({ method: 'POST', url: `${url}/publish`, headers: client })).statusCode).toBe(200);
+    expect((await getTheme(DEMO_KEYS.acme)).json().components.button.height).toBe(44);
   });
 
   it('saves a draft that fails contrast but refuses to publish it', async () => {

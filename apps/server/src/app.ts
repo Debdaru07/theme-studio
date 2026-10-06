@@ -6,7 +6,7 @@ import { z, ZodError } from 'zod';
 import type { Db } from './db.ts';
 import { HttpError, forbidden, notFound } from './errors.ts';
 import { hashPassword, verifyPassword } from './passwords.ts';
-import { Repo, type Client, type User } from './repo.ts';
+import { Repo, type Client, type OwnerType, type User } from './repo.ts';
 import { ThemeService } from './themes.ts';
 
 export interface AppOptions {
@@ -41,8 +41,8 @@ const canEditClient = (u: User, c: Client) =>
 
 export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
   const app = Fastify({ logger: opts.logger ?? false });
-  const repo = new Repo(opts.db);
-  const themes = new ThemeService(opts.db, repo);
+  const repo = new Repo(opts.db, opts.db);
+  const themes = new ThemeService(repo);
 
   await app.register(cors, {
     // Bearer tokens, not cookies, so reflecting any origin is safe. SDKs need to read ETag.
@@ -73,29 +73,43 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
   });
 
   const auth = async (req: FastifyRequest): Promise<User> => {
+    let sub: string | undefined;
     try {
-      const { sub } = await req.jwtVerify<{ sub: string }>();
-      const user = repo.getUser(sub);
-      if (user) return user;
+      ({ sub } = await req.jwtVerify<{ sub: string }>());
     } catch {
       /* fall through */
     }
-    throw new HttpError(401, 'Unauthorized');
+    const user = sub ? await repo.getUser(sub) : undefined;
+    if (!user) throw new HttpError(401, 'Unauthorized');
+    return user;
   };
 
   const loadClient = async (req: FastifyRequest) => {
     const user = await auth(req);
-    const client = themes.client(IdParams.parse(req.params).id);
+    const client = await themes.client(IdParams.parse(req.params).id);
     if (!canEditClient(user, client)) throw forbidden();
     return { user, client };
   };
 
   const loadTenant = async (req: FastifyRequest, need: 'view' | 'manage') => {
     const user = await auth(req);
-    const tenant = themes.tenant(IdParams.parse(req.params).id);
+    const tenant = await themes.tenant(IdParams.parse(req.params).id);
     const ok = need === 'manage' ? canManageTenant(user, tenant.id) : canViewTenant(user, tenant.id);
     if (!ok) throw forbidden();
     return { user, tenant };
+  };
+
+  /** Editor state for a tenant base theme or a client theme. */
+  const themeState = async (ownerType: OwnerType, ownerId: string) => {
+    const published = await repo.getVersion(ownerType, ownerId);
+    const draft = await repo.getDraft(ownerType, ownerId);
+    return {
+      draft: draft?.layer ?? published?.layer ?? {},
+      draftUpdatedAt: draft?.updatedAt ?? null,
+      published: published ? summary(published) : null,
+      publishedLayer: published?.layer ?? null,
+      hasUnpublishedChanges: !!draft && JSON.stringify(draft.layer) !== JSON.stringify(published?.layer ?? {}),
+    };
   };
 
   // ── Health & auth ──────────────────────────────────────────────────────────
@@ -104,7 +118,7 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
 
   app.post('/auth/login', async (req) => {
     const { email, password } = LoginBody.parse(req.body);
-    const found = repo.getUserWithHash(email);
+    const found = await repo.getUserWithHash(email);
     if (!found || !verifyPassword(password, found.passwordHash)) throw new HttpError(401, 'Invalid email or password');
     const { passwordHash: _h, ...user } = found;
     return { token: app.jwt.sign({ sub: user.id }), user };
@@ -116,7 +130,7 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
 
   app.get('/tenants', async (req) => {
     const user = await auth(req);
-    const all = repo.listTenants();
+    const all = await repo.listTenants();
     return { tenants: user.role === 'platform_admin' ? all : all.filter((t) => t.id === user.tenantId) };
   });
 
@@ -124,51 +138,46 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
     const user = await auth(req);
     if (user.role !== 'platform_admin') throw forbidden();
     const body = CreateTenantBody.parse(req.body);
+    const tenant = await guardUnique(() => repo.createTenant(body.slug, body.name), 'Tenant slug');
     reply.status(201);
-    return { tenant: guardUnique(() => repo.createTenant(body.slug, body.name), 'Tenant slug') };
+    return { tenant };
   });
 
   app.post('/tenants/:id/users', async (req, reply) => {
     const { tenant } = await loadTenant(req, 'manage');
     const body = CreateUserBody.parse(req.body);
-    reply.status(201);
-    const user = guardUnique(
+    const user = await guardUnique(
       () =>
         repo.createUser({ ...body, passwordHash: hashPassword(body.password), role: 'tenant_admin', tenantId: tenant.id, clientId: null }),
       'Email',
     );
+    reply.status(201);
     return { user };
   });
 
   app.get('/tenants/:id/clients', async (req) => {
     const { user, tenant } = await loadTenant(req, 'view');
-    const clients = repo.listClients(tenant.id).filter((c) => canEditClient(user, c));
+    const clients = (await repo.listClients(tenant.id)).filter((c) => canEditClient(user, c));
     return {
-      clients: clients.map((c) => ({ ...c, published: repo.listVersions('client', c.id)[0] ?? null })),
+      clients: await Promise.all(
+        clients.map(async (c) => ({ ...c, published: (await repo.listVersions('client', c.id))[0] ?? null })),
+      ),
     };
   });
 
   app.post('/tenants/:id/clients', async (req, reply) => {
     const { tenant } = await loadTenant(req, 'manage');
     const body = CreateClientBody.parse(req.body);
+    const client = await guardUnique(() => repo.createClient(tenant.id, body.slug, body.name), 'Client slug');
     reply.status(201);
-    return { client: guardUnique(() => repo.createClient(tenant.id, body.slug, body.name), 'Client slug') };
+    return { client };
   });
 
   // ── Tenant base theme ──────────────────────────────────────────────────────
 
   app.get('/tenants/:id/theme', async (req) => {
     const { tenant } = await loadTenant(req, 'view');
-    const published = repo.getVersion('tenant', tenant.id);
-    const draft = repo.getDraft('tenant', tenant.id);
-    return {
-      tenant,
-      draft: draft?.layer ?? published?.layer ?? {},
-      draftUpdatedAt: draft?.updatedAt ?? null,
-      published: published ? summary(published) : null,
-      publishedLayer: published?.layer ?? null,
-      hasUnpublishedChanges: !!draft && JSON.stringify(draft.layer) !== JSON.stringify(published?.layer ?? {}),
-    };
+    return { tenant, ...(await themeState('tenant', tenant.id)) };
   });
 
   app.put('/tenants/:id/theme/draft', async (req) => {
@@ -188,27 +197,26 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
 
   app.get('/tenants/:id/theme/versions', async (req) => {
     const { tenant } = await loadTenant(req, 'view');
-    return { versions: repo.listVersions('tenant', tenant.id) };
+    return { versions: await repo.listVersions('tenant', tenant.id) };
   });
 
   // ── Clients ────────────────────────────────────────────────────────────────
 
   app.get('/clients/:id', async (req) => {
     const { client } = await loadClient(req);
-    return { client, tenant: themes.tenant(client.tenantId) };
+    return { client, tenant: await themes.tenant(client.tenantId) };
   });
 
   app.get('/clients/:id/users', async (req) => {
     const { client } = await loadClient(req);
-    return { users: repo.listClientUsers(client.id) };
+    return { users: await repo.listClientUsers(client.id) };
   });
 
   app.post('/clients/:id/users', async (req, reply) => {
     const { user, client } = await loadClient(req);
     if (!canManageTenant(user, client.tenantId)) throw forbidden();
     const body = CreateUserBody.parse(req.body);
-    reply.status(201);
-    const created = guardUnique(
+    const created = await guardUnique(
       () =>
         repo.createUser({
           ...body,
@@ -219,6 +227,7 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
         }),
       'Email',
     );
+    reply.status(201);
     return { user: created };
   });
 
@@ -226,17 +235,11 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
 
   app.get('/clients/:id/theme', async (req) => {
     const { client } = await loadClient(req);
-    const published = repo.getVersion('client', client.id);
-    const draft = repo.getDraft('client', client.id);
     return {
       client,
       /** Published tenant base layer; the admin resolves `[base, draft]` locally for instant preview. */
-      base: themes.baseLayer(client.tenantId),
-      draft: draft?.layer ?? published?.layer ?? {},
-      draftUpdatedAt: draft?.updatedAt ?? null,
-      published: published ? summary(published) : null,
-      publishedLayer: published?.layer ?? null,
-      hasUnpublishedChanges: !!draft && JSON.stringify(draft.layer) !== JSON.stringify(published?.layer ?? {}),
+      base: await themes.baseLayer(client.tenantId),
+      ...(await themeState('client', client.id)),
     };
   });
 
@@ -257,13 +260,13 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
 
   app.get('/clients/:id/theme/versions', async (req) => {
     const { client } = await loadClient(req);
-    return { versions: repo.listVersions('client', client.id) };
+    return { versions: await repo.listVersions('client', client.id) };
   });
 
   app.get('/clients/:id/theme/versions/:version', async (req) => {
     const { client } = await loadClient(req);
     const { version } = VersionParams.parse(req.params);
-    const v = repo.getVersion('client', client.id, version) ?? throwErr(notFound(`Version ${version}`));
+    const v = (await repo.getVersion('client', client.id, version)) ?? throwErr(notFound(`Version ${version}`));
     return { version: v };
   });
 
@@ -278,9 +281,9 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
     const key =
       (req.headers['x-theme-key'] as string | undefined) ?? (req.query as Record<string, string | undefined>).key;
     if (!key) throw new HttpError(401, 'Missing X-Theme-Key header');
-    const client = repo.getClientByKey(key);
+    const client = await repo.getClientByKey(key);
     if (!client) throw new HttpError(401, 'Unknown theme key');
-    const published = repo.getPublishedJson(client.id);
+    const published = await repo.getPublishedJson(client.id);
     if (!published) throw new HttpError(404, 'No published theme for this client');
 
     const etag = `"${published.hash}"`;
@@ -299,11 +302,11 @@ const summary = <T extends { version: number; hash: string; note: string | null;
   v: T,
 ) => ({ version: v.version, hash: v.hash, note: v.note, publishedAt: v.publishedAt, publishedBy: v.publishedBy });
 
-function guardUnique<T>(fn: () => T, what: string): T {
+async function guardUnique<T>(fn: () => Promise<T>, what: string): Promise<T> {
   try {
-    return fn();
+    return await fn();
   } catch (e) {
-    if (/UNIQUE constraint failed/.test((e as Error).message)) throw new HttpError(409, `${what} already exists`);
+    if (/UNIQUE constraint failed/.test(String((e as Error).message))) throw new HttpError(409, `${what} already exists`);
     throw e;
   }
 }
