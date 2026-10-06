@@ -1,0 +1,82 @@
+import { ThemeProvider } from '@dts/react';
+import type { Theme } from '@dts/schema';
+import { useLayoutEffect, useRef, useState } from 'react';
+import { HomeScreen, FormScreen, OrdersScreen, OverlaysScreen } from './screens.tsx';
+import { DESTINATIONS, Shell, type ScreenId } from './Shell.tsx';
+
+const DEVICES = {
+  mobile: { label: 'Phone', width: 390, height: 780 },
+  tablet: { label: 'Tablet', width: 820, height: 1000 },
+  desktop: { label: 'Desktop', width: 1280, height: 800 },
+  wide: { label: 'Wide', width: 1520, height: 860 },
+} as const;
+type Device = keyof typeof DEVICES;
+
+export function Preview({ theme }: { theme: Theme }) {
+  const [device, setDevice] = useState<Device>('mobile');
+  const [mode, setMode] = useState<'light' | 'dark'>('light');
+  const [screen, setScreen] = useState<ScreenId>('home');
+  const [replay, setReplay] = useState(0);
+  const stage = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  const { width, height } = DEVICES[device];
+
+  // Scale the frame to fit; the frame keeps its real CSS width so breakpoints behave like the device.
+  useLayoutEffect(() => {
+    const el = stage.current;
+    if (!el) return;
+    const fit = () => setScale(Math.min(1, (el.clientWidth - 32) / width, (el.clientHeight - 32) / height));
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [width, height]);
+
+  const transition = theme.motion.pageTransition;
+  const animate = transition === 'none' ? '' : `enter-${transition}`;
+  const title = DESTINATIONS.find((d) => d.id === screen)?.label;
+
+  return (
+    <div className="preview">
+      <div className="preview-toolbar">
+        <div className="segmented">
+          {(Object.keys(DEVICES) as Device[]).map((d) => (
+            <button key={d} type="button" className={device === d ? 'on' : ''} onClick={() => setDevice(d)}>
+              {DEVICES[d].label}
+            </button>
+          ))}
+        </div>
+        <div className="segmented">
+          {(['light', 'dark'] as const).map((m) => (
+            <button key={m} type="button" className={mode === m ? 'on' : ''} onClick={() => setMode(m)}>
+              {m === 'light' ? '☀ Light' : '☾ Dark'}
+            </button>
+          ))}
+        </div>
+        <button type="button" className="btn ghost small" onClick={() => setReplay((r) => r + 1)} title="Replay page transition">
+          ↻ Replay motion
+        </button>
+        <span className="muted small">
+          {width}px · {Math.round(scale * 100)}%
+        </span>
+      </div>
+
+      <div className="preview-stage" ref={stage}>
+        <div className="device" style={{ width: width * scale, height: height * scale }}>
+          <div className="device-inner" style={{ width, height, transform: `scale(${scale})` }}>
+            <ThemeProvider theme={theme} mode={mode} scope="element" className="dts-app">
+              <Shell screen={screen} onNavigate={setScreen} title={title}>
+                <div key={`${screen}-${replay}`} className={`p-page ${animate}`}>
+                  {screen === 'home' && <HomeScreen />}
+                  {screen === 'orders' && <OrdersScreen animate={animate} />}
+                  {screen === 'form' && <FormScreen />}
+                  {screen === 'overlays' && <OverlaysScreen />}
+                </div>
+              </Shell>
+            </ThemeProvider>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
