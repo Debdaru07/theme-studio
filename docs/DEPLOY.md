@@ -32,10 +32,10 @@ update the variable and retry the build.
 
 1. Cloudflare dashboard → **Workers & Pages → Create → Import a repository** → pick the repo.
 2. Fill in:
-   - Project name: `theme-studio` (must match `name` in the root `wrangler.jsonc`)
+   - Project name: `theme-studio` (must match `name` in `apps/admin/wrangler.jsonc`)
    - Build command: `npm ci && npm run build -w @dts/admin`
-   - Deploy command: `npx wrangler deploy` (the default)
-   - Preview command: `npx wrangler versions upload` (the default)
+   - Deploy command: `npx wrangler deploy --config apps/admin/wrangler.jsonc`
+   - Preview command: `npx wrangler versions upload --config apps/admin/wrangler.jsonc`
 3. **Advanced settings → Build variables:**
    - `NODE_VERSION` = `24`
    - `VITE_API_URL` = your Render URL, e.g. `https://theme-studio-api.onrender.com`
@@ -53,8 +53,8 @@ A second project from the same repo:
 - Preview command: `npx wrangler versions upload --config apps/site/wrangler.jsonc`
 - Build variables: `NODE_VERSION=24`, `PUBLIC_API_URL`, `PUBLIC_ADMIN_URL` (the Theme Studio URL), `PUBLIC_REPO_URL`.
 
-The classic Pages flow also works (build output `apps/admin/dist` / `apps/site/dist`; `apps/admin/public/_redirects`
-handles app routes there).
+Don't add a `_redirects` SPA rule: Workers rejects `/* /index.html 200` as an infinite loop; the
+`single-page-application` setting in the wrangler config already handles app routes.
 
 ## Things to know about a public demo
 
