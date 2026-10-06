@@ -13,6 +13,6 @@ const pick = (key: string, fallback: string): string =>
 /** Theme API origin (serves `GET /v1/theme`). */
 export const API_URL = pick('PUBLIC_API_URL', 'https://theme-studio-api.onrender.com');
 /** Theme Studio admin app. */
-export const ADMIN_URL = pick('PUBLIC_ADMIN_URL', 'https://theme-studio.pages.dev');
+export const ADMIN_URL = pick('PUBLIC_ADMIN_URL', 'https://theme-studio.debdarudasgupta0799.workers.dev');
 /** Source repository. */
 export const REPO_URL = pick('PUBLIC_REPO_URL', 'https://github.com/Debdaru07/theme-studio');
