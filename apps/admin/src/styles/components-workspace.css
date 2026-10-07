@@ -319,6 +319,12 @@
   }
   .tk-steps button {
     height: 40px;
+    min-width: 40px;
+  }
+  .cw-code summary {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
   }
   .tk-number input {
     height: 40px;
