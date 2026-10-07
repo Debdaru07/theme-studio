@@ -179,12 +179,14 @@
   color: var(--muted);
   font-family: ui-monospace, 'JetBrains Mono', Menlo, Consolas, monospace;
 }
-/* Full height: the panel is the only vertical scroll. Long lines scroll sideways inside the block. */
+/* Full height, and long lines wrap (keeping indentation) instead of scrolling sideways: the panel is the only
+ * scroll. Copy still copies the original lines. */
 .int-code pre {
   margin: 0;
   padding: 12px 14px;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: visible;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
   font: 12.5px/1.6 ui-monospace, 'JetBrains Mono', Menlo, Consolas, monospace;
   tab-size: 2;
 }
@@ -358,6 +360,202 @@
   gap: 8px;
 }
 
+/* Components: one expandable entry per component. */
+.int-comps {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: clip;
+}
+.int-comp + .int-comp {
+  border-top: 1px solid var(--line);
+}
+.int-comp > summary {
+  display: grid;
+  grid-template-columns: minmax(120px, auto) auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 4px 12px;
+  min-height: 44px;
+  padding: 10px 14px;
+  list-style: none;
+  cursor: pointer;
+}
+.int-comp > summary::-webkit-details-marker {
+  display: none;
+}
+.int-comp > summary:hover {
+  background: var(--panel-2);
+}
+.int-comp > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.int-comp[open] > summary {
+  background: var(--panel-2);
+  border-bottom: 1px solid var(--line);
+}
+.int-comp-name {
+  font-weight: 600;
+}
+.int-comp-name::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 10px;
+  border-right: 1.5px solid var(--muted);
+  border-bottom: 1.5px solid var(--muted);
+  transform: translateY(-2px) rotate(-45deg);
+  transition: transform 150ms ease;
+}
+.int-comp[open] .int-comp-name::before {
+  transform: translateY(-3px) rotate(45deg);
+}
+.int-comp-cat {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.int-comp-summary {
+  font-size: 12.5px;
+  min-width: 0;
+}
+.int-comp-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  padding: 16px 14px 18px;
+}
+.int-comp-block {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.int-comp-block h4 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.int-signature {
+  display: block;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--panel-2);
+  font-size: 12.5px;
+  overflow-wrap: break-word;
+}
+.int-props {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: clip;
+}
+.int-props .int-table td {
+  vertical-align: top;
+}
+.int-type {
+  color: var(--muted);
+  overflow-wrap: break-word;
+}
+.int-comp-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 16px;
+}
+.int-tokens,
+.int-a11y {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  font-size: 12.5px;
+}
+.int-tokens code {
+  font-size: 12px;
+}
+
+/* Live preview beside each component's code (side by side when the pane is wide). */
+.int-showcase {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+@container panel (min-width: 900px) {
+  .int-showcase {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+.int-preview {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: clip;
+  min-width: 0;
+}
+.int-preview-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 6px 4px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+.int-preview-title {
+  font-size: 12px;
+  font-weight: 600;
+}
+/* The client's theme: --dts-* only. transform makes fixed overlays (dialog, toast) open inside the panel. */
+.int-preview-app {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dts-space-lg);
+  min-height: 140px;
+  padding: var(--dts-space-lg);
+  background: var(--dts-color-background);
+  color: var(--dts-color-on-surface);
+  font: var(--dts-text-body-medium-weight) var(--dts-text-body-medium-size) / var(--dts-text-body-medium-line-height) var(--dts-text-body-medium-family);
+  transform: translateZ(0);
+}
+.int-preview[data-overlay] .int-preview-app {
+  min-height: 320px;
+}
+.int-demo-variant {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dts-space-sm);
+}
+.int-demo-label {
+  font: 600 11px/1.3 Inter, system-ui, sans-serif;
+  letter-spacing: 0.02em;
+  color: var(--dts-color-on-surface-muted);
+}
+.int-demo-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--dts-space-sm);
+}
+.int-demo-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dts-form-gap);
+}
+.int-demo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
+  gap: var(--dts-card-gap);
+  width: 100%;
+}
+.int-demo-media {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--dts-color-primary-container), var(--dts-color-secondary-container));
+}
+
 /* Copy confirmation */
 .int-toast {
   position: fixed;
@@ -443,6 +641,12 @@
 
 /* Narrow panes (compact tier): stack the connection rows. */
 @container panel (max-width: 560px) {
+  .int-comp > summary {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .int-comp-summary {
+    grid-column: 1 / -1;
+  }
   .int-keys .key-row {
     grid-template-columns: minmax(0, 1fr) auto;
   }

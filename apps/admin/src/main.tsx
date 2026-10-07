@@ -6,6 +6,7 @@ import { App } from './App.tsx';
 import { AuthProvider } from './auth.tsx';
 import './styles/admin.css';
 import './styles/responsive.css';
+import '@dts/react/components.css';
 import './preview/preview.css';
 
 const queryClient = new QueryClient({

@@ -1,8 +1,10 @@
 import type { Theme } from '@dts/schema';
 import { themeStylesheet } from '@dts/web';
-import { Fragment, useId, useMemo, useRef, useState } from 'react';
+import { Fragment, useId, useMemo, useState } from 'react';
 import { API_URL } from '../api.ts';
 import type { ThemeEditor } from '../editor/useThemeEditor.ts';
+import { CodeBlock, useCopy } from './CodeBlock.tsx';
+import { ComponentDocs } from './ComponentDocs.tsx';
 import { buildRows, CATEGORIES, type Category } from './reference.ts';
 import { DOCS_URL, SDKS, type SdkId } from './sdks.ts';
 import './integrate.css';
@@ -17,41 +19,6 @@ const readSdk = (): SdkId => {
     return 'flutter';
   }
 };
-
-/** Copies text and announces the result in one polite live region. */
-function useCopy() {
-  const [message, setMessage] = useState('');
-  const timer = useRef<number>(undefined);
-  const copy = async (text: string, what: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setMessage(`Copied ${what}`);
-    } catch {
-      setMessage(`Could not copy ${what}. Select it and copy manually.`);
-    }
-    window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => setMessage(''), 2000);
-  };
-  return { copy, message };
-}
-type Copy = ReturnType<typeof useCopy>['copy'];
-
-function CodeBlock({ code, label, lang, copy }: { code: string; label: string; lang: string; copy: Copy }) {
-  return (
-    <figure className="int-code">
-      <figcaption>
-        <span className="int-code-file">{label}</span>
-        <span className="int-code-lang">{lang}</span>
-        <button type="button" className="btn ghost small" onClick={() => copy(code, label)}>
-          Copy
-        </button>
-      </figcaption>
-      <pre tabIndex={0} aria-label={label}>
-        <code>{code}</code>
-      </pre>
-    </figure>
-  );
-}
 
 /** Lets long token paths wrap after a dot (on narrow cards) instead of mid-word. */
 function dotted(text: string) {
@@ -193,6 +160,8 @@ export function Integrate({ ed }: { ed: ThemeEditor }) {
           <CodeBlock code={active.code} label={`${active.title} · ${sdk.label}`} lang={active.lang} copy={copy} />
         </li>
       </ol>
+
+      <ComponentDocs sdk={sdk.id} sdkLabel={sdk.label} copy={copy} theme={theme} />
 
       <section className="int-section" aria-labelledby="int-ref">
         <div className="int-ref-head">

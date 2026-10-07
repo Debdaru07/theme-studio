@@ -1,4 +1,4 @@
-/* Admin chrome. Deliberately neutral so the client's theme in the preview stands out. */
+/* Admin chrome: light only. Deliberately neutral so the client's theme in the preview stands out. */
 
 :root {
   --bg: #f6f7f9;
@@ -19,27 +19,6 @@
   --radius: 10px;
   --shadow: 0 1px 2px rgb(16 24 40 / 0.06), 0 4px 16px rgb(16 24 40 / 0.06);
   color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0f1115;
-    --panel: #171a20;
-    --panel-2: #1e222a;
-    --text: #e8eaee;
-    --muted: #9aa3b2;
-    --line: #2a2f39;
-    --accent: #8ea4ff;
-    --accent-text: #0d1430;
-    --accent-soft: #232b4a;
-    --ok: #6fd28f;
-    --ok-soft: #173323;
-    --warn: #f2bf66;
-    --warn-soft: #3a2c12;
-    --err: #ff8a80;
-    --err-soft: #3d1a1a;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.4);
-    color-scheme: dark;
-  }
 }
 
 * {

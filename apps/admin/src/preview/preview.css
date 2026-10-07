@@ -776,3 +776,78 @@
     opacity: 0;
   }
 }
+
+/* ── Components gallery (preview "Components" view) ─────────────────────────
+ * Its own root (not .dts-app), so only @dts/react components.css styles the components: the gallery shows
+ * exactly what a customer app gets. These rules only lay the demos out. */
+
+.g-app {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background: var(--dts-color-background);
+  color: var(--dts-color-on-surface);
+  font: var(--dts-text-body-medium-weight) var(--dts-text-body-medium-size) / var(--dts-text-body-medium-line-height) var(--dts-text-body-medium-family);
+}
+.g-root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dts-section-gap);
+  max-width: var(--dts-content-max-width);
+  margin: 0 auto;
+  padding: var(--dts-page-padding);
+}
+.g-intro,
+.g-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dts-space-xs);
+}
+.g-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dts-space-xs);
+  margin-top: var(--dts-space-sm);
+}
+.g-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dts-space-lg);
+  padding-top: var(--dts-space-lg);
+  border-top: var(--dts-border-thin) solid var(--dts-color-outline-muted);
+  scroll-margin-top: var(--dts-space-md);
+}
+.g-demo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dts-space-sm);
+}
+.g-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--dts-space-sm);
+}
+.g-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dts-form-gap);
+}
+.g-stack.tight {
+  gap: var(--dts-space-xs);
+}
+.g-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+  gap: var(--dts-card-gap);
+}
+.g-media {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--dts-color-primary-container), var(--dts-color-secondary-container));
+}
+.g-skeleton {
+  display: flex;
+  align-items: center;
+  gap: var(--dts-space-md);
+}

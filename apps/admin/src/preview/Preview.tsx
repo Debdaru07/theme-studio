@@ -1,6 +1,7 @@
 import { ThemeProvider } from '@dts/react';
 import type { Theme } from '@dts/schema';
 import { useLayoutEffect, useRef, useState } from 'react';
+import { Gallery } from './Gallery.tsx';
 import { HomeScreen, FormScreen, OrdersScreen, OverlaysScreen } from './screens.tsx';
 import { DESTINATIONS, Shell, type ScreenId } from './Shell.tsx';
 
@@ -15,6 +16,8 @@ type Device = keyof typeof DEVICES;
 export function Preview({ theme }: { theme: Theme }) {
   const [device, setDevice] = useState<Device>('mobile');
   const [mode, setMode] = useState<'light' | 'dark'>('light');
+  /** Sample app screens, or the gallery of every SDK component. */
+  const [view, setView] = useState<'screens' | 'components'>('screens');
   const [screen, setScreen] = useState<ScreenId>('home');
   const [replay, setReplay] = useState(0);
   const stage = useRef<HTMLDivElement>(null);
@@ -43,6 +46,13 @@ export function Preview({ theme }: { theme: Theme }) {
   return (
     <div className="preview">
       <div className="preview-toolbar">
+        <div className="segmented" role="group" aria-label="Preview content">
+          {(['screens', 'components'] as const).map((v) => (
+            <button key={v} type="button" className={view === v ? 'on' : ''} aria-pressed={view === v} onClick={() => setView(v)}>
+              {v === 'screens' ? 'Screens' : 'Component library'}
+            </button>
+          ))}
+        </div>
         <div className="segmented">
           {(Object.keys(DEVICES) as Device[]).map((d) => (
             <button key={d} type="button" className={device === d ? 'on' : ''} onClick={() => setDevice(d)}>
@@ -57,9 +67,11 @@ export function Preview({ theme }: { theme: Theme }) {
             </button>
           ))}
         </div>
-        <button type="button" className="btn ghost small" onClick={() => setReplay((r) => r + 1)} title="Replay page transition">
-          ↻ Replay motion
-        </button>
+        {view === 'screens' && (
+          <button type="button" className="btn ghost small" onClick={() => setReplay((r) => r + 1)} title="Replay page transition">
+            ↻ Replay motion
+          </button>
+        )}
         <span className="muted small">
           {width}px · {Math.round(scale * 100)}%
         </span>
@@ -68,16 +80,22 @@ export function Preview({ theme }: { theme: Theme }) {
       <div className="preview-stage" ref={stage}>
         <div className="device" style={{ width: width * scale, height: height * scale }}>
           <div className="device-inner" style={{ width, height, transform: `scale(${scale})` }}>
-            <ThemeProvider theme={theme} mode={mode} scope="element" className="dts-app">
-              <Shell screen={screen} onNavigate={setScreen} title={title}>
-                <div key={`${screen}-${replay}`} className={`p-page ${animate}`}>
-                  {screen === 'home' && <HomeScreen />}
-                  {screen === 'orders' && <OrdersScreen animate={animate} />}
-                  {screen === 'form' && <FormScreen />}
-                  {screen === 'overlays' && <OverlaysScreen />}
-                </div>
-              </Shell>
-            </ThemeProvider>
+            {view === 'components' ? (
+              <ThemeProvider theme={theme} mode={mode} scope="element" className="g-app">
+                <Gallery />
+              </ThemeProvider>
+            ) : (
+              <ThemeProvider theme={theme} mode={mode} scope="element" className="dts-app">
+                <Shell screen={screen} onNavigate={setScreen} title={title}>
+                  <div key={`${screen}-${replay}`} className={`p-page ${animate}`}>
+                    {screen === 'home' && <HomeScreen />}
+                    {screen === 'orders' && <OrdersScreen animate={animate} />}
+                    {screen === 'form' && <FormScreen />}
+                    {screen === 'overlays' && <OverlaysScreen />}
+                  </div>
+                </Shell>
+              </ThemeProvider>
+            )}
           </div>
         </div>
       </div>
