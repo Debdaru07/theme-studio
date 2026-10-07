@@ -49,7 +49,7 @@ const signIn = async (page) => {
   await page.evaluate(() => localStorage.clear());
   await page.goto(ADMIN);
   await page.getByRole('button', { name: /Agency admin/ }).click();
-  await page.getByRole('button', { name: 'Sign in' }).click();
+  // Demo accounts sign in with one click.
   await page.getByText('Acme Logistics').first().waitFor({ timeout: 60_000 });
 };
 const openEditor = async (page) => {
@@ -99,6 +99,27 @@ export const TARGETS = [
       if (await toggle.isVisible()) await toggle.click();
       await p.getByRole('group', { name: 'Preview content' }).getByRole('button', { name: 'Component library' }).click();
       await p.waitForSelector('.g-root');
+    },
+  },
+  {
+    app: 'admin',
+    name: 'admin-components',
+    go: async (p) => {
+      await openEditor(p);
+      await p.locator('.editor-tabs button', { hasText: 'Components' }).click();
+      await p.waitForSelector('.cw');
+    },
+  },
+  {
+    // Compact layouts start on the Edit pane, so switch to Preview before waiting for the specimen.
+    app: 'admin',
+    name: 'admin-components-specimen',
+    go: async (p) => {
+      await openEditor(p);
+      await p.locator('.editor-tabs button', { hasText: 'Components' }).click();
+      const toggle = p.getByRole('button', { name: /Preview$/ });
+      if (await toggle.isVisible()) await toggle.click();
+      await p.waitForSelector('.spec');
     },
   },
   { app: 'site', name: 'site-home', go: (p) => p.goto(SITE + '/', { waitUntil: 'networkidle' }) },
