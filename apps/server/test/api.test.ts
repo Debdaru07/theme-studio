@@ -245,6 +245,24 @@ describe('client theme lifecycle', () => {
   });
 });
 
+describe('database migrations', () => {
+  it('opens a database created by the earlier node:sqlite server (no _migrations table)', async () => {
+    const { createClient } = await import('@libsql/client');
+    const url = `file:${join(dir, `legacy-${n++}.db`).replace(/\\/g, '/')}`;
+    const legacy = createClient({ url });
+    await legacy.execute('CREATE TABLE tenants (id TEXT PRIMARY KEY, slug TEXT NOT NULL UNIQUE, name TEXT NOT NULL, created_at TEXT NOT NULL)');
+    await legacy.execute("INSERT INTO tenants VALUES ('t1', 'old', 'Old Tenant', '2026-01-01')");
+    legacy.close();
+
+    const reopened = await openDb({ url });
+    const { rows } = await reopened.execute('SELECT name FROM tenants');
+    expect(rows.map((r) => r.name)).toEqual(['Old Tenant']); // data kept, no "table already exists"
+    const { rows: m } = await reopened.execute('SELECT version FROM _migrations');
+    expect(m.map((r) => Number(r.version))).toEqual([1]);
+    reopened.close();
+  });
+});
+
 describe('component tuning', () => {
   it('agency tunes a component per size; clients cannot; guardrails gate publishing; SDKs receive it', async () => {
     const url = `/clients/${ids.clients.acme}/theme`;

@@ -84,7 +84,17 @@ export async function openDb({ url, authToken }: DbOptions): Promise<Db> {
 async function migrate(db: Db) {
   await db.execute('CREATE TABLE IF NOT EXISTS _migrations (version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL)');
   const { rows } = await db.execute('SELECT COALESCE(MAX(version), 0) AS v FROM _migrations');
-  const current = Number(rows[0]?.v ?? 0);
+  let current = Number(rows[0]?.v ?? 0);
+
+  // Databases created by the earlier node:sqlite server tracked migrations in PRAGMA user_version, not in
+  // _migrations. Their tables already exist, so record migration 1 as applied instead of re-running it.
+  if (current === 0) {
+    const legacy = await db.execute("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'tenants'");
+    if (legacy.rows.length) {
+      await db.execute({ sql: 'INSERT INTO _migrations (version, applied_at) VALUES (1, ?)', args: [new Date().toISOString()] });
+      current = 1;
+    }
+  }
   for (let i = current; i < MIGRATIONS.length; i++) {
     const statements: InStatement[] = splitSql(MIGRATIONS[i]!);
     statements.push({ sql: 'INSERT INTO _migrations (version, applied_at) VALUES (?, ?)', args: [i + 1, new Date().toISOString()] });
