@@ -98,6 +98,7 @@ export default defineConfig({
             { label: 'Roles & permissions', slug: 'concepts/roles' },
             { label: 'Contrast & publishing', slug: 'concepts/publishing' },
             { label: 'Typography', slug: 'concepts/typography' },
+            { label: 'Customize components', slug: 'concepts/components' },
           ],
         },
         {

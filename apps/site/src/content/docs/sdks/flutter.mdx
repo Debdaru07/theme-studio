@@ -299,3 +299,7 @@ bundled Acme and Globex fixtures through the same client code path:
 cd sdks/flutter/example
 flutter run -d chrome --dart-define=DTS_ENDPOINT=http://localhost:8787
 ```
+
+## Component tuning
+
+`DtButton` takes `kind` (`DtButtonKind.filled`, `tonal`, `outlined`, `text`, `danger`) and `size` (`DtButtonSize.sm`, `md`, `lg`), built from the agency's component tuning; Material's button, chip, input, dialog and badge themes use the same tokens. Resolve any theme color role for your own widgets with `context.dt.color('accentContainer')`. See [Customize components](/concepts/components/) for what Material can't express.

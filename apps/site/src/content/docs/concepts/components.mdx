@@ -1,0 +1,150 @@
+---
+title: Customize components
+description: Tune the SDK components' sizes, spacing, radii and variant colors on top of a client's theme, and how each SDK applies the result.
+---
+
+import { Aside, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+The SDKs ship themed components (buttons, text fields, cards, chips, badges, dialogs and more). By default they
+are built entirely from the client's theme. **Component tuning** lets an agency adjust how they are built — padding,
+heights, radii, variant colors — without leaving the theme behind:
+
+- **Every value starts linked to a theme token.** `button.radius` follows `shape.radius.full`, `card.padding` follows
+  `spacing.component.cardPadding`, and so on. Untouched values keep following later theme changes.
+- **Overrides are per value.** Changing the large button's padding leaves every other size, variant and component
+  linked to the theme.
+- **Colors are theme roles, never hex values** (`primary`, `secondaryContainer`, `error`, … or `transparent`). Light
+  and dark mode, every client's palette and the contrast checks keep working.
+- **No code change in apps.** SDKs read tuning from the published theme at runtime, like every other token.
+
+Precedence, lowest to highest: **theme → component tuning → local props in your code**.
+
+## Tune components in Theme Studio
+
+<Steps>
+
+1. Open a client (or the agency base theme) and select **Components**.
+2. Pick a component. A count shows how many values are custom.
+3. Start from a preset if it helps: **Density** (compact / default / comfortable) and **Corners**
+   (sharp / soft / round / pill) set all six components at once.
+4. Adjust values. Each one shows its origin:
+   - **🔗 Theme · md** — linked to a theme scale step. Pick another step (`xs`…`3xl`) and it stays linked.
+   - **Custom** — a number you typed. **Reset** links it back to the theme.
+5. Check the **specimen** in the preview: every size × variant of the component, rendered by the real SDK components
+   in the client's theme. Click a cell to edit that size and variant; turn on **Show spacing** to outline boxes; the
+   readout lists the measured size, padding, radius, border, gap and text in px.
+6. Copy the usage from **Use it in code**, then **Publish**. Apps pick up the new look on their next theme fetch.
+
+</Steps>
+
+<Aside>
+Component values are set by **agency admins**. Client editors can still choose each component's default style
+(for example the default button variant). See [Roles & permissions](/concepts/roles/).
+</Aside>
+
+## What can be tuned
+
+| Component | Values |
+| --- | --- |
+| **Button** | `radius`, `borderWidth`, `iconGap`, `textTransform`, default `variant`; per size `sizes.{sm,md,lg}`: `height`, `paddingX`, `textStyle`; per variant `variants.{filled,tonal,outlined,text,danger}`: `container`, `content`, `border` (roles), `elevation` (0–5) |
+| **Text field** (`input`) | default `variant` (`outlined` / `filled`), `radius`, `height`, `borderWidth`, `paddingX`, `labelGap` |
+| **Card** | `radius`, `elevation`, `bordered`, `padding`, `gap` |
+| **Chip** | `radius`, `height`, `paddingX`, `iconGap`, `selected.container`, `selected.content` |
+| **Badge** | `radius`, `paddingX` |
+| **Dialog** | `radius`, `elevation`, `padding`, `actionGap` |
+
+All of them live under `components` in the [theme JSON](/theme.schema.json). `button.height` and
+`button.paddingX` are kept for compatibility and drive `sizes.md`.
+
+## Guardrails
+
+Every resolve runs component checks next to the [contrast checks](/concepts/publishing/):
+
+| Check | Level |
+| --- | --- |
+| Control height below 24px (WCAG 2.5.8 minimum target) | **Error** — blocks publishing |
+| Medium or large button / text field below 36px | Warning |
+| Padding, gaps or heights off the 4px grid | Warning |
+| Text on a filled variant below 4.5:1 against its container, in light or dark | **Error** |
+| Text on a transparent variant below 4.5:1 against the surface | Warning (the real background depends on placement) |
+
+Theme Studio shows these under the value they concern; the API refuses to publish a theme with errors.
+
+## How each SDK applies tuning
+
+<Tabs syncKey="sdk">
+<TabItem label="Flutter">
+
+`DtButton` reads sizes and variants; Material's button, chip, input, dialog and badge themes are built from the
+same tokens.
+
+```dart
+DtButton(
+  label: 'Save changes',
+  kind: DtButtonKind.tonal,   // filled, tonal, outlined, text, danger
+  size: DtButtonSize.lg,      // sm, md, lg
+  onPressed: save,
+)
+
+// Any role from the theme, for your own widgets:
+final bg = context.dt.color('accentContainer');
+```
+
+Material can't express every value: filled/tonal variant colors apply through `DtButton` (Material shares one theme
+slot for both), and chips can't go below about 26px.
+
+</TabItem>
+<TabItem label="Web">
+
+`applyTheme` writes the values as CSS variables and `components.css` uses them:
+
+| Variables | From |
+| --- | --- |
+| `--dts-button-{sm,md,lg}-height`, `-padding-x`, `-text-size`, `-text-weight`, `-text-family` | `button.sizes` |
+| `--dts-button-{variant}-container`, `-content`, `-border`, `-shadow` (per mode) | `button.variants` |
+| `--dts-button-border-width`, `--dts-button-icon-gap` | `button` |
+| `--dts-input-padding-x`, `--dts-input-border-width`, `--dts-input-label-gap` | `input` |
+| `--dts-card-padding`, `--dts-card-item-gap` | `card` (`--dts-card-gap` is the layout gap *between* cards) |
+| `--dts-chip-height`, `--dts-chip-padding-x`, `--dts-chip-selected-container` | `chip` |
+| `--dts-dialog-padding`, `--dts-dialog-action-gap`, `--dts-badge-padding-x` | `dialog`, `badge` |
+
+```html
+<button class="dts-button dts-button--tonal dts-button--lg">Save changes</button>
+```
+
+Read complete tuning in script with `componentTokens(theme)` from `@debdaru07/web`.
+
+</TabItem>
+<TabItem label="React">
+
+Components use the same CSS variables, so `size` and `variant` follow the tuning:
+
+```tsx
+import { Button } from '@debdaru07/react';
+
+<Button variant="tonal" size="lg">Save changes</Button>
+```
+
+</TabItem>
+<TabItem label="React Native">
+
+Components use style helpers you can also call for your own views:
+
+```tsx
+import { Button, buttonStyles } from '@debdaru07/react-native';
+
+<Button title="Save changes" variant="tonal" size="lg" onPress={save} />
+
+const { container, label } = buttonStyles(theme, { variant: 'tonal', size: 'lg', mode });
+```
+
+Also available: `inputStyles`, `chipStyles`, `cardStyle`, `dialogStyles`, `badgeStyle`.
+
+</TabItem>
+</Tabs>
+
+## Older themes
+
+Themes published before component tuning existed don't carry these values. Every SDK fills them from the theme's
+own tokens — the same defaults the server derives — so those themes render exactly as before. The next publish
+stores the full values.

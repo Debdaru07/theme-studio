@@ -198,3 +198,7 @@ development set `android:usesCleartextTraffic="true"` on `<application>` in a de
 `radius()` returns `0` for `cut` corner themes, because React Native cannot draw chamfers. Pass `{ cut: 'radius' }`
 if you prefer rounded corners over sharp ones.
 </Aside>
+
+## Component tuning
+
+Components use style helpers that read the agency's component tuning (sizes, spacing, radii, variant colors): `buttonStyles(theme, { variant, size, mode })`, `inputStyles`, `chipStyles`, `cardStyle`, `dialogStyles` and `badgeStyle`. Call them for your own views to match. Themes published before tuning get the same defaults as before. See [Customize components](/concepts/components/).

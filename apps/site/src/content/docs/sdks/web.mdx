@@ -212,3 +212,7 @@ CORS headers and exposes `ETag`; check the `endpoint` (no trailing `/v1/theme`) 
 
 **Flash of the default theme on load.** Inline `themeStylesheet(cachedOrServerTheme)` during SSR, or call
 `applyTheme` before first paint with the cached theme.
+
+## Component tuning
+
+Agencies can tune component sizes, spacing, radii and variant colors in Theme Studio. `applyTheme` writes them as variables such as `--dts-button-lg-height`, `--dts-button-tonal-container`, `--dts-input-padding-x` and `--dts-card-item-gap`, and `components.css` uses them, so `.dts-button--lg` / `.dts-button--tonal` follow the tuning with no code change. Read complete values in script with `componentTokens(theme)`. Full variable list: [Customize components](/concepts/components/#how-each-sdk-applies-tuning).

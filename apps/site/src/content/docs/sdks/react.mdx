@@ -147,3 +147,7 @@ current theme on errors. Check `status` and `error` from `useTheme()` to surface
 <Aside>
 Create the client once (module scope or `useMemo`), not on every render. A new client means a new load.
 </Aside>
+
+## Component tuning
+
+Components style themselves through `@debdaru07/react/components.css`, so `<Button size="lg" variant="tonal">`, `<TextField>`, `<Card>`, `<Chip>`, `<Badge>` and dialogs follow the sizes, spacing, radii and variant colors an agency tunes in Theme Studio, with no code change. Props you pass locally still win. See [Customize components](/concepts/components/).
