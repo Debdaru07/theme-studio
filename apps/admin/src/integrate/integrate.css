@@ -1,0 +1,498 @@
+/*
+ * Integrate tab: a developer workspace. Admin tokens only (light + dark). While this tab is open the panel takes
+ * the preview's column (see responsive.css), so code and the token table have room.
+ */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.integrate {
+  /* Contains the visually hidden texts (absolutely positioned); without it they stretch the window and add a
+   * second, page-level scroll next to the panel's. */
+  position: relative;
+  display: grid;
+  /* An explicit minmax(0) track: an implicit one grows to the longest code line and overflows phones. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 28px;
+  max-width: 980px;
+  padding-bottom: 32px;
+}
+.integrate h3 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.integrate p {
+  margin: 0;
+}
+.int-head {
+  display: grid;
+  gap: 8px;
+}
+.int-head h2 {
+  margin: 0;
+}
+.int-head .notice {
+  margin: 0;
+}
+.int-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  min-width: 0;
+}
+
+/* Connection: label, value, copy. */
+.int-keys {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+.int-keys .key-row {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) auto;
+}
+.int-keys dt {
+  font-size: 12px;
+  color: var(--muted);
+}
+.int-keys dd {
+  margin: 0;
+  min-width: 0;
+}
+.int-keys code {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12.5px;
+}
+
+/* SDK picker */
+.int-sdk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px 0;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+.int-sdk-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.int-sdk .segmented {
+  flex-wrap: wrap;
+}
+.int-guide {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Steps: numbered, with a connecting rail. */
+.int-steps {
+  list-style: none;
+  counter-reset: step;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+}
+.int-steps > li {
+  counter-increment: step;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  padding-left: 40px;
+  min-width: 0;
+}
+.int-steps > li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: -2px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  font-size: 12px;
+  font-weight: 600;
+}
+.int-steps > li:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 13px;
+  top: 30px;
+  bottom: -20px;
+  width: 1px;
+  background: var(--line);
+}
+.int-steps h3 {
+  margin: 0;
+}
+
+/* Code blocks: file name, language, copy. */
+.int-code {
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--panel-2);
+  min-width: 0;
+}
+.int-code figcaption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px 4px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+  font-size: 12px;
+}
+.int-code-file {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.int-code-lang {
+  margin-right: auto;
+  color: var(--muted);
+  font-family: ui-monospace, 'JetBrains Mono', Menlo, Consolas, monospace;
+}
+/* Full height: the panel is the only vertical scroll. Long lines scroll sideways inside the block. */
+.int-code pre {
+  margin: 0;
+  padding: 12px 14px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  font: 12.5px/1.6 ui-monospace, 'JetBrains Mono', Menlo, Consolas, monospace;
+  tab-size: 2;
+}
+.int-code pre:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* Small toggle chips (template category, reference filter). */
+.int-recipes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip-btn {
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.chip-btn:hover {
+  color: var(--text);
+  background: var(--panel-2);
+}
+.chip-btn.on {
+  border-color: var(--text);
+  color: var(--text);
+  font-weight: 600;
+}
+.chip-btn:focus-visible,
+.int-access:focus-visible,
+.link-btn:focus-visible,
+.int-table-wrap:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Token reference */
+.int-ref-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+.int-ref-head h3 {
+  margin: 0;
+}
+.int-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+.int-filters input[type='search'] {
+  flex: 1 1 260px;
+  width: auto;
+}
+.int-only {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.int-only input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+/* No inner scroll: the table grows with its rows and the panel is the only scroll. */
+.int-table-wrap {
+  overflow: clip;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.int-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+.int-table th {
+  text-align: left;
+  font-weight: 600;
+  padding: 8px 12px;
+  background: var(--panel-2);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.int-table td {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+.int-table tr:last-child td {
+  border-bottom: 0;
+}
+.int-path {
+  font-size: 12px;
+  white-space: nowrap;
+}
+.int-set {
+  margin-left: 6px;
+  height: 18px;
+  font-size: 11px;
+}
+.int-value {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.int-swatches {
+  display: flex;
+  gap: 10px;
+  font-family: ui-monospace, 'JetBrains Mono', Menlo, Consolas, monospace;
+  font-size: 11.5px;
+}
+.int-swatches span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.int-swatches i {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgb(127 127 127 / 0.35);
+}
+.int-access {
+  /* Anchors the visually hidden "Copy" label; otherwise it positions against the page and widens it. */
+  position: relative;
+  display: inline-flex;
+  max-width: 100%;
+  padding: 3px 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  text-align: left;
+  cursor: copy;
+}
+.int-access code {
+  font-size: 12px;
+  color: var(--text);
+  white-space: nowrap;
+}
+.int-access:hover {
+  border-color: var(--line);
+  background: var(--panel-2);
+}
+.int-empty {
+  padding: 16px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+}
+.link-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-weight: 500;
+  cursor: pointer;
+}
+.int-downloads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Copy confirmation */
+.int-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  z-index: 50;
+  transform: translateX(-50%);
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--text);
+  color: var(--panel);
+  font-size: 13px;
+  box-shadow: var(--shadow);
+  animation: int-toast-in 150ms ease-out;
+  pointer-events: none;
+}
+@keyframes int-toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 4px);
+  }
+}
+
+/*
+ * Narrow panes: each token becomes a card (path, value, accessor) instead of a table you would pan sideways.
+ * Still one vertical scroll; the header row is replaced by labels on each cell.
+ */
+@container panel (max-width: 640px) {
+  .int-table,
+  .int-table tbody,
+  .int-table tr,
+  .int-table td {
+    display: block;
+  }
+  .int-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .int-table tr {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .int-table tr:last-child {
+    border-bottom: 0;
+  }
+  .int-table td {
+    padding: 2px 0;
+    border: 0;
+  }
+  .int-table td[data-label] {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+  }
+  .int-table td[data-label]::before {
+    content: attr(data-label);
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .int-path {
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+  .int-value {
+    white-space: normal;
+  }
+  .int-swatches {
+    flex-wrap: wrap;
+  }
+  .int-access {
+    justify-self: start;
+    padding-inline: 0;
+  }
+  .int-access code {
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+}
+
+/* Narrow panes (compact tier): stack the connection rows. */
+@container panel (max-width: 560px) {
+  .int-keys .key-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .int-keys dt {
+    grid-column: 1 / -1;
+  }
+  .int-steps > li {
+    padding-left: 0;
+  }
+  .int-steps > li::before,
+  .int-steps > li::after {
+    display: none;
+  }
+  .int-guide {
+    margin-left: 0;
+  }
+}
+
+/* Touch tier: 44px targets, 16px form text (no iOS zoom). */
+@media (pointer: coarse), (max-width: 1023px) {
+  .chip-btn,
+  .int-code figcaption .btn,
+  .int-keys .btn,
+  .int-downloads .btn,
+  .int-sdk .segmented button {
+    min-height: 44px;
+  }
+  .int-access {
+    min-height: 44px;
+    align-items: center;
+  }
+  .int-filters input[type='search'] {
+    font-size: 16px;
+    min-height: 44px;
+  }
+  .int-only {
+    min-height: 44px;
+  }
+  .link-btn {
+    min-height: 44px;
+  }
+  .int-guide {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .int-toast {
+    animation: none;
+  }
+}

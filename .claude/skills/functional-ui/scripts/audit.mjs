@@ -81,6 +81,15 @@ export const TARGETS = [
       await p.locator('.font-trigger').first().click();
     },
   },
+  {
+    app: 'admin',
+    name: 'admin-integrate',
+    go: async (p) => {
+      await openEditor(p);
+      await p.getByRole('button', { name: 'Integrate', exact: true }).click();
+      await p.waitForSelector('.integrate');
+    },
+  },
   { app: 'site', name: 'site-home', go: (p) => p.goto(SITE + '/', { waitUntil: 'networkidle' }) },
   { app: 'site', name: 'site-getting-started', go: (p) => p.goto(SITE + '/getting-started/', { waitUntil: 'networkidle' }) },
   { app: 'site', name: 'site-flutter', go: (p) => p.goto(SITE + '/sdks/flutter/', { waitUntil: 'networkidle' }) },

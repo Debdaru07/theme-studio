@@ -1,12 +1,11 @@
-import { leafPaths } from '@dts/schema';
 import { useRef, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { API_URL } from '../api.ts';
 import { useAuth } from '../auth.tsx';
 import { TopBar } from '../components/TopBar.tsx';
 import { EditorContext } from '../editor/fields.tsx';
 import { ContrastPanel, SECTIONS } from '../editor/sections.tsx';
 import { useThemeEditor, type OwnerKind, type ThemeEditor } from '../editor/useThemeEditor.ts';
+import { Integrate } from '../integrate/Integrate.tsx';
 import { Preview } from '../preview/Preview.tsx';
 
 export function TenantThemePage() {
@@ -48,7 +47,7 @@ function EditorPage({ kind, id }: { kind: OwnerKind; id: string }) {
 
   return (
     <EditorContext.Provider value={ed}>
-      <div className="page editor-page" data-pane={pane}>
+      <div className="page editor-page" data-pane={pane} data-view={tab === 'integrate' ? 'integrate' : undefined}>
         <TopBar>
           <div className="editor-title">
             <Link to="/" className="back-link" aria-label="All clients">
@@ -216,87 +215,6 @@ function History({ ed }: { ed: ThemeEditor }) {
         ))}
       </ol>
       {ed.rollback.error && <p className="error-text">{ed.rollback.error.message}</p>}
-    </>
-  );
-}
-
-const SNIPPETS = {
-  Flutter: (endpoint: string, key: string) => `import 'package:dynamic_theme/dynamic_theme.dart';
-import 'package:flutter/material.dart';
-
-final client = DynamicThemeClient('${endpoint}', '${key}');
-
-void main() => runApp(DynamicThemeApp(
-      client: client, // cached theme first, then live updates
-      pollInterval: const Duration(minutes: 5),
-      home: const HomePage(),
-    ));
-
-// Anywhere below: Theme.of(context) for Material,
-// context.dt.spacing.md, context.dt.colors.success, DtAdaptiveScaffold, DtButton…`,
-  Web: (endpoint: string, key: string) => `import { createThemeClient, applyTheme } from '@dts/web';
-
-const client = createThemeClient({ endpoint: '${endpoint}', key: '${key}' });
-const theme = await client.load();
-applyTheme(theme, { mode: 'system', breakpoint: 'auto' });
-client.subscribe((t) => applyTheme(t, { mode: 'system', breakpoint: 'auto' }));
-
-/* CSS */
-.button { background: var(--dts-color-primary); border-radius: var(--dts-button-radius); }`,
-  React: (endpoint: string, key: string) => `import { createThemeClient } from '@dts/web';
-import { ThemeProvider, useTheme } from '@dts/react';
-
-const client = createThemeClient({ endpoint: '${endpoint}', key: '${key}' });
-
-export function App() {
-  return (
-    <ThemeProvider client={client} mode="system">
-      <Routes />
-    </ThemeProvider>
-  );
-}`,
-  'React Native': (endpoint: string, key: string) => `import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createThemeClient } from '@dts/web';
-import { ThemeProvider, useTheme, textStyle } from '@dts/react-native';
-
-const client = createThemeClient({ endpoint: '${endpoint}', key: '${key}', storage: AsyncStorage });
-
-export default () => (
-  <ThemeProvider client={client}>
-    <Navigation />
-  </ThemeProvider>
-);`,
-} as const;
-
-function Integrate({ ed }: { ed: ThemeEditor }) {
-  const client = ed.state.data?.client;
-  const [lang, setLang] = useState<keyof typeof SNIPPETS>('Flutter');
-  if (!client) return null;
-  const code = SNIPPETS[lang](API_URL, client.publishableKey);
-  return (
-    <>
-      <h2>Integrate</h2>
-      <p className="muted small">Apps fetch the live theme with this publishable key. It is safe to ship in client apps.</p>
-      <div className="key-row">
-        <code>{client.publishableKey}</code>
-        <button className="btn ghost small" onClick={() => navigator.clipboard?.writeText(client.publishableKey)}>
-          Copy
-        </button>
-      </div>
-      <div className="segmented wide">
-        {(Object.keys(SNIPPETS) as (keyof typeof SNIPPETS)[]).map((l) => (
-          <button key={l} className={lang === l ? 'on' : ''} onClick={() => setLang(l)}>
-            {l}
-          </button>
-        ))}
-      </div>
-      <pre className="code">{code}</pre>
-      <button className="btn ghost small" onClick={() => navigator.clipboard?.writeText(code)}>
-        Copy snippet
-      </button>
-      <p className="muted small">
-        This theme sets {leafPaths(ed.layer).length} tokens; everything else is inherited from the agency base theme.
-      </p>
     </>
   );
 }
