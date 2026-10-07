@@ -3,10 +3,10 @@ import { useAuth } from '../auth.tsx';
 import { BrandMark } from '../components/TopBar.tsx';
 
 const DEMO_LOGINS = [
-  { label: 'Agency admin (Northwind)', email: 'owner@northwind.test', password: 'northwind123' },
-  { label: 'Client editor (Acme)', email: 'editor@acme.test', password: 'acme12345' },
+  { label: 'Agency admin (Northwind)', hint: 'Every client, plus the base theme', email: 'owner@northwind.test', password: 'northwind123' },
+  { label: 'Client editor (Acme)', hint: "One client's brand, within the agency's locks", email: 'editor@acme.test', password: 'acme12345' },
   // The platform admin uses ADMIN_PASSWORD when deployed, so it is offered in development only.
-  ...(import.meta.env.DEV ? [{ label: 'Platform admin', email: 'admin@dts.local', password: 'admin12345' }] : []),
+  ...(import.meta.env.DEV ? [{ label: 'Platform admin', hint: 'Every agency', email: 'admin@dts.local', password: 'admin12345' }] : []),
 ];
 
 /** Hosted demos set VITE_DEMO_LOGINS=true to show one-click demo accounts. */
@@ -20,8 +20,7 @@ export function Login() {
   const [busy, setBusy] = useState(false);
   const [slow, setSlow] = useState(false);
 
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
+  const signIn = async (email: string, password: string) => {
     setBusy(true);
     setError(null);
     // Free hosting sleeps when idle; the first request can take up to a minute.
@@ -35,6 +34,10 @@ export function Login() {
       setSlow(false);
       setBusy(false);
     }
+  };
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    void signIn(email, password);
   };
 
   return (
@@ -60,18 +63,21 @@ export function Login() {
         </button>
         {SHOW_DEMO_LOGINS && (
           <div className="demo-logins">
-            <span className="muted small">Demo accounts</span>
+            <span className="muted small">Or try a demo account</span>
             {DEMO_LOGINS.map((d) => (
               <button
                 key={d.email}
                 type="button"
-                className="btn ghost small"
+                className="demo-login"
+                disabled={busy}
                 onClick={() => {
                   setEmail(d.email);
                   setPassword(d.password);
+                  void signIn(d.email, d.password);
                 }}
               >
-                {d.label}
+                <span className="demo-login-label">{d.label}</span>
+                <span className="muted small">{d.hint}</span>
               </button>
             ))}
           </div>

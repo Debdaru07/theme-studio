@@ -43,8 +43,8 @@ function FieldShell({ f, label, hint, children }: { f: Field; label: string; hin
         <span>{label}</span>
         {f.locked && <span className="lock" aria-label={f.lockedReason}>🔒</span>}
         {f.overridden && !f.locked && (
-          <button type="button" className="reset" onClick={f.reset} title="Reset to inherited value">
-            reset
+          <button type="button" className="reset" onClick={f.reset} title="Reset to inherited value" aria-label={`Reset ${label}`}>
+            Reset
           </button>
         )}
       </div>

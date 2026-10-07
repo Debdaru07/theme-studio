@@ -47,12 +47,8 @@ function UserMenu() {
   }, [open]);
 
   if (!user) return null;
-  const initials = user.name
-    .split(/\s+/)
-    .map((p) => p[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
+  // One initial: two can spell a word ("Nora Owner" → "NO") and cost width in the phone top bar.
+  const initials = (user.name.trim()[0] ?? '?').toUpperCase();
 
   return (
     <div className="topbar-user" ref={root}>

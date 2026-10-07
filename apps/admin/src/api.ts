@@ -9,6 +9,46 @@ export const tokenStore = {
   set: (t: string | null) => safe(() => (t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY))),
 };
 
+const CACHE_PREFIX = 'dts.admin.cache.';
+
+/**
+ * Last-known API responses, so returning users see their data at once while the free-tier API wakes (up to a
+ * minute). Shown as stale data and replaced as soon as the network answers. Cleared on sign-out.
+ */
+export const responseCache = {
+  read<T>(key: string): T | undefined {
+    const raw = safe(() => localStorage.getItem(CACHE_PREFIX + key));
+    return raw ? (safe(() => JSON.parse(raw) as T) ?? undefined) : undefined;
+  },
+  write(key: string, value: unknown) {
+    safe(() => localStorage.setItem(CACHE_PREFIX + key, JSON.stringify(value)));
+  },
+  clear() {
+    safe(() => Object.keys(localStorage).filter((k) => k.startsWith(CACHE_PREFIX)).forEach((k) => localStorage.removeItem(k)));
+  },
+};
+
+/** React Query options for a GET that renders from the cache first, then always revalidates. */
+export function cachedGet<T>(key: string, path: string) {
+  return {
+    queryFn: async () => {
+      const data = await api<T>(path);
+      responseCache.write(key, data);
+      return data;
+    },
+    initialData: () => responseCache.read<T>(key),
+    initialDataUpdatedAt: 0,
+  };
+}
+
+let woke = false;
+/** Free hosting sleeps when idle: start waking the API as early as possible, once per page load. */
+export function wakeApi() {
+  if (woke) return;
+  woke = true;
+  void fetch(`${API_URL}/health`).catch(() => {});
+}
+
 function safe<T>(fn: () => T): T | null {
   try {
     return fn();
@@ -82,6 +122,8 @@ export interface Client {
   name: string;
   publishableKey: string;
   published?: VersionSummary | null;
+  /** Client list only: seed colors and primary font (draft over published over the agency base). */
+  brand?: { primary: string | null; secondary: string | null; accent: string | null; font: string | null };
 }
 
 export interface ThemeState {

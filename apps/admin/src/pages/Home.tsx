@@ -1,13 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 import { Link, Navigate } from 'react-router';
-import { api, type Client, type Tenant, type User } from '../api.ts';
+import { api, cachedGet, type Client, type Tenant, type User } from '../api.ts';
 import { useAuth } from '../auth.tsx';
 import { TopBar } from '../components/TopBar.tsx';
 
 export function Home() {
   const { user } = useAuth();
-  const tenants = useQuery({ queryKey: ['tenants'], queryFn: () => api<{ tenants: Tenant[] }>('/tenants') });
+  const tenants = useQuery({ queryKey: ['tenants'], ...cachedGet<{ tenants: Tenant[] }>('tenants', '/tenants') });
 
   // Client editors have exactly one place to go.
   if (user?.role === 'client_editor' && user.clientId) return <Navigate to={`/clients/${user.clientId}/theme`} replace />;
@@ -28,7 +28,7 @@ export function Home() {
 function TenantSection({ tenant, user }: { tenant: Tenant; user: User }) {
   const clients = useQuery({
     queryKey: ['clients', tenant.id],
-    queryFn: () => api<{ clients: Client[] }>(`/tenants/${tenant.id}/clients`),
+    ...cachedGet<{ clients: Client[] }>(`clients.${tenant.id}`, `/tenants/${tenant.id}/clients`),
   });
   const canManage = user.role === 'platform_admin' || (user.role === 'tenant_admin' && user.tenantId === tenant.id);
 
@@ -36,8 +36,12 @@ function TenantSection({ tenant, user }: { tenant: Tenant; user: User }) {
     <section className="tenant">
       <header className="tenant-head">
         <div>
-          <h2>{tenant.name}</h2>
-          <span className="muted small">{tenant.slug}</span>
+          <h2 className="display">{tenant.name}</h2>
+          {clients.data && (
+            <span className="muted small">
+              {clients.data.clients.length} client{clients.data.clients.length === 1 ? '' : 's'}
+            </span>
+          )}
         </div>
         {canManage && (
           <Link className="btn" to={`/tenants/${tenant.id}/theme`}>
@@ -47,19 +51,57 @@ function TenantSection({ tenant, user }: { tenant: Tenant; user: User }) {
       </header>
 
       <div className="client-grid">
-        {clients.data?.clients.map((c) => (
-          <Link key={c.id} className="client-card" to={`/clients/${c.id}/theme`}>
-            <strong>{c.name}</strong>
-            <span className="muted small">{c.slug}</span>
-            <span className={`pill ${c.published ? 'ok' : 'warn'}`}>
-              {c.published ? `Live · v${c.published.version}` : 'Not published'}
-            </span>
-          </Link>
-        ))}
+        {clients.isPending && [0, 1, 2].map((i) => <div key={i} className="client-card skeleton" aria-hidden />)}
+        {clients.data?.clients.map((c) => <ClientCard key={c.id} client={c} />)}
         {canManage && <NewClientCard tenantId={tenant.id} />}
       </div>
     </section>
   );
+}
+
+/** A client as its brand: the Theme Studio mark in the client's primary, a type sample and the three brand seeds. */
+function ClientCard({ client: c }: { client: Client }) {
+  const b = c.brand;
+  usePreviewFont(b?.font ?? null);
+  return (
+    <Link className="client-card" to={`/clients/${c.id}/theme`} style={b?.primary ? ({ '--brand': b.primary } as CSSProperties) : undefined}>
+      <div className="client-card-head">
+        <svg className="client-mark" width="32" height="32" viewBox="0 0 32 32" aria-hidden>
+          <rect width="32" height="32" rx="6" />
+          <rect y="10" width="22" height="22" rx="6" />
+          <circle cx="6" cy="26" r="6" />
+        </svg>
+        <strong>{c.name}</strong>
+      </div>
+      {b && (
+        <div className="client-brand">
+          <span className="client-type" style={b.font ? { fontFamily: `'${b.font}', system-ui` } : undefined}>
+            Aa
+          </span>
+          <span className="client-font">{b.font ?? 'Default font'}</span>
+          <span className="client-swatches" aria-label={[b.primary, b.secondary, b.accent].filter(Boolean).join(', ')}>
+            {[b.primary, b.secondary, b.accent].map((hex, i) => hex && <span key={i} style={{ background: hex }} />)}
+          </span>
+        </div>
+      )}
+      <span className={`pill ${c.published ? 'ok' : 'neutral'}`}>
+        {c.published ? `Live · v${c.published.version}` : 'Not published yet'}
+      </span>
+    </Link>
+  );
+}
+
+const loadedFonts = new Set<string>();
+/** Loads only the glyphs of the type sample ("Aa" and the family name). */
+function usePreviewFont(family: string | null) {
+  useEffect(() => {
+    if (!family || loadedFonts.has(family)) return;
+    loadedFonts.add(family);
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family).replace(/%20/g, '+')}&text=${encodeURIComponent(family + 'Aa')}&display=swap`;
+    document.head.appendChild(link);
+  }, [family]);
 }
 
 function NewClientCard({ tenantId }: { tenantId: string }) {

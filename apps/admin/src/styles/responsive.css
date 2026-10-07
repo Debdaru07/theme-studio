@@ -134,7 +134,8 @@ label {
 /* ── tablet ──────────────────────────────────────────────────────────────── */
 
 @media (max-width: 1023px) {
-  .brand-name,
+  /* The editor's top bar needs the room; other pages keep the wordmark at every width. */
+  .editor-page .brand-name,
   .back-label,
   .user-inline {
     display: none;
@@ -160,6 +161,9 @@ label {
     scrollbar-width: none;
     border-right: 0;
     border-bottom: 1px solid var(--line);
+    /* Fade the trailing edge so it's clear the strip scrolls; the end padding lets the last tab clear the fade. */
+    padding-inline-end: 40px;
+    mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
   }
   .editor-tabs::-webkit-scrollbar,
   .preview-toolbar::-webkit-scrollbar {
@@ -178,12 +182,10 @@ label {
     border: 0;
     border-left: 1px solid var(--line);
   }
+  /* Wrap rather than scroll: Light/Dark and Replay motion must stay visible. */
   .preview-toolbar {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-  }
-  .preview-toolbar > * {
-    flex-shrink: 0;
+    flex-wrap: wrap;
+    row-gap: 8px;
   }
 }
 
@@ -297,9 +299,9 @@ label {
   }
 }
 
-/* Very narrow phones (≤ 400px): drop the save-state pill; Publish shows the change count. */
+/* Very narrow phones (≤ 400px): drop the calm save states; Publish shows the change count. Errors always show. */
 @media (max-width: 400px) {
-  .editor-title .pill {
+  .editor-title .pill:not(.error) {
     display: none;
   }
 }

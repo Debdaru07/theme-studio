@@ -113,8 +113,8 @@ export function FontPicker({ path, label, hint }: { path: string; label: string;
         <span>{label}</span>
         {f.locked && <span className="lock">🔒</span>}
         {f.overridden && !f.locked && (
-          <button type="button" className="reset" onClick={f.reset}>
-            reset
+          <button type="button" className="reset" onClick={f.reset} title="Reset to inherited value" aria-label={`Reset ${label}`}>
+            Reset
           </button>
         )}
       </div>

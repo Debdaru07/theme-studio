@@ -1,6 +1,6 @@
 import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
-import { ThemeValidationError, type ThemeInput } from '@debdaru07/schema';
+import { PLATFORM_DEFAULTS, ThemeValidationError, deepMerge, getPath, type ThemeInput } from '@debdaru07/schema';
 import Fastify, { type FastifyInstance, type FastifyRequest } from 'fastify';
 import { z, ZodError } from 'zod';
 import type { Db } from './db.ts';
@@ -30,6 +30,21 @@ const LayerBody = z.object({ layer: z.record(z.string(), z.unknown()) });
 const PublishBody = z.object({ note: z.string().max(500).optional() }).optional();
 const IdParams = z.object({ id: z.string().min(1) });
 const VersionParams = z.object({ id: z.string().min(1), version: z.coerce.number().int().min(1) });
+
+// ── Client list brand summary ────────────────────────────────────────────────
+
+/** Seed colors and primary font as the client list shows them: platform defaults → tenant base → client (draft first). */
+function brandSummary(base: ThemeInput, layer: ThemeInput) {
+  const merged = deepMerge<ThemeInput>(PLATFORM_DEFAULTS, base, layer);
+  const seed = (name: string) => getPath(merged, `color.seed.${name}`) as string | undefined;
+  const font = getPath(merged, 'typography.fontFamily.primary');
+  return {
+    primary: seed('primary') ?? null,
+    secondary: seed('secondary') ?? null,
+    accent: seed('accent') ?? null,
+    font: typeof font === 'string' && !font.startsWith('{') ? font : null,
+  };
+}
 
 // ── Access rules ─────────────────────────────────────────────────────────────
 
@@ -158,9 +173,14 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
   app.get('/tenants/:id/clients', async (req) => {
     const { user, tenant } = await loadTenant(req, 'view');
     const clients = (await repo.listClients(tenant.id)).filter((c) => canEditClient(user, c));
+    const base = (await repo.getVersion('tenant', tenant.id))?.layer ?? {};
     return {
       clients: await Promise.all(
-        clients.map(async (c) => ({ ...c, published: (await repo.listVersions('client', c.id))[0] ?? null })),
+        clients.map(async (c) => {
+          const [versions, draft] = await Promise.all([repo.listVersions('client', c.id), repo.getDraft('client', c.id)]);
+          const layer = draft?.layer ?? (await repo.getVersion('client', c.id))?.layer ?? {};
+          return { ...c, published: versions[0] ?? null, brand: brandSummary(base, layer) };
+        }),
       ),
     };
   });

@@ -111,6 +111,12 @@ describe('auth', () => {
     const base = await app.inject({ method: 'PUT', url: `/tenants/${ids.tenantId}/theme/draft`, headers, payload: { layer: {} } });
     expect(base.statusCode).toBe(403);
   });
+
+  it('lists each client with its brand summary for the client cards', async () => {
+    const list = await app.inject({ method: 'GET', url: `/tenants/${ids.tenantId}/clients`, headers: await login('tenant') });
+    const acme = list.json().clients.find((c: { slug: string }) => c.slug === 'acme');
+    expect(acme.brand).toEqual({ primary: '#1D4ED8', secondary: expect.any(String), accent: '#F97316', font: 'Roboto' });
+  });
 });
 
 describe('platform admin password (syncPlatformAdmin)', () => {
