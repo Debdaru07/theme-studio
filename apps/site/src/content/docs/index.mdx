@@ -1,68 +1,229 @@
 ---
-title: Runtime theming for multi-tenant SaaS
-description: Runtime, per-client theming for multi-tenant SaaS. Agencies build once, every client gets its own brand, edited visually and published live to Flutter, Web, React and React Native apps with no rebuild.
+title: Runtime theming for multi-tenant apps
+description: Give every client of your SaaS its own brand. Edit themes visually and publish live to Flutter, Web, React and React Native apps without a rebuild.
 template: splash
 hero:
-  title: Theme Studio
-  tagline: Runtime, per-client theming for multi-tenant SaaS. Agencies build one product, every client gets its own brand, edited visually and published live to Flutter, Web, React and React Native apps with no rebuild or store release.
+  title: One product. Every client’s brand, live.
+  tagline: Edit a client’s colors, type, shape and navigation in Theme Studio. Publish once, and Flutter, Web, React and React Native apps update at runtime, with no rebuild or store release.
 ---
 
-import { Card, CardGrid, LinkButton } from '@astrojs/starlight/components';
+import { LinkButton, Tabs, TabItem } from '@astrojs/starlight/components';
 import HowItWorks from '../../components/HowItWorks.astro';
-import LiveDemo from '../../components/LiveDemo.tsx';
+import BrandPlayground from '../../components/landing/BrandPlayground.tsx';
+import LayerStack from '../../components/landing/LayerStack.tsx';
 import { ADMIN_URL, REPO_URL } from '../../config.ts';
 
-<div class="cta-row">
-  <LinkButton href={ADMIN_URL} icon="external">Open Theme Studio</LinkButton>
-  <LinkButton href="/getting-started/" variant="secondary" icon="right-arrow">Read the docs</LinkButton>
-  <LinkButton href={REPO_URL} variant="minimal" icon="github" iconPlacement="start">GitHub</LinkButton>
-</div>
+<section class="lp-section not-content" aria-labelledby="who">
+  <div class="lp-head">
+    <p class="kicker">Who it’s for</p>
+    <h2 id="who">For the agency that sells it and the team that builds it</h2>
+  </div>
+  <div class="audiences">
+    <div class="audience">
+      <h3>For agencies</h3>
+      <dl>
+        <dt>Pitch each client in their own brand</dt>
+        <dd>Give one brand color. Theme Studio generates the light and dark palettes, and any color can be overridden.</dd>
+        <dt>Let clients edit without breaking the product</dt>
+        <dd>Client editors change only their own theme. You lock the tokens they must not touch.</dd>
+        <dt>Rebrand without a release</dt>
+        <dd>Publishing takes effect in every app at runtime. Each publish is a version you can roll back in one click.</dd>
+        <dt>Update every client at once</dt>
+        <dd>Publish the base theme and every client built on it follows, keeping their own overrides.</dd>
+      </dl>
+    </div>
+    <div class="audience">
+      <h3>For developers</h3>
+      <dl>
+        <dt>Map one flat JSON, nothing else</dt>
+        <dd>The server merges layers, resolves references and derives colors. Your app reads a validated theme.</dd>
+        <dt>Four SDKs, native to each platform</dt>
+        <dd>Flutter, Web (CSS variables), React and React Native, from the same theme.</dd>
+        <dt>Fast first paint, works offline</dt>
+        <dd>The cached theme loads instantly, then revalidates with <code>ETag</code>. Offline, a bundled default takes over.</dd>
+        <dt>Tokens beyond color</dt>
+        <dd>10 text styles, spacing, shape, elevation, motion, components and a navigation pattern per breakpoint.</dd>
+      </dl>
+    </div>
+  </div>
+</section>
 
-## What you get
+<section id="try-it" class="lp-section lp-band not-content" aria-labelledby="try-it-title">
+  <div class="lp-head">
+    <p class="kicker">Try it</p>
+    <h2 id="try-it-title">Bring your brand</h2>
+    <p class="lp-lead">
+      Pick a color, a typeface and a shape. This page resolves your client layer with the same code the Theme API
+      runs, then renders it with <code>@dts/react</code>.
+    </p>
+  </div>
+  <BrandPlayground client:visible />
+</section>
 
-<CardGrid>
-  <Card title="Visual editor, live device preview" icon="laptop">
-    Edit tokens by category and watch phone, tablet and desktop frames update instantly, in light and dark. The
-    preview uses the same React SDK your apps use.
-  </Card>
-  <Card title="Layered themes" icon="seti:folder">
-    Platform defaults → agency base theme → client overrides. Agencies set the product look once; each client
-    changes only what makes it theirs.
-  </Card>
-  <Card title="Palettes from brand colors" icon="star">
-    Give a `primary` seed and get full light and dark palettes (containers, `on*` colors, surfaces) from Material's
-    HCT tonal palettes. Any derived color can be overridden.
-  </Card>
-  <Card title="WCAG contrast gate" icon="approve-check">
-    Core text/background pairs must pass AA (4.5:1) in both modes or publishing is blocked. Everything else
-    warns inline.
-  </Card>
-  <Card title="Navigation & motion tokens" icon="rocket">
-    Bottom bar, rail, drawer, sidebar or top tabs per breakpoint; durations, easings and page transitions that
-    respect reduced motion.
-  </Card>
-  <Card title="Versioning & rollback" icon="random">
-    Drafts autosave. Publishing creates an immutable version; roll back to any earlier one in a click.
-  </Card>
-  <Card title="Four SDKs" icon="puzzle">
-    [Flutter](/sdks/flutter/), [Web](/sdks/web/) (CSS variables), [React](/sdks/react/) and
-    [React Native](/sdks/react-native/). Cache first, then a conditional request; a bundled default when offline.
-  </Card>
-  <Card title="One resolved JSON" icon="document">
-    The server does merging, references and color derivation. SDKs receive a flat, validated theme and only map
-    it. See the [API reference](/api/).
-  </Card>
-</CardGrid>
+<section class="lp-section not-content" aria-labelledby="layers">
+  <div class="lp-head">
+    <p class="kicker">Theme layers</p>
+    <h2 id="layers">Set the look once. Let each client make it theirs.</h2>
+    <p class="lp-lead">
+      Three layers resolve into one theme. Step through them to see what each one owns.
+    </p>
+  </div>
+  <LayerStack client:visible />
+</section>
 
-## How it works
+<section class="lp-section not-content" aria-labelledby="how">
+  <div class="lp-head">
+    <p class="kicker">How it works</p>
+    <h2 id="how">From editor to app in four steps</h2>
+  </div>
+  <HowItWorks />
+</section>
 
-<HowItWorks />
+<section class="lp-section lp-code" aria-labelledby="code">
+  <div class="lp-head not-content">
+    <p class="kicker">Integrate</p>
+    <h2 id="code">Render a live theme in a few lines</h2>
+    <p class="lp-lead">
+      Packages are not on npm or pub.dev yet. Each guide shows how to install by path or from git.
+    </p>
+  </div>
 
-## Try it
+<Tabs syncKey="sdk">
+<TabItem label="React">
 
-Two published client themes from the same agency (Northwind), rendered by `@dts/react`'s `<ThemeProvider scope="element">`.
-The card below is styled only with the `--dts-*` CSS variables the [Web SDK](/sdks/web/#css-variables) writes.
+```tsx
+import { createThemeClient, ThemeProvider, useTheme } from '@dts/react';
 
-<div class="demo-shell">
-  <LiveDemo client:only="react" />
-</div>
+const client = createThemeClient({ endpoint: 'https://themes.example.com', key: 'pk_demo_acme' });
+
+export function App() {
+  return (
+    <ThemeProvider client={client} mode="system">
+      <Home />
+    </ThemeProvider>
+  );
+}
+```
+
+<LinkButton href="/sdks/react/" variant="minimal" icon="right-arrow">Read the React guide</LinkButton>
+
+</TabItem>
+<TabItem label="Flutter">
+
+```dart
+import 'package:dynamic_theme/dynamic_theme.dart';
+import 'package:flutter/material.dart';
+
+final client = DynamicThemeClient('https://themes.example.com', 'pk_demo_acme');
+
+void main() => runApp(DynamicThemeApp(
+      client: client, // cache first, then GET /v1/theme with If-None-Match
+      home: Builder(builder: (context) => DtButton(label: 'Hello', onPressed: () {})),
+    ));
+```
+
+<LinkButton href="/sdks/flutter/" variant="minimal" icon="right-arrow">Read the Flutter guide</LinkButton>
+
+</TabItem>
+<TabItem label="Web">
+
+```ts
+import { createThemeClient, applyTheme } from '@dts/web';
+
+const client = createThemeClient({ endpoint: 'https://themes.example.com', key: 'pk_demo_acme' });
+
+let dispose = applyTheme(client.current, { mode: 'system' }); // bundled default or cached theme
+client.subscribe(({ theme }) => {
+  dispose();
+  dispose = applyTheme(theme, { mode: 'system' });
+});
+await client.load(); // then style with var(--dts-color-primary) and friends
+```
+
+<LinkButton href="/sdks/web/" variant="minimal" icon="right-arrow">Read the Web guide</LinkButton>
+
+</TabItem>
+<TabItem label="React Native">
+
+```tsx
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createThemeClient, ThemeProvider } from '@dts/react-native';
+
+const client = createThemeClient({ endpoint: 'https://themes.example.com', key: 'pk_demo_acme', storage: AsyncStorage });
+
+export default function App() {
+  return (
+    <ThemeProvider client={client} mode="system">
+      <Home />
+    </ThemeProvider>
+  );
+}
+```
+
+<LinkButton href="/sdks/react-native/" variant="minimal" icon="right-arrow">Read the React Native guide</LinkButton>
+
+</TabItem>
+</Tabs>
+
+</section>
+
+<section class="lp-section not-content" aria-labelledby="faq">
+  <div class="lp-head">
+    <p class="kicker">Questions</p>
+    <h2 id="faq">Before you adopt it</h2>
+  </div>
+  <div class="faq">
+    <details>
+      <summary>What does it cost to run?</summary>
+      <p>
+        It can run entirely on free tiers: the API on Render, the database on Turso, Theme Studio and these docs on
+        Cloudflare. The free API sleeps after about 15 minutes idle, so the first request can take 30–60 seconds.
+        Apps keep showing their cached theme meanwhile. <a href="/deploy/">Deploy on free tiers</a>
+      </p>
+    </details>
+    <details>
+      <summary>What happens when the API is down or the device is offline?</summary>
+      <p>
+        SDKs load the cached theme first and only replace it when a newer one arrives. With no cache and no network
+        they use a bundled default theme, so the app always renders.
+      </p>
+    </details>
+    <details>
+      <summary>Is the publishable key a secret?</summary>
+      <p>
+        No. A <code>pk_…</code> key is read-only and only returns that client’s published theme, so it is safe to ship
+        inside an app. <a href="/api/">Theme API reference</a>
+      </p>
+    </details>
+    <details>
+      <summary>Can a client break the agency’s design?</summary>
+      <p>
+        Client editors can only change their own theme, and agencies can lock tokens so clients cannot change them.
+        <a href="/concepts/roles/">Roles and permissions</a>
+      </p>
+    </details>
+    <details>
+      <summary>How is accessibility enforced?</summary>
+      <p>
+        Publishing is blocked when core text/background pairs fail WCAG AA (4.5:1) in light or dark mode. Other pairs
+        warn inline. <a href="/concepts/publishing/">Contrast and publishing</a>
+      </p>
+    </details>
+    <details>
+      <summary>Am I locked in?</summary>
+      <p>
+        Theme Studio is open source, and a theme is plain JSON with a published
+        <a href="/theme.schema.json">JSON Schema</a>. <a href={REPO_URL}>Source on GitHub</a>
+      </p>
+    </details>
+  </div>
+</section>
+
+<section class="lp-cta not-content" aria-labelledby="start">
+  <h2 id="start">Publish your first client theme</h2>
+  <p>Change a brand color, watch the phone, tablet and desktop previews follow, then publish.</p>
+  <div class="hero-actions">
+    <LinkButton href={ADMIN_URL} icon="external">Open Theme Studio</LinkButton>
+    <LinkButton href={REPO_URL} variant="secondary" icon="github" iconPlacement="start">View on GitHub</LinkButton>
+  </div>
+</section>

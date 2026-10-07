@@ -51,7 +51,8 @@ A second project from the same repo:
 - Build command: `npm ci && npm run build -w @dts/site`
 - Deploy command: `npx wrangler deploy --config apps/site/wrangler.jsonc`
 - Preview command: `npx wrangler versions upload --config apps/site/wrangler.jsonc`
-- Build variables: `NODE_VERSION=24`, `PUBLIC_API_URL`, `PUBLIC_ADMIN_URL` (the Theme Studio URL), `PUBLIC_REPO_URL`.
+- Build variables: `NODE_VERSION=24`, `PUBLIC_API_URL`, `PUBLIC_ADMIN_URL` (the Theme Studio URL), `PUBLIC_REPO_URL`,
+  `PUBLIC_SITE_URL` (this docs site's own URL; used for canonical links, the sitemap and social cards).
 
 Don't add a `_redirects` SPA rule: Workers rejects `/* /index.html 200` as an infinite loop; the
 `single-page-application` setting in the wrangler config already handles app routes.

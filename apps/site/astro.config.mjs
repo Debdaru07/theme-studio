@@ -3,18 +3,52 @@ import react from '@astrojs/react';
 import starlight from '@astrojs/starlight';
 import { defineConfig } from 'astro/config';
 import starlightLinksValidator from 'starlight-links-validator';
-import { REPO_URL } from './src/config.ts';
+import { REPO_URL, SITE_URL } from './src/config.ts';
+
+const DESCRIPTION =
+  'Runtime, per-client theming for multi-tenant SaaS. Edit visually, publish live to Flutter, Web, React and React Native.';
+
+/** Display (Bricolage Grotesque), text (Inter) and code (JetBrains Mono) faces — see design-taste/direction.md. */
+const FONTS_URL =
+  'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Theme Studio',
+  description: DESCRIPTION,
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'Web, Android, iOS',
+  url: SITE_URL,
+  codeRepository: REPO_URL,
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+};
 
 export default defineConfig({
+  site: SITE_URL,
   output: 'static',
   integrations: [
     starlight({
       title: 'Theme Studio',
-      description:
-        'Runtime, per-client theming for multi-tenant SaaS. Edit visually, publish live to Flutter, Web, React and React Native.',
+      description: DESCRIPTION,
       favicon: '/favicon.svg',
       social: [{ icon: 'github', label: 'GitHub', href: REPO_URL }],
-      customCss: ['./src/styles/custom.css'],
+      customCss: ['./src/styles/custom.css', './src/styles/landing.css'],
+      components: {
+        Hero: './src/components/landing/Hero.astro',
+      },
+      head: [
+        { tag: 'link', attrs: { rel: 'preconnect', href: 'https://fonts.googleapis.com' } },
+        { tag: 'link', attrs: { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' } },
+        { tag: 'link', attrs: { rel: 'stylesheet', href: FONTS_URL } },
+        { tag: 'meta', attrs: { property: 'og:image', content: `${SITE_URL}/og.png` } },
+        { tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
+        { tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
+        { tag: 'meta', attrs: { property: 'og:image:alt', content: 'Theme Studio: one product, every client’s brand, live.' } },
+        { tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },
+        { tag: 'meta', attrs: { name: 'twitter:image', content: `${SITE_URL}/og.png` } },
+        { tag: 'script', attrs: { type: 'application/ld+json' }, content: JSON.stringify(jsonLd) },
+      ],
       lastUpdated: false,
       plugins: [starlightLinksValidator()],
       sidebar: [

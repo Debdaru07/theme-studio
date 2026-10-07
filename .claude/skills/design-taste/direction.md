@@ -23,8 +23,11 @@ page hero and in Theme Studio's preview.
 
 - Display scale on the landing: 56/64 → 40/48 → 28/36 (desktop); clamp() down to 36/42 on phones.
 - `text-wrap: balance` on headings, `text-wrap: pretty` on hero copy. Measure 60–70ch.
-- Alternative if Bricolage feels too loud: **Instrument Serif** for headlines only (editorial, calm). Pick one
-  and record it here; never both.
+- **Decision (2026-10-07): Bricolage Grotesque** (700 for headlines, 600 for sub-heads) on landing headings and
+  docs page titles (`h1#_top`); docs section headings stay Inter 600. Instrument Serif remains the fallback if
+  Bricolage proves too loud — swap it, never use both.
+- Small labels (eyebrows, section kickers, token readouts) use JetBrains Mono 500 at 13px in the muted text color.
+- Tokens live in `apps/site/src/styles/custom.css`; landing layout in `landing.css` and `src/components/landing/*`.
 
 ## Color
 

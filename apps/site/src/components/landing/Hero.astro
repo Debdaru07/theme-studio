@@ -1,0 +1,31 @@
+---
+/**
+ * Landing hero (overrides Starlight's `Hero`, which only renders on pages with `hero` frontmatter).
+ * Left: outcome headline, how it works in one line, the primary and secondary actions.
+ * Right: the live demo. Stacked (copy first) below 64rem.
+ */
+import { LinkButton } from '@astrojs/starlight/components';
+import DraftContentNotice from 'virtual:starlight/components/DraftContentNotice';
+import { ADMIN_URL } from '../../config.ts';
+import HeroDemo from './HeroDemo.tsx';
+
+const { data } = Astro.locals.starlightRoute.entry;
+const { title = data.title, tagline } = data.hero || {};
+---
+
+<div class="hero-split not-content">
+  <div class="hero-copy">
+    <p class="eyebrow">Runtime theming for multi-tenant apps</p>
+    <h1 id="_top" data-page-title set:html={title} />
+    {data.draft && <DraftContentNotice />}
+    {tagline && <p class="hero-tagline" set:html={tagline} />}
+    <div class="hero-actions">
+      <LinkButton href={ADMIN_URL} icon="external">Open Theme Studio</LinkButton>
+      <LinkButton href="/getting-started/" variant="secondary" icon="right-arrow">Read the quickstart</LinkButton>
+    </div>
+    <p class="hero-meta">Open source · Flutter · Web · React · React Native</p>
+  </div>
+  <div class="hero-visual">
+    <HeroDemo client:load />
+  </div>
+</div>

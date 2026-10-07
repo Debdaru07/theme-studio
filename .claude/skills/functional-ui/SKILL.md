@@ -38,7 +38,7 @@ When adding a screen or flow, add it to `TARGETS` in `scripts/audit.mjs` so the 
 | Theme Studio chrome | `apps/admin/src/styles/admin.css` (tokens on `:root`, light + dark), `responsive.css` (tiers) | Neutral chrome so client themes stand out. New controls must work in all four tiers. |
 | Preview (client app simulation) | `apps/admin/src/preview/*` | Style **only** with `--dts-*` variables from `@dts/web`; never admin tokens. It doubles as the reference for customer web apps. |
 | Docs site | `apps/site/src/styles/custom.css`, Starlight components | Use Starlight variables (`--sl-*`) and components (Tabs, Steps, Cards, Aside) before custom markup. |
-| Live demo | `apps/site/src/components/LiveDemo.tsx` | Styled with `--dts-*` only, like the preview. |
+| Landing demos | `apps/site/src/components/landing/*` (`AppScreen.tsx` is the themed screen), `apps/site/src/styles/landing.css` | The screen inside a device frame is styled with `--dts-*` only, like the preview; the chrome around it uses `--sl-*` / `--ts-*`. |
 
 **Responsive tiers** (Theme Studio; mirror them for new layouts):
 

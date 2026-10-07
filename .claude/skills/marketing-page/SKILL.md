@@ -35,7 +35,9 @@ the result.
 9. **Closing CTA** repeating the primary action.
 
 Starlight specifics: the landing is `template: splash` in `apps/site/src/content/docs/index.mdx`; reuse
-`HowItWorks.astro`, `LiveDemo.tsx`, `<CardGrid>`, `<LinkButton>`, `<Tabs>`; URLs come from `src/config.ts`.
+`HowItWorks.astro`, `components/landing/*` (`Hero.astro` overrides Starlight's hero; `HeroDemo`, `BrandPlayground`,
+`LayerStack` render real themes via `@dts/react` and `@dts/schema`), `<LinkButton>`, `<Tabs>`; URLs come from
+`src/config.ts`. Landing styles live in `src/styles/landing.css`.
 
 ## 3. Copy rules
 

@@ -1,27 +1,54 @@
 ---
-/** "How it works" flow. Plain HTML styled with Starlight tokens, so it works in light and dark. */
+/**
+ * "How it works": four verbs beside the real wire format. The JSON excerpt is read from the Acme fixture
+ * (a resolved, published theme) at build time, so it cannot drift from what the API serves.
+ */
+import { Code } from '@astrojs/starlight/components';
+import acme from '@dts/schema/fixtures/acme.json';
+
+const s = (value: unknown) => JSON.stringify(value);
+const json = `{
+  "schemaVersion": ${acme.schemaVersion},
+  "meta": { "client": ${s(acme.meta.client)}, "version": ${acme.meta.version}, "hash": ${s(acme.meta.hash)} },
+  "color": {
+    "light": { "primary": ${s(acme.color.light.primary)}, "onPrimary": ${s(acme.color.light.onPrimary)}, … },
+    "dark": { … }
+  },
+  "typography": { "fontFamily": { "primary": ${s(acme.typography.fontFamily.primary)}, … }, … },
+  "navigation": { "pattern": { "mobile": ${s(acme.navigation.pattern.mobile)}, "desktop": ${s(acme.navigation.pattern.desktop)} }, … },
+  …
+}`;
+const http = `GET /v1/theme
+X-Theme-Key: pk_demo_acme
+If-None-Match: "${acme.meta.hash}"
+
+HTTP/1.1 304 Not Modified`;
 ---
 
-<div class="flow" role="list" aria-label="How a theme reaches your app">
-  <div class="flow-step" role="listitem">
-    <span class="flow-kicker">1 · Edit</span>
-    <strong>Theme Studio</strong>
-    <p>Clients and agencies edit tokens with a live phone / tablet / desktop preview, then publish.</p>
-  </div>
-  <div class="flow-step" role="listitem">
-    <span class="flow-kicker">2 · Resolve</span>
-    <strong>Theme API</strong>
-    <p>Merges platform → agency → client, resolves <code>{'{refs}'}</code>, derives colors, checks contrast.</p>
-  </div>
-  <div class="flow-step" role="listitem">
-    <span class="flow-kicker">3 · Serve</span>
-    <strong><code>GET /v1/theme</code></strong>
-    <p>One resolved, flat JSON per client. <code>ETag</code> + <code>If-None-Match</code> → <code>304</code> when unchanged.</p>
-  </div>
-  <div class="flow-step" role="listitem">
-    <span class="flow-kicker">4 · Apply</span>
-    <strong>SDKs</strong>
-    <p>Flutter, Web, React, React Native map it natively at runtime. Cached for offline.</p>
+<div class="how not-content">
+  <ol class="how-steps">
+    <li>
+      <span class="how-verb">Edit</span>
+      <p>Agencies and clients change tokens in Theme Studio with a live phone, tablet and desktop preview. Drafts autosave.</p>
+    </li>
+    <li>
+      <span class="how-verb">Resolve</span>
+      <p>The API merges platform → agency → client, resolves references, derives palettes and checks contrast.</p>
+    </li>
+    <li>
+      <span class="how-verb">Serve</span>
+      <p>
+        <code>GET /v1/theme</code> returns one flat, validated JSON per client. An unchanged theme costs an empty
+        <code>304</code>.
+      </p>
+    </li>
+    <li>
+      <span class="how-verb">Apply</span>
+      <p>The SDK applies the cached theme instantly, revalidates, and falls back to a bundled default offline.</p>
+    </li>
+  </ol>
+  <div class="how-wire">
+    <Code code={json} lang="json" title="Resolved theme (excerpt)" wrap />
+    <Code code={http} lang="http" title="Next app launch" wrap />
   </div>
 </div>
-<p class="flow-layers">platform defaults → agency base theme → client overrides ⟶ one resolved theme per publishable key</p>

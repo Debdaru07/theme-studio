@@ -22,6 +22,9 @@ re-check the source if the code may have changed, and add new facts here (with a
 | Live device preview in Theme Studio: phone, tablet, desktop, wide; light and dark | `apps/admin/src/preview/Preview.tsx` |
 | Theme Studio works from 320px phones to wide desktops, including phone landscape | `apps/admin/src/styles/responsive.css`, `npm run audit:ui` |
 | Open source on GitHub | `PUBLIC_REPO_URL` in `apps/site/src/config.ts` |
+| Platform defaults alone resolve to a complete theme with no contrast issues (`resolveTheme([])`) | `packages/schema/src/defaults.ts`, `resolve.ts` |
+| Publishable keys (`pk_…`) are read-only and safe to ship in an app | `apps/site/src/content/docs/getting-started.mdx` |
+| The theme format has a published JSON Schema at `/theme.schema.json` | `apps/site/scripts/copy-schema.mjs` |
 
 ## Stack and hosting
 

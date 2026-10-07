@@ -14,5 +14,7 @@ const pick = (key: string, fallback: string): string =>
 export const API_URL = pick('PUBLIC_API_URL', 'https://theme-studio-api.onrender.com');
 /** Theme Studio admin app. */
 export const ADMIN_URL = pick('PUBLIC_ADMIN_URL', 'https://theme-studio.debdarudasgupta0799.workers.dev');
+/** This docs site (canonical URLs, sitemap, social cards). */
+export const SITE_URL = pick('PUBLIC_SITE_URL', 'https://theme-studio-docs.debdarudasgupta0799.workers.dev');
 /** Source repository. */
 export const REPO_URL = pick('PUBLIC_REPO_URL', 'https://github.com/Debdaru07/theme-studio');
