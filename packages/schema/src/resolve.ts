@@ -1,4 +1,5 @@
 import { deriveScheme, normalizeHex } from './color.ts';
+import { checkComponents, type ComponentReport } from './components.ts';
 import { checkContrast, type ContrastReport } from './contrast.ts';
 import { PLATFORM_DEFAULTS } from './defaults.ts';
 import { deepMerge, getPath, isPlainObject, leafPaths } from './paths.ts';
@@ -30,6 +31,8 @@ export class ThemeValidationError extends Error {
 export interface ResolvedTheme {
   theme: Theme;
   contrast: ContrastReport;
+  /** Component tuning guardrails; errors block publishing like contrast errors. */
+  components: ComponentReport;
 }
 
 const REF = /^\{([A-Za-z0-9_.]+)\}$/;
@@ -153,7 +156,7 @@ export function resolveTheme(layers: ThemeInput[], meta?: ThemeMeta): ResolvedTh
       parsed.error.issues.map((i) => ({ path: i.path.join('.'), message: i.message })),
     );
   }
-  return { theme: parsed.data, contrast: checkContrast(parsed.data.color) };
+  return { theme: parsed.data, contrast: checkContrast(parsed.data.color), components: checkComponents(parsed.data) };
 }
 
 /** Replaces `{path}` strings with the referenced value. `chain[0]` is the leaf being resolved. */

@@ -202,19 +202,69 @@ const NavigationSchema = z.strictObject({
 
 const elevationLevel = z.number().int().min(0).max(5);
 
+/*
+ * Component tuning. Every value defaults to a {reference} into the theme (see defaults.ts), so components follow
+ * the theme until an agency overrides a specific value. Colors are always theme roles, never hex values, which
+ * keeps the palette and contrast checks intact.
+ */
+export const COLOR_ROLES = Object.keys(ColorSchemeSchema.shape) as [ColorRole, ...ColorRole[]];
+const colorRole = z.enum(COLOR_ROLES);
+/** A role, or `transparent` for containers and borders. */
+const surfaceRole = z.enum([...COLOR_ROLES, 'transparent']);
+export type SurfaceRole = ColorRole | 'transparent';
+
+export const CONTROL_SIZES = ['sm', 'md', 'lg'] as const;
+export type ControlSize = (typeof CONTROL_SIZES)[number];
+export const BUTTON_VARIANTS = ['filled', 'tonal', 'outlined', 'text', 'danger'] as const;
+export type ButtonVariant = (typeof BUTTON_VARIANTS)[number];
+
+const ControlSizeSchema = z.strictObject({ height: px, paddingX: px, textStyle: z.enum(TEXT_STYLES) });
+const ButtonVariantStyleSchema = z.strictObject({
+  container: surfaceRole,
+  content: colorRole,
+  border: surfaceRole,
+  elevation: elevationLevel,
+});
+export type ButtonVariantStyle = z.infer<typeof ButtonVariantStyleSchema>;
+
 const ComponentsSchema = z.strictObject({
   button: z.strictObject({
+    /** The variant `<Button>` uses when none is given. */
     variant: z.enum(['filled', 'tonal', 'outlined']),
     radius: px,
+    /** Medium height and padding; `sizes.md` references these, so older themes keep working. */
     height: px,
     paddingX: px,
     textTransform: z.enum(['none', 'uppercase', 'capitalize']),
+    borderWidth: px,
+    iconGap: px,
+    sizes: z.strictObject({ sm: ControlSizeSchema, md: ControlSizeSchema, lg: ControlSizeSchema }),
+    variants: z.strictObject(
+      Object.fromEntries(BUTTON_VARIANTS.map((v) => [v, ButtonVariantStyleSchema])) as Record<
+        ButtonVariant,
+        typeof ButtonVariantStyleSchema
+      >,
+    ),
   }),
-  input: z.strictObject({ variant: z.enum(['filled', 'outlined']), radius: px, height: px }),
-  card: z.strictObject({ radius: px, elevation: elevationLevel, bordered: z.boolean() }),
-  dialog: z.strictObject({ radius: px, elevation: elevationLevel }),
-  chip: z.strictObject({ radius: px }),
-  badge: z.strictObject({ radius: px }),
+  input: z.strictObject({
+    variant: z.enum(['filled', 'outlined']),
+    radius: px,
+    height: px,
+    borderWidth: px,
+    paddingX: px,
+    /** Space between the label and the field. */
+    labelGap: px,
+  }),
+  card: z.strictObject({ radius: px, elevation: elevationLevel, bordered: z.boolean(), padding: px, gap: px }),
+  dialog: z.strictObject({ radius: px, elevation: elevationLevel, padding: px, actionGap: px }),
+  chip: z.strictObject({
+    radius: px,
+    height: px,
+    paddingX: px,
+    iconGap: px,
+    selected: z.strictObject({ container: colorRole, content: colorRole }),
+  }),
+  badge: z.strictObject({ radius: px, paddingX: px }),
 });
 
 // ── Effects & assets ─────────────────────────────────────────────────────────

@@ -372,27 +372,93 @@
       "radius": 9999,
       "height": 40,
       "paddingX": 24,
-      "textTransform": "none"
+      "textTransform": "none",
+      "borderWidth": 1,
+      "iconGap": 8,
+      "sizes": {
+        "sm": {
+          "height": 32,
+          "paddingX": 12,
+          "textStyle": "labelMedium"
+        },
+        "md": {
+          "height": 40,
+          "paddingX": 24,
+          "textStyle": "labelLarge"
+        },
+        "lg": {
+          "height": 48,
+          "paddingX": 32,
+          "textStyle": "labelLarge"
+        }
+      },
+      "variants": {
+        "filled": {
+          "container": "primary",
+          "content": "onPrimary",
+          "border": "transparent",
+          "elevation": 0
+        },
+        "tonal": {
+          "container": "secondaryContainer",
+          "content": "onSecondaryContainer",
+          "border": "transparent",
+          "elevation": 0
+        },
+        "outlined": {
+          "container": "transparent",
+          "content": "primary",
+          "border": "outline",
+          "elevation": 0
+        },
+        "text": {
+          "container": "transparent",
+          "content": "primary",
+          "border": "transparent",
+          "elevation": 0
+        },
+        "danger": {
+          "container": "error",
+          "content": "onError",
+          "border": "transparent",
+          "elevation": 0
+        }
+      }
     },
     "input": {
       "variant": "outlined",
       "radius": 8,
-      "height": 48
+      "height": 48,
+      "borderWidth": 1,
+      "paddingX": 16,
+      "labelGap": 4
     },
     "card": {
       "radius": 8,
       "elevation": 1,
-      "bordered": false
+      "bordered": false,
+      "padding": 16,
+      "gap": 8
     },
     "dialog": {
       "radius": 16,
-      "elevation": 3
+      "elevation": 3,
+      "padding": 24,
+      "actionGap": 8
     },
     "chip": {
-      "radius": 8
+      "radius": 8,
+      "height": 32,
+      "paddingX": 12,
+      "iconGap": 4,
+      "selected": {
+        "container": "secondaryContainer",
+        "content": "onSecondaryContainer"
+      }
     },
     "badge": {
-      "radius": 9999
+      "radius": 9999,
+      "paddingX": 4
     }
   },
   "effects": {

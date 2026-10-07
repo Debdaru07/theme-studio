@@ -104,6 +104,35 @@ void main() {
     });
   });
 
+  group('component tuning', () {
+    test('fixtures carry sizes, variants and spacing', () {
+      final c = fixture('default').components;
+      expect(c.button.sizes['lg']!.height, 48);
+      expect(c.button.sizes['md']!.paddingX, c.button.paddingX);
+      expect(c.button.variants['outlined']!.border, 'outline');
+      expect(c.chip.selectedContainer, 'secondaryContainer');
+      expect(c.card.padding, 16);
+    });
+
+    test('themes from before component tuning parse with the same defaults', () {
+      final json = fixtureJson('default');
+      final components = json['components'] as Map<String, dynamic>;
+      final button = components['button'] as Map<String, dynamic>;
+      for (final k in ['borderWidth', 'iconGap', 'sizes', 'variants']) {
+        button.remove(k);
+      }
+      (components['input'] as Map).removeWhere((k, _) => ['borderWidth', 'paddingX', 'labelGap'].contains(k));
+      (components['card'] as Map).removeWhere((k, _) => ['padding', 'gap'].contains(k));
+      (components['dialog'] as Map).removeWhere((k, _) => ['padding', 'actionGap'].contains(k));
+      components['chip'] = {'radius': (components['chip'] as Map)['radius']};
+      components['badge'] = {'radius': (components['badge'] as Map)['radius']};
+
+      final legacy = DtTheme.fromJson(json).components;
+      final current = fixture('default').components;
+      expect(legacy.toJson(), current.toJson());
+    });
+  });
+
   group('text style italic', () {
     test('fixtures carry italic: false', () {
       final s = fixture('acme').typography.styles;

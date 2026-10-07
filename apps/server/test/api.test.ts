@@ -245,6 +245,38 @@ describe('client theme lifecycle', () => {
   });
 });
 
+describe('component tuning', () => {
+  it('agency tunes a component per size; clients cannot; guardrails gate publishing; SDKs receive it', async () => {
+    const url = `/clients/${ids.clients.acme}/theme`;
+    const agency = await login('tenant');
+    const draft = (await app.inject({ method: 'GET', url, headers: agency })).json().draft;
+    const tuned = { ...draft, components: { ...draft.components, button: { ...draft.components?.button, sizes: { lg: { paddingX: 40 } } } } };
+    expect((await app.inject({ method: 'PUT', url: `${url}/draft`, headers: agency, payload: { layer: tuned } })).statusCode).toBe(200);
+
+    // The client editor keeps the agency's tuning but cannot change it.
+    const client = await login('acmeEditor');
+    const changed = { ...tuned, components: { ...tuned.components, button: { ...tuned.components.button, sizes: { lg: { paddingX: 16 } } } } };
+    const refused = await app.inject({ method: 'PUT', url: `${url}/draft`, headers: client, payload: { layer: changed } });
+    expect(refused.statusCode).toBe(422);
+    expect(refused.json().issues[0].path).toBe('components.button.sizes.lg.paddingX');
+
+    // An unsafe value saves as a draft (with the report) but cannot be published.
+    const unsafe = { ...tuned, components: { ...tuned.components, button: { ...tuned.components.button, sizes: { lg: { paddingX: 40, height: 20 } } } } };
+    const saved = await app.inject({ method: 'PUT', url: `${url}/draft`, headers: agency, payload: { layer: unsafe } });
+    expect(saved.json().components.publishable).toBe(false);
+    const blocked = await app.inject({ method: 'POST', url: `${url}/publish`, headers: agency });
+    expect(blocked.statusCode).toBe(422);
+    expect(blocked.json().details.components.issues[0]).toMatchObject({ path: 'components.button.sizes.lg.height', level: 'error' });
+
+    // Fix it, publish, and the SDK endpoint serves the tuned component with everything else still from the theme.
+    await app.inject({ method: 'PUT', url: `${url}/draft`, headers: agency, payload: { layer: tuned } });
+    expect((await app.inject({ method: 'POST', url: `${url}/publish`, headers: agency })).statusCode).toBe(200);
+    const button = (await getTheme(DEMO_KEYS.acme)).json().components.button;
+    expect(button.sizes.lg).toEqual({ height: 48, paddingX: 40, textStyle: 'labelLarge' });
+    expect(button.variants.filled).toMatchObject({ container: 'primary', content: 'onPrimary' });
+  });
+});
+
 describe('tenant base theme', () => {
   it('rebases published clients when the base is published', async () => {
     const headers = await login('tenant');

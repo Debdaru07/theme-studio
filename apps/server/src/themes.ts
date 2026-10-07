@@ -80,7 +80,7 @@ export class ThemeService {
     const resolved =
       ownerType === 'tenant' ? this.previewTenant(layer) : await this.previewClient(await this.client(ownerId), layer);
     const draft = await this.repo.saveDraft(ownerType, ownerId, layer, user.id);
-    return { draft, contrast: resolved.contrast };
+    return { draft, contrast: resolved.contrast, components: resolved.components };
   }
 
   // ── Publishing ─────────────────────────────────────────────────────────────
@@ -90,6 +90,9 @@ export class ThemeService {
     const resolved = await this.previewClient(client, layer);
     if (!resolved.contrast.publishable) {
       throw new HttpError(422, 'Theme fails required contrast checks', { contrast: resolved.contrast });
+    }
+    if (!resolved.components.publishable) {
+      throw new HttpError(422, 'Theme fails component guardrails', { components: resolved.components });
     }
     return this.repo.withTx(async (repo) => ({ version: await this.insertClientVersion(repo, client, layer, user, note) }));
   }
@@ -112,8 +115,9 @@ export class ThemeService {
         const client = await this.client(clientId, repo);
         const current = (await repo.getVersion('client', clientId))!;
         try {
-          const { contrast } = resolveTheme([layer, current.layer]);
+          const { contrast, components } = resolveTheme([layer, current.layer]);
           if (!contrast.publishable) throw new Error('fails required contrast checks on the new base');
+          if (!components.publishable) throw new Error('fails component guardrails on the new base');
           const v = await this.insertClientVersion(repo, client, current.layer, user, `Rebased on base theme v${version}`);
           rebased.push({ clientId, version: v.version });
         } catch (e) {

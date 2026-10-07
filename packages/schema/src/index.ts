@@ -10,6 +10,13 @@ export {
   type ContrastPair,
   type ContrastReport,
 } from './contrast.ts';
+export {
+  checkComponents,
+  COMFORTABLE_CONTROL,
+  MIN_TARGET,
+  type ComponentIssue,
+  type ComponentReport,
+} from './components.ts';
 export { POLICY, canEdit, editableBy, type Layer } from './policy.ts';
 export {
   resolveTheme,

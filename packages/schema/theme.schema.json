@@ -1970,6 +1970,918 @@
                 "uppercase",
                 "capitalize"
               ]
+            },
+            "borderWidth": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10000
+            },
+            "iconGap": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10000
+            },
+            "sizes": {
+              "type": "object",
+              "properties": {
+                "sm": {
+                  "type": "object",
+                  "properties": {
+                    "height": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 10000
+                    },
+                    "paddingX": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 10000
+                    },
+                    "textStyle": {
+                      "type": "string",
+                      "enum": [
+                        "display",
+                        "headline",
+                        "titleLarge",
+                        "titleMedium",
+                        "bodyLarge",
+                        "bodyMedium",
+                        "bodySmall",
+                        "labelLarge",
+                        "labelMedium",
+                        "caption"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "height",
+                    "paddingX",
+                    "textStyle"
+                  ],
+                  "additionalProperties": false
+                },
+                "md": {
+                  "type": "object",
+                  "properties": {
+                    "height": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 10000
+                    },
+                    "paddingX": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 10000
+                    },
+                    "textStyle": {
+                      "type": "string",
+                      "enum": [
+                        "display",
+                        "headline",
+                        "titleLarge",
+                        "titleMedium",
+                        "bodyLarge",
+                        "bodyMedium",
+                        "bodySmall",
+                        "labelLarge",
+                        "labelMedium",
+                        "caption"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "height",
+                    "paddingX",
+                    "textStyle"
+                  ],
+                  "additionalProperties": false
+                },
+                "lg": {
+                  "type": "object",
+                  "properties": {
+                    "height": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 10000
+                    },
+                    "paddingX": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 10000
+                    },
+                    "textStyle": {
+                      "type": "string",
+                      "enum": [
+                        "display",
+                        "headline",
+                        "titleLarge",
+                        "titleMedium",
+                        "bodyLarge",
+                        "bodyMedium",
+                        "bodySmall",
+                        "labelLarge",
+                        "labelMedium",
+                        "caption"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "height",
+                    "paddingX",
+                    "textStyle"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "sm",
+                "md",
+                "lg"
+              ],
+              "additionalProperties": false
+            },
+            "variants": {
+              "type": "object",
+              "properties": {
+                "filled": {
+                  "type": "object",
+                  "properties": {
+                    "container": {
+                      "type": "string",
+                      "enum": [
+                        "primary",
+                        "onPrimary",
+                        "primaryContainer",
+                        "onPrimaryContainer",
+                        "secondary",
+                        "onSecondary",
+                        "secondaryContainer",
+                        "onSecondaryContainer",
+                        "accent",
+                        "onAccent",
+                        "accentContainer",
+                        "onAccentContainer",
+                        "success",
+                        "onSuccess",
+                        "successContainer",
+                        "onSuccessContainer",
+                        "warning",
+                        "onWarning",
+                        "warningContainer",
+                        "onWarningContainer",
+                        "error",
+                        "onError",
+                        "errorContainer",
+                        "onErrorContainer",
+                        "info",
+                        "onInfo",
+                        "infoContainer",
+                        "onInfoContainer",
+                        "background",
+                        "surface",
+                        "surfaceContainerLow",
+                        "surfaceContainer",
+                        "surfaceContainerHigh",
+                        "onSurface",
+                        "onSurfaceMuted",
+                        "onSurfaceDisabled",
+                        "outline",
+                        "outlineMuted",
+                        "focusRing",
+                        "scrim",
+                        "transparent"
+                      ]
+                    },
+                    "content": {
+                      "type": "string",
+                      "enum": [
+                        "primary",
+                        "onPrimary",
+                        "primaryContainer",
+                        "onPrimaryContainer",
+                        "secondary",
+                        "onSecondary",
+                        "secondaryContainer",
+                        "onSecondaryContainer",
+                        "accent",
+                        "onAccent",
+                        "accentContainer",
+                        "onAccentContainer",
+                        "success",
+                        "onSuccess",
+                        "successContainer",
+                        "onSuccessContainer",
+                        "warning",
+                        "onWarning",
+                        "warningContainer",
+                        "onWarningContainer",
+                        "error",
+                        "onError",
+                        "errorContainer",
+                        "onErrorContainer",
+                        "info",
+                        "onInfo",
+                        "infoContainer",
+                        "onInfoContainer",
+                        "background",
+                        "surface",
+                        "surfaceContainerLow",
+                        "surfaceContainer",
+                        "surfaceContainerHigh",
+                        "onSurface",
+                        "onSurfaceMuted",
+                        "onSurfaceDisabled",
+                        "outline",
+                        "outlineMuted",
+                        "focusRing",
+                        "scrim"
+                      ]
+                    },
+                    "border": {
+                      "type": "string",
+                      "enum": [
+                        "primary",
+                        "onPrimary",
+                        "primaryContainer",
+                        "onPrimaryContainer",
+                        "secondary",
+                        "onSecondary",
+                        "secondaryContainer",
+                        "onSecondaryContainer",
+                        "accent",
+                        "onAccent",
+                        "accentContainer",
+                        "onAccentContainer",
+                        "success",
+                        "onSuccess",
+                        "successContainer",
+                        "onSuccessContainer",
+                        "warning",
+                        "onWarning",
+                        "warningContainer",
+                        "onWarningContainer",
+                        "error",
+                        "onError",
+                        "errorContainer",
+                        "onErrorContainer",
+                        "info",
+                        "onInfo",
+                        "infoContainer",
+                        "onInfoContainer",
+                        "background",
+                        "surface",
+                        "surfaceContainerLow",
+                        "surfaceContainer",
+                        "surfaceContainerHigh",
+                        "onSurface",
+                        "onSurfaceMuted",
+                        "onSurfaceDisabled",
+                        "outline",
+                        "outlineMuted",
+                        "focusRing",
+                        "scrim",
+                        "transparent"
+                      ]
+                    },
+                    "elevation": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 5
+                    }
+                  },
+                  "required": [
+                    "container",
+                    "content",
+                    "border",
+                    "elevation"
+                  ],
+                  "additionalProperties": false
+                },
+                "tonal": {
+                  "type": "object",
+                  "properties": {
+                    "container": {
+                      "type": "string",
+                      "enum": [
+                        "primary",
+                        "onPrimary",
+                        "primaryContainer",
+                        "onPrimaryContainer",
+                        "secondary",
+                        "onSecondary",
+                        "secondaryContainer",
+                        "onSecondaryContainer",
+                        "accent",
+                        "onAccent",
+                        "accentContainer",
+                        "onAccentContainer",
+                        "success",
+                        "onSuccess",
+                        "successContainer",
+                        "onSuccessContainer",
+                        "warning",
+                        "onWarning",
+                        "warningContainer",
+                        "onWarningContainer",
+                        "error",
+                        "onError",
+                        "errorContainer",
+                        "onErrorContainer",
+                        "info",
+                        "onInfo",
+                        "infoContainer",
+                        "onInfoContainer",
+                        "background",
+                        "surface",
+                        "surfaceContainerLow",
+                        "surfaceContainer",
+                        "surfaceContainerHigh",
+                        "onSurface",
+                        "onSurfaceMuted",
+                        "onSurfaceDisabled",
+                        "outline",
+                        "outlineMuted",
+                        "focusRing",
+                        "scrim",
+                        "transparent"
+                      ]
+                    },
+                    "content": {
+                      "type": "string",
+                      "enum": [
+                        "primary",
+                        "onPrimary",
+                        "primaryContainer",
+                        "onPrimaryContainer",
+                        "secondary",
+                        "onSecondary",
+                        "secondaryContainer",
+                        "onSecondaryContainer",
+                        "accent",
+                        "onAccent",
+                        "accentContainer",
+                        "onAccentContainer",
+                        "success",
+                        "onSuccess",
+                        "successContainer",
+                        "onSuccessContainer",
+                        "warning",
+                        "onWarning",
+                        "warningContainer",
+                        "onWarningContainer",
+                        "error",
+                        "onError",
+                        "errorContainer",
+                        "onErrorContainer",
+                        "info",
+                        "onInfo",
+                        "infoContainer",
+                        "onInfoContainer",
+                        "background",
+                        "surface",
+                        "surfaceContainerLow",
+                        "surfaceContainer",
+                        "surfaceContainerHigh",
+                        "onSurface",
+                        "onSurfaceMuted",
+                        "onSurfaceDisabled",
+                        "outline",
+                        "outlineMuted",
+                        "focusRing",
+                        "scrim"
+                      ]
+                    },
+                    "border": {
+                      "type": "string",
+                      "enum": [
+                        "primary",
+                        "onPrimary",
+                        "primaryContainer",
+                        "onPrimaryContainer",
+                        "secondary",
+                        "onSecondary",
+                        "secondaryContainer",
+                        "onSecondaryContainer",
+                        "accent",
+                        "onAccent",
+                        "accentContainer",
+                        "onAccentContainer",
+                        "success",
+                        "onSuccess",
+                        "successContainer",
+                        "onSuccessContainer",
+                        "warning",
+                        "onWarning",
+                        "warningContainer",
+                        "onWarningContainer",
+                        "error",
+                        "onError",
+                        "errorContainer",
+                        "onErrorContainer",
+                        "info",
+                        "onInfo",
+                        "infoContainer",
+                        "onInfoContainer",
+                        "background",
+                        "surface",
+                        "surfaceContainerLow",
+                        "surfaceContainer",
+                        "surfaceContainerHigh",
+                        "onSurface",
+                        "onSurfaceMuted",
+                        "onSurfaceDisabled",
+                        "outline",
+                        "outlineMuted",
+                        "focusRing",
+                        "scrim",
+                        "transparent"
+                      ]
+                    },
+                    "elevation": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 5
+                    }
+                  },
+                  "required": [
+                    "container",
+                    "content",
+                    "border",
+                    "elevation"
+                  ],
+                  "additionalProperties": false
+                },
+                "outlined": {
+                  "type": "object",
+                  "properties": {
+                    "container": {
+                      "type": "string",
+                      "enum": [
+                        "primary",
+                        "onPrimary",
+                        "primaryContainer",
+                        "onPrimaryContainer",
+                        "secondary",
+                        "onSecondary",
+                        "secondaryContainer",
+                        "onSecondaryContainer",
+                        "accent",
+                        "onAccent",
+                        "accentContainer",
+                        "onAccentContainer",
+                        "success",
+                        "onSuccess",
+                        "successContainer",
+                        "onSuccessContainer",
+                        "warning",
+                        "onWarning",
+                        "warningContainer",
+                        "onWarningContainer",
+                        "error",
+                        "onError",
+                        "errorContainer",
+                        "onErrorContainer",
+                        "info",
+                        "onInfo",
+                        "infoContainer",
+                        "onInfoContainer",
+                        "background",
+                        "surface",
+                        "surfaceContainerLow",
+                        "surfaceContainer",
+                        "surfaceContainerHigh",
+                        "onSurface",
+                        "onSurfaceMuted",
+                        "onSurfaceDisabled",
+                        "outline",
+                        "outlineMuted",
+                        "focusRing",
+                        "scrim",
+                        "transparent"
+                      ]
+                    },
+                    "content": {
+                      "type": "string",
+                      "enum": [
+                        "primary",
+                        "onPrimary",
+                        "primaryContainer",
+                        "onPrimaryContainer",
+                        "secondary",
+                        "onSecondary",
+                        "secondaryContainer",
+                        "onSecondaryContainer",
+                        "accent",
+                        "onAccent",
+                        "accentContainer",
+                        "onAccentContainer",
+                        "success",
+                        "onSuccess",
+                        "successContainer",
+                        "onSuccessContainer",
+                        "warning",
+                        "onWarning",
+                        "warningContainer",
+                        "onWarningContainer",
+                        "error",
+                        "onError",
+                        "errorContainer",
+                        "onErrorContainer",
+                        "info",
+                        "onInfo",
+                        "infoContainer",
+                        "onInfoContainer",
+                        "background",
+                        "surface",
+                        "surfaceContainerLow",
+                        "surfaceContainer",
+                        "surfaceContainerHigh",
+                        "onSurface",
+                        "onSurfaceMuted",
+                        "onSurfaceDisabled",
+                        "outline",
+                        "outlineMuted",
+                        "focusRing",
+                        "scrim"
+                      ]
+                    },
+                    "border": {
+                      "type": "string",
+                      "enum": [
+                        "primary",
+                        "onPrimary",
+                        "primaryContainer",
+                        "onPrimaryContainer",
+                        "secondary",
+                        "onSecondary",
+                        "secondaryContainer",
+                        "onSecondaryContainer",
+                        "accent",
+                        "onAccent",
+                        "accentContainer",
+                        "onAccentContainer",
+                        "success",
+                        "onSuccess",
+                        "successContainer",
+                        "onSuccessContainer",
+                        "warning",
+                        "onWarning",
+                        "warningContainer",
+                        "onWarningContainer",
+                        "error",
+                        "onError",
+                        "errorContainer",
+                        "onErrorContainer",
+                        "info",
+                        "onInfo",
+                        "infoContainer",
+                        "onInfoContainer",
+                        "background",
+                        "surface",
+                        "surfaceContainerLow",
+                        "surfaceContainer",
+                        "surfaceContainerHigh",
+                        "onSurface",
+                        "onSurfaceMuted",
+                        "onSurfaceDisabled",
+                        "outline",
+                        "outlineMuted",
+                        "focusRing",
+                        "scrim",
+                        "transparent"
+                      ]
+                    },
+                    "elevation": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 5
+                    }
+                  },
+                  "required": [
+                    "container",
+                    "content",
+                    "border",
+                    "elevation"
+                  ],
+                  "additionalProperties": false
+                },
+                "text": {
+                  "type": "object",
+                  "properties": {
+                    "container": {
+                      "type": "string",
+                      "enum": [
+                        "primary",
+                        "onPrimary",
+                        "primaryContainer",
+                        "onPrimaryContainer",
+                        "secondary",
+                        "onSecondary",
+                        "secondaryContainer",
+                        "onSecondaryContainer",
+                        "accent",
+                        "onAccent",
+                        "accentContainer",
+                        "onAccentContainer",
+                        "success",
+                        "onSuccess",
+                        "successContainer",
+                        "onSuccessContainer",
+                        "warning",
+                        "onWarning",
+                        "warningContainer",
+                        "onWarningContainer",
+                        "error",
+                        "onError",
+                        "errorContainer",
+                        "onErrorContainer",
+                        "info",
+                        "onInfo",
+                        "infoContainer",
+                        "onInfoContainer",
+                        "background",
+                        "surface",
+                        "surfaceContainerLow",
+                        "surfaceContainer",
+                        "surfaceContainerHigh",
+                        "onSurface",
+                        "onSurfaceMuted",
+                        "onSurfaceDisabled",
+                        "outline",
+                        "outlineMuted",
+                        "focusRing",
+                        "scrim",
+                        "transparent"
+                      ]
+                    },
+                    "content": {
+                      "type": "string",
+                      "enum": [
+                        "primary",
+                        "onPrimary",
+                        "primaryContainer",
+                        "onPrimaryContainer",
+                        "secondary",
+                        "onSecondary",
+                        "secondaryContainer",
+                        "onSecondaryContainer",
+                        "accent",
+                        "onAccent",
+                        "accentContainer",
+                        "onAccentContainer",
+                        "success",
+                        "onSuccess",
+                        "successContainer",
+                        "onSuccessContainer",
+                        "warning",
+                        "onWarning",
+                        "warningContainer",
+                        "onWarningContainer",
+                        "error",
+                        "onError",
+                        "errorContainer",
+                        "onErrorContainer",
+                        "info",
+                        "onInfo",
+                        "infoContainer",
+                        "onInfoContainer",
+                        "background",
+                        "surface",
+                        "surfaceContainerLow",
+                        "surfaceContainer",
+                        "surfaceContainerHigh",
+                        "onSurface",
+                        "onSurfaceMuted",
+                        "onSurfaceDisabled",
+                        "outline",
+                        "outlineMuted",
+                        "focusRing",
+                        "scrim"
+                      ]
+                    },
+                    "border": {
+                      "type": "string",
+                      "enum": [
+                        "primary",
+                        "onPrimary",
+                        "primaryContainer",
+                        "onPrimaryContainer",
+                        "secondary",
+                        "onSecondary",
+                        "secondaryContainer",
+                        "onSecondaryContainer",
+                        "accent",
+                        "onAccent",
+                        "accentContainer",
+                        "onAccentContainer",
+                        "success",
+                        "onSuccess",
+                        "successContainer",
+                        "onSuccessContainer",
+                        "warning",
+                        "onWarning",
+                        "warningContainer",
+                        "onWarningContainer",
+                        "error",
+                        "onError",
+                        "errorContainer",
+                        "onErrorContainer",
+                        "info",
+                        "onInfo",
+                        "infoContainer",
+                        "onInfoContainer",
+                        "background",
+                        "surface",
+                        "surfaceContainerLow",
+                        "surfaceContainer",
+                        "surfaceContainerHigh",
+                        "onSurface",
+                        "onSurfaceMuted",
+                        "onSurfaceDisabled",
+                        "outline",
+                        "outlineMuted",
+                        "focusRing",
+                        "scrim",
+                        "transparent"
+                      ]
+                    },
+                    "elevation": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 5
+                    }
+                  },
+                  "required": [
+                    "container",
+                    "content",
+                    "border",
+                    "elevation"
+                  ],
+                  "additionalProperties": false
+                },
+                "danger": {
+                  "type": "object",
+                  "properties": {
+                    "container": {
+                      "type": "string",
+                      "enum": [
+                        "primary",
+                        "onPrimary",
+                        "primaryContainer",
+                        "onPrimaryContainer",
+                        "secondary",
+                        "onSecondary",
+                        "secondaryContainer",
+                        "onSecondaryContainer",
+                        "accent",
+                        "onAccent",
+                        "accentContainer",
+                        "onAccentContainer",
+                        "success",
+                        "onSuccess",
+                        "successContainer",
+                        "onSuccessContainer",
+                        "warning",
+                        "onWarning",
+                        "warningContainer",
+                        "onWarningContainer",
+                        "error",
+                        "onError",
+                        "errorContainer",
+                        "onErrorContainer",
+                        "info",
+                        "onInfo",
+                        "infoContainer",
+                        "onInfoContainer",
+                        "background",
+                        "surface",
+                        "surfaceContainerLow",
+                        "surfaceContainer",
+                        "surfaceContainerHigh",
+                        "onSurface",
+                        "onSurfaceMuted",
+                        "onSurfaceDisabled",
+                        "outline",
+                        "outlineMuted",
+                        "focusRing",
+                        "scrim",
+                        "transparent"
+                      ]
+                    },
+                    "content": {
+                      "type": "string",
+                      "enum": [
+                        "primary",
+                        "onPrimary",
+                        "primaryContainer",
+                        "onPrimaryContainer",
+                        "secondary",
+                        "onSecondary",
+                        "secondaryContainer",
+                        "onSecondaryContainer",
+                        "accent",
+                        "onAccent",
+                        "accentContainer",
+                        "onAccentContainer",
+                        "success",
+                        "onSuccess",
+                        "successContainer",
+                        "onSuccessContainer",
+                        "warning",
+                        "onWarning",
+                        "warningContainer",
+                        "onWarningContainer",
+                        "error",
+                        "onError",
+                        "errorContainer",
+                        "onErrorContainer",
+                        "info",
+                        "onInfo",
+                        "infoContainer",
+                        "onInfoContainer",
+                        "background",
+                        "surface",
+                        "surfaceContainerLow",
+                        "surfaceContainer",
+                        "surfaceContainerHigh",
+                        "onSurface",
+                        "onSurfaceMuted",
+                        "onSurfaceDisabled",
+                        "outline",
+                        "outlineMuted",
+                        "focusRing",
+                        "scrim"
+                      ]
+                    },
+                    "border": {
+                      "type": "string",
+                      "enum": [
+                        "primary",
+                        "onPrimary",
+                        "primaryContainer",
+                        "onPrimaryContainer",
+                        "secondary",
+                        "onSecondary",
+                        "secondaryContainer",
+                        "onSecondaryContainer",
+                        "accent",
+                        "onAccent",
+                        "accentContainer",
+                        "onAccentContainer",
+                        "success",
+                        "onSuccess",
+                        "successContainer",
+                        "onSuccessContainer",
+                        "warning",
+                        "onWarning",
+                        "warningContainer",
+                        "onWarningContainer",
+                        "error",
+                        "onError",
+                        "errorContainer",
+                        "onErrorContainer",
+                        "info",
+                        "onInfo",
+                        "infoContainer",
+                        "onInfoContainer",
+                        "background",
+                        "surface",
+                        "surfaceContainerLow",
+                        "surfaceContainer",
+                        "surfaceContainerHigh",
+                        "onSurface",
+                        "onSurfaceMuted",
+                        "onSurfaceDisabled",
+                        "outline",
+                        "outlineMuted",
+                        "focusRing",
+                        "scrim",
+                        "transparent"
+                      ]
+                    },
+                    "elevation": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 5
+                    }
+                  },
+                  "required": [
+                    "container",
+                    "content",
+                    "border",
+                    "elevation"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "filled",
+                "tonal",
+                "outlined",
+                "text",
+                "danger"
+              ],
+              "additionalProperties": false
             }
           },
           "required": [
@@ -1977,7 +2889,11 @@
             "radius",
             "height",
             "paddingX",
-            "textTransform"
+            "textTransform",
+            "borderWidth",
+            "iconGap",
+            "sizes",
+            "variants"
           ],
           "additionalProperties": false
         },
@@ -2000,12 +2916,30 @@
               "type": "number",
               "minimum": 0,
               "maximum": 10000
+            },
+            "borderWidth": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10000
+            },
+            "paddingX": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10000
+            },
+            "labelGap": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10000
             }
           },
           "required": [
             "variant",
             "radius",
-            "height"
+            "height",
+            "borderWidth",
+            "paddingX",
+            "labelGap"
           ],
           "additionalProperties": false
         },
@@ -2024,12 +2958,24 @@
             },
             "bordered": {
               "type": "boolean"
+            },
+            "padding": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10000
+            },
+            "gap": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10000
             }
           },
           "required": [
             "radius",
             "elevation",
-            "bordered"
+            "bordered",
+            "padding",
+            "gap"
           ],
           "additionalProperties": false
         },
@@ -2045,11 +2991,23 @@
               "type": "integer",
               "minimum": 0,
               "maximum": 5
+            },
+            "padding": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10000
+            },
+            "actionGap": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10000
             }
           },
           "required": [
             "radius",
-            "elevation"
+            "elevation",
+            "padding",
+            "actionGap"
           ],
           "additionalProperties": false
         },
@@ -2060,10 +3018,129 @@
               "type": "number",
               "minimum": 0,
               "maximum": 10000
+            },
+            "height": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10000
+            },
+            "paddingX": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10000
+            },
+            "iconGap": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10000
+            },
+            "selected": {
+              "type": "object",
+              "properties": {
+                "container": {
+                  "type": "string",
+                  "enum": [
+                    "primary",
+                    "onPrimary",
+                    "primaryContainer",
+                    "onPrimaryContainer",
+                    "secondary",
+                    "onSecondary",
+                    "secondaryContainer",
+                    "onSecondaryContainer",
+                    "accent",
+                    "onAccent",
+                    "accentContainer",
+                    "onAccentContainer",
+                    "success",
+                    "onSuccess",
+                    "successContainer",
+                    "onSuccessContainer",
+                    "warning",
+                    "onWarning",
+                    "warningContainer",
+                    "onWarningContainer",
+                    "error",
+                    "onError",
+                    "errorContainer",
+                    "onErrorContainer",
+                    "info",
+                    "onInfo",
+                    "infoContainer",
+                    "onInfoContainer",
+                    "background",
+                    "surface",
+                    "surfaceContainerLow",
+                    "surfaceContainer",
+                    "surfaceContainerHigh",
+                    "onSurface",
+                    "onSurfaceMuted",
+                    "onSurfaceDisabled",
+                    "outline",
+                    "outlineMuted",
+                    "focusRing",
+                    "scrim"
+                  ]
+                },
+                "content": {
+                  "type": "string",
+                  "enum": [
+                    "primary",
+                    "onPrimary",
+                    "primaryContainer",
+                    "onPrimaryContainer",
+                    "secondary",
+                    "onSecondary",
+                    "secondaryContainer",
+                    "onSecondaryContainer",
+                    "accent",
+                    "onAccent",
+                    "accentContainer",
+                    "onAccentContainer",
+                    "success",
+                    "onSuccess",
+                    "successContainer",
+                    "onSuccessContainer",
+                    "warning",
+                    "onWarning",
+                    "warningContainer",
+                    "onWarningContainer",
+                    "error",
+                    "onError",
+                    "errorContainer",
+                    "onErrorContainer",
+                    "info",
+                    "onInfo",
+                    "infoContainer",
+                    "onInfoContainer",
+                    "background",
+                    "surface",
+                    "surfaceContainerLow",
+                    "surfaceContainer",
+                    "surfaceContainerHigh",
+                    "onSurface",
+                    "onSurfaceMuted",
+                    "onSurfaceDisabled",
+                    "outline",
+                    "outlineMuted",
+                    "focusRing",
+                    "scrim"
+                  ]
+                }
+              },
+              "required": [
+                "container",
+                "content"
+              ],
+              "additionalProperties": false
             }
           },
           "required": [
-            "radius"
+            "radius",
+            "height",
+            "paddingX",
+            "iconGap",
+            "selected"
           ],
           "additionalProperties": false
         },
@@ -2074,10 +3151,16 @@
               "type": "number",
               "minimum": 0,
               "maximum": 10000
+            },
+            "paddingX": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 10000
             }
           },
           "required": [
-            "radius"
+            "radius",
+            "paddingX"
           ],
           "additionalProperties": false
         }
