@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:dynamic_theme/dynamic_theme.dart';
+import 'package:theme_studio/theme_studio.dart';
 import 'package:flutter/animation.dart';
 import 'package:flutter_test/flutter_test.dart';
 

@@ -1,7 +1,7 @@
 {
-  "name": "@dts/react",
+  "name": "@debdaru07/react",
   "version": "0.1.0",
-  "description": "Dynamic Theming System React bindings: ThemeProvider and hooks over @dts/web",
+  "description": "Dynamic Theming System React bindings: ThemeProvider and hooks over @debdaru07/web",
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
@@ -15,8 +15,8 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@dts/schema": "*",
-    "@dts/web": "*"
+    "@debdaru07/schema": "*",
+    "@debdaru07/web": "*"
   },
   "peerDependencies": {
     "react": "^19.0.0"

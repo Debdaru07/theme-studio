@@ -1,4 +1,4 @@
-import { DEMO_CLIENTS, DEMO_TENANT_BASE } from '@dts/schema';
+import { DEMO_CLIENTS, DEMO_TENANT_BASE } from '@debdaru07/schema';
 import type { Db } from './db.ts';
 import { randomBytes } from 'node:crypto';
 import { hashPassword, verifyPassword } from './passwords.ts';

@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:dynamic_theme/dynamic_theme.dart';
+import 'package:theme_studio/theme_studio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;

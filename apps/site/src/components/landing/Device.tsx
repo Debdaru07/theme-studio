@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { ThemeProvider, type Theme } from '@dts/react';
-import { toCssVariables } from '@dts/web';
+import { ThemeProvider, type Theme } from '@debdaru07/react';
+import { toCssVariables } from '@debdaru07/web';
 import AppScreen from './AppScreen.tsx';
 
 interface DeviceProps {

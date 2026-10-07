@@ -1,4 +1,4 @@
-import { canEdit, editableBy, getPath, setPath, type ThemeInput } from '@dts/schema';
+import { canEdit, editableBy, getPath, setPath, type ThemeInput } from '@debdaru07/schema';
 import { createContext, useContext, useId, type ReactNode } from 'react';
 import type { ThemeEditor } from './useThemeEditor.ts';
 

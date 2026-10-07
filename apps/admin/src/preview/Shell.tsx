@@ -1,4 +1,4 @@
-import { useTheme } from '@dts/react';
+import { useTheme } from '@debdaru07/react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useState } from 'react';
 import { Icon, type IconName } from './icons.tsx';

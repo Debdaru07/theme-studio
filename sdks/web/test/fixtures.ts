@@ -1,7 +1,7 @@
-import type { Theme } from '@dts/schema';
-import acmeJson from '@dts/schema/fixtures/acme.json' with { type: 'json' };
-import defaultJson from '@dts/schema/fixtures/default.json' with { type: 'json' };
-import globexJson from '@dts/schema/fixtures/globex.json' with { type: 'json' };
+import type { Theme } from '@debdaru07/schema';
+import acmeJson from '@debdaru07/schema/fixtures/acme.json' with { type: 'json' };
+import defaultJson from '@debdaru07/schema/fixtures/default.json' with { type: 'json' };
+import globexJson from '@debdaru07/schema/fixtures/globex.json' with { type: 'json' };
 
 export const acme = acmeJson as unknown as Theme;
 export const globex = globexJson as unknown as Theme;

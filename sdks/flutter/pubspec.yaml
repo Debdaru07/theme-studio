@@ -1,9 +1,12 @@
-name: dynamic_theme
+name: theme_studio
 description: >-
   Runtime, multi-tenant theming for Flutter. Fetches a fully resolved theme from the
   Dynamic Theming System API and maps it to ThemeData, a ThemeExtension and adaptive widgets.
 version: 0.1.0
-publish_to: none
+homepage: https://theme-studio-docs.debdarudasgupta0799.workers.dev/sdks/flutter/
+repository: https://github.com/Debdaru07/theme-studio/tree/main/sdks/flutter
+issue_tracker: https://github.com/Debdaru07/theme-studio/issues
+topics: [theming, design-tokens, white-label, material-design]
 
 environment:
   sdk: ^3.10.0

@@ -1,6 +1,6 @@
 /**
  * Tiny stand-in for `react-native` used by tests and the package typecheck
- * (vitest `resolve.alias` + tsconfig `paths`). Only what @dts/react-native touches.
+ * (vitest `resolve.alias` + tsconfig `paths`). Only what @debdaru07/react-native touches.
  */
 import { useSyncExternalStore } from 'react';
 

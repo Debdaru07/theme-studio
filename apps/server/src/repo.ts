@@ -1,6 +1,6 @@
 import { randomBytes, randomUUID } from 'node:crypto';
 import type { InValue, Row } from '@libsql/client';
-import type { Theme, ThemeInput } from '@dts/schema';
+import type { Theme, ThemeInput } from '@debdaru07/schema';
 import { tx, type Db, type Executor } from './db.ts';
 
 export type Role = 'platform_admin' | 'tenant_admin' | 'client_editor';

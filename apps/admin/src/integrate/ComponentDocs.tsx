@@ -1,5 +1,5 @@
-import { ThemeProvider } from '@dts/react';
-import type { Theme } from '@dts/schema';
+import { ThemeProvider } from '@debdaru07/react';
+import type { Theme } from '@debdaru07/schema';
 import { useId, useState } from 'react';
 import { CodeBlock, type Copy } from './CodeBlock.tsx';
 import { COMPONENT_SETUP, COMPONENTS, type ComponentDoc } from './components.ts';

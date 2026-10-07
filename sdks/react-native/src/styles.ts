@@ -1,5 +1,5 @@
-import type { Breakpoint, Theme } from '@dts/schema';
-import { parseHex, type ColorMode, type CubicBezier, type EasingName, type ElevationLevel } from '@dts/web/core';
+import type { Breakpoint, Theme } from '@debdaru07/schema';
+import { parseHex, type ColorMode, type CubicBezier, type EasingName, type ElevationLevel } from '@debdaru07/web/core';
 
 type TextStyleName = keyof Theme['typography']['styles'];
 type RadiusName = keyof Theme['shape']['radius'];

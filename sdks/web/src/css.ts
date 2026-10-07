@@ -1,4 +1,4 @@
-import type { Breakpoint, ColorRole, Theme } from '@dts/schema';
+import type { Breakpoint, ColorRole, Theme } from '@debdaru07/schema';
 import { type ColorMode, type ElevationLevel, cubicBezierCss, rgba } from './tokens.ts';
 
 // ── Naming ───────────────────────────────────────────────────────────────────

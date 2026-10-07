@@ -1,8 +1,8 @@
 /// <reference types="node" />
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { DEMO_CLIENTS, DEMO_TENANT_BASE, resolveTheme } from '@dts/schema';
-import { cssVarName, toCssVariables, type CssVarPath } from '@dts/web';
+import { DEMO_CLIENTS, DEMO_TENANT_BASE, resolveTheme } from '@debdaru07/schema';
+import { cssVarName, toCssVariables, type CssVarPath } from '@debdaru07/web';
 import { describe, expect, it } from 'vitest';
 import { buildRows } from './reference.ts';
 import { SDKS } from './sdks.ts';

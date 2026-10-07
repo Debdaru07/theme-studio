@@ -1,18 +1,18 @@
 ---
 title: Flutter SDK
-description: dynamic_theme. Runtime ThemeData, context.dt tokens, adaptive navigation and page transitions for Flutter.
+description: theme_studio. Runtime ThemeData, context.dt tokens, adaptive navigation and page transitions for Flutter.
 ---
 
 import { Aside, Code, Tabs, TabItem } from '@astrojs/starlight/components';
 import { REPO_URL } from '../../../config.ts';
 
 export const gitDep = `dependencies:
-  dynamic_theme:
+  theme_studio:
     git:
       url: ${REPO_URL}.git
       path: sdks/flutter`;
 
-`dynamic_theme` fetches a client's **resolved, published theme** at runtime and applies it natively:
+`theme_studio` fetches a client's **resolved, published theme** at runtime and applies it natively:
 Material 3 `ThemeData` for light and dark, a `ThemeExtension<DtTokens>` for the tokens Material has no slot for,
 page transitions, and an adaptive navigation scaffold. It only parses and maps. Merging layers and deriving
 colors happen on the server.
@@ -28,7 +28,7 @@ The package is not on pub.dev yet. Depend on it by path or git:
 
 ```yaml title="pubspec.yaml"
 dependencies:
-  dynamic_theme:
+  theme_studio:
     path: ../sdks/flutter
 ```
 
@@ -43,7 +43,7 @@ dependencies:
 ## Quickstart
 
 ```dart title="lib/main.dart"
-import 'package:dynamic_theme/dynamic_theme.dart';
+import 'package:theme_studio/theme_studio.dart';
 import 'package:flutter/material.dart';
 
 final client = DynamicThemeClient('http://localhost:8787', 'pk_demo_acme');

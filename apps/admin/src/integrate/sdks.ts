@@ -38,7 +38,7 @@ export const SDKS: Sdk[] = [
       lang: 'yaml',
       note: 'Not on pub.dev yet: add it from git (or a local path) in pubspec.yaml.',
       code: `dependencies:
-  dynamic_theme:
+  theme_studio:
     git:
       url: ${REPO}.git
       path: sdks/flutter`,
@@ -46,7 +46,7 @@ export const SDKS: Sdk[] = [
     setup: (endpoint, key) => ({
       lang: 'dart',
       file: 'lib/main.dart',
-      code: `import 'package:dynamic_theme/dynamic_theme.dart';
+      code: `import 'package:theme_studio/theme_studio.dart';
 import 'package:flutter/material.dart';
 
 final client = DynamicThemeClient('${endpoint}', '${key}');
@@ -157,12 +157,12 @@ AnimatedContainer(
     install: {
       lang: 'sh',
       note: 'Not on npm yet: install from the repository or use it as a workspace package. Needs a bundler that compiles TypeScript.',
-      code: 'npm install @dts/web',
+      code: 'npm install @debdaru07/web',
     },
     setup: (endpoint, key) => ({
       lang: 'ts',
       file: 'src/theme.ts',
-      code: `import { createThemeClient, applyTheme } from '@dts/web';
+      code: `import { createThemeClient, applyTheme } from '@debdaru07/web';
 
 const client = createThemeClient({ endpoint: '${endpoint}', key: '${key}' });
 
@@ -296,12 +296,12 @@ applyTheme(theme, {
     install: {
       lang: 'sh',
       note: 'Not on npm yet: install from the repository or use it as a workspace package. React 19 is a peer dependency.',
-      code: 'npm install @dts/react react',
+      code: 'npm install @debdaru07/react react',
     },
     setup: (endpoint, key) => ({
       lang: 'tsx',
       file: 'src/App.tsx',
-      code: `import { createThemeClient, ThemeProvider } from '@dts/react';
+      code: `import { createThemeClient, ThemeProvider } from '@debdaru07/react';
 
 const client = createThemeClient({ endpoint: '${endpoint}', key: '${key}' });
 
@@ -317,7 +317,7 @@ export function App() {
       {
         title: 'Color',
         lang: 'tsx',
-        code: `import { cssVar, useTheme } from '@dts/react';
+        code: `import { cssVar, useTheme } from '@debdaru07/react';
 
 // CSS variables re-theme without a re-render; prefer them for styling.
 const card = {
@@ -334,7 +334,7 @@ function StatusDot() {
       {
         title: 'Typography',
         lang: 'tsx',
-        code: `import { cssVar } from '@dts/react';
+        code: `import { cssVar } from '@debdaru07/react';
 
 const headline = {
   fontFamily: cssVar('text.headline.family'),
@@ -349,7 +349,7 @@ const headline = {
       {
         title: 'Spacing & layout',
         lang: 'tsx',
-        code: `import { cssVar, useBreakpoint, useToken } from '@dts/react';
+        code: `import { cssVar, useBreakpoint, useToken } from '@debdaru07/react';
 
 function Page({ children }) {
   return (
@@ -365,7 +365,7 @@ const breakpoint = useBreakpoint();        // mobile | tablet | desktop | wide`,
       {
         title: 'Shape & elevation',
         lang: 'tsx',
-        code: `import { cssVar } from '@dts/react';
+        code: `import { cssVar } from '@debdaru07/react';
 
 const card = {
   padding: cssVar('card.padding'),
@@ -382,7 +382,7 @@ const button = {
       {
         title: 'Motion',
         lang: 'tsx',
-        code: `import { useMotion } from '@dts/react';
+        code: `import { useMotion } from '@debdaru07/react';
 
 function Fade({ show, children }) {
   // Durations are 0 when the user prefers reduced motion and the theme respects it.
@@ -397,7 +397,7 @@ function Fade({ show, children }) {
       {
         title: 'Navigation',
         lang: 'tsx',
-        code: `import { useNavigationPattern } from '@dts/react';
+        code: `import { useNavigationPattern } from '@debdaru07/react';
 
 function AppShell({ children }) {
   const pattern = useNavigationPattern(); // for the current breakpoint
@@ -415,14 +415,14 @@ function AppShell({ children }) {
     install: {
       lang: 'sh',
       note: 'Not on npm yet: install from the repository. AsyncStorage is optional but gives an offline cache.',
-      code: `npm install @dts/react-native
+      code: `npm install @debdaru07/react-native
 npm install @react-native-async-storage/async-storage`,
     },
     setup: (endpoint, key) => ({
       lang: 'tsx',
       file: 'App.tsx',
       code: `import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createThemeClient, ThemeProvider } from '@dts/react-native';
+import { createThemeClient, ThemeProvider } from '@debdaru07/react-native';
 
 const client = createThemeClient({ endpoint: '${endpoint}', key: '${key}', storage: AsyncStorage });
 
@@ -439,7 +439,7 @@ export default function App() {
         title: 'Color',
         lang: 'tsx',
         code: `import { Text, View } from 'react-native';
-import { useTheme } from '@dts/react-native';
+import { useTheme } from '@debdaru07/react-native';
 
 function Badge() {
   const { colors } = useTheme(); // hex values for the current mode
@@ -455,7 +455,7 @@ function Badge() {
         title: 'Typography',
         lang: 'tsx',
         code: `import { Text } from 'react-native';
-import { textStyle, useTheme } from '@dts/react-native';
+import { textStyle, useTheme } from '@debdaru07/react-native';
 
 function Title() {
   const { theme, colors, breakpoint } = useTheme();
@@ -467,7 +467,7 @@ function Title() {
         title: 'Spacing & layout',
         lang: 'tsx',
         code: `import { ScrollView } from 'react-native';
-import { useTheme } from '@dts/react-native';
+import { useTheme } from '@debdaru07/react-native';
 
 function Screen({ children }) {
   const { theme, breakpoint } = useTheme();
@@ -483,7 +483,7 @@ function Screen({ children }) {
         title: 'Shape & elevation',
         lang: 'tsx',
         code: `import { View } from 'react-native';
-import { radius, shadow, useTheme } from '@dts/react-native';
+import { radius, shadow, useTheme } from '@debdaru07/react-native';
 
 function Card({ children }) {
   const { theme, colors, mode } = useTheme();
@@ -505,7 +505,7 @@ function Card({ children }) {
         title: 'Motion',
         lang: 'tsx',
         code: `import { Animated, Easing } from 'react-native';
-import { easingFunction, useMotion, useTheme } from '@dts/react-native';
+import { easingFunction, useMotion, useTheme } from '@debdaru07/react-native';
 
 function useFadeIn(value: Animated.Value) {
   const { theme } = useTheme();
@@ -522,7 +522,7 @@ function useFadeIn(value: Animated.Value) {
       {
         title: 'Navigation',
         lang: 'tsx',
-        code: `import { useNavigationPattern } from '@dts/react-native';
+        code: `import { useNavigationPattern } from '@debdaru07/react-native';
 
 function RootNavigator() {
   const pattern = useNavigationPattern(); // bottomBar | rail | drawer | sidebar | topTabs

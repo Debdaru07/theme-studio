@@ -1,17 +1,17 @@
 ---
 title: React SDK
-description: "@dts/react: ThemeProvider and hooks over @dts/web, for React 19."
+description: "@debdaru07/react: ThemeProvider and hooks over @debdaru07/web, for React 19."
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-`@dts/react` is a `<ThemeProvider>` plus hooks, built on the [Web SDK](/sdks/web/). It re-exports everything from
-`@dts/web`, so one import is enough. Theme Studio's own live preview uses it.
+`@debdaru07/react` is a `<ThemeProvider>` plus hooks, built on the [Web SDK](/sdks/web/). It re-exports everything from
+`@debdaru07/web`, so one import is enough. Theme Studio's own live preview uses it.
 
 ## Install
 
 ```sh
-npm install @dts/react react   # react ^19 is a peer dependency
+npm install @debdaru07/react react   # react ^19 is a peer dependency
 ```
 
 Not on npm yet; inside this monorepo it is a workspace package.
@@ -19,7 +19,7 @@ Not on npm yet; inside this monorepo it is a workspace package.
 ## Quickstart
 
 ```tsx
-import { createThemeClient, ThemeProvider, useTheme, cssVar } from '@dts/react';
+import { createThemeClient, ThemeProvider, useTheme, cssVar } from '@debdaru07/react';
 
 const client = createThemeClient({ endpoint: 'http://localhost:8787', key: 'pk_demo_acme' });
 
@@ -67,7 +67,7 @@ Several scoped providers can coexist on one page, each with its own theme, mode 
 ## Accessing tokens
 
 ```tsx
-import { useTheme, useToken, cssVar } from '@dts/react';
+import { useTheme, useToken, cssVar } from '@debdaru07/react';
 
 function Badge() {
   const { colors } = useTheme();
@@ -83,7 +83,7 @@ function Badge() {
 ## Navigation patterns
 
 ```tsx
-import { useNavigationPattern } from '@dts/react';
+import { useNavigationPattern } from '@debdaru07/react';
 
 function Shell({ children }: { children: React.ReactNode }) {
   const pattern = useNavigationPattern(); // 'bottomBar' | 'rail' | 'drawer' | 'sidebar' | 'topTabs'
@@ -102,7 +102,7 @@ With `scope="element"`, `useBreakpoint()` and `useNavigationPattern()` follow th
 ## Motion & page transitions
 
 ```tsx
-import { useMotion } from '@dts/react';
+import { useMotion } from '@debdaru07/react';
 
 function Panel({ open }: { open: boolean }) {
   const { duration, easingCss, pageTransition, reduced } = useMotion();
@@ -135,7 +135,7 @@ current theme on errors. Check `status` and `error` from `useTheme()` to surface
 | `useMotion()` | `{ duration, easing, easingCss, pageTransition, reduced }` |
 | `usePrefersReducedMotion()` | `boolean` |
 | `ThemeContext`, `ThemeContextValue`, `ThemeProviderProps` | Context and types |
-| everything from `@dts/web` | `createThemeClient`, `cssVar`, `applyTheme`, … ([Web API](/sdks/web/#api-reference)) |
+| everything from `@debdaru07/web` | `createThemeClient`, `cssVar`, `applyTheme`, … ([Web API](/sdks/web/#api-reference)) |
 
 ## Troubleshooting
 

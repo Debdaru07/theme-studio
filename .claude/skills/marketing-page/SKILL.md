@@ -36,7 +36,7 @@ the result.
 
 Starlight specifics: the landing is `template: splash` in `apps/site/src/content/docs/index.mdx`; reuse
 `HowItWorks.astro`, `components/landing/*` (`Hero.astro` overrides Starlight's hero; `HeroDemo`, `BrandPlayground`,
-`LayerStack` render real themes via `@dts/react` and `@dts/schema`), `<LinkButton>`, `<Tabs>`; URLs come from
+`LayerStack` render real themes via `@debdaru07/react` and `@debdaru07/schema`), `<LinkButton>`, `<Tabs>`; URLs come from
 `src/config.ts`. Landing styles live in `src/styles/landing.css`.
 
 ## 3. Copy rules

@@ -1,0 +1,92 @@
+# Publishes one package when its version tag is pushed. No registry tokens are stored anywhere: npm and pub.dev
+# trust this workflow through GitHub's OIDC identity ("trusted publishing"). See docs/PUBLISHING.md.
+#
+#   schema-v0.2.0 · web-v0.2.0 · react-v0.2.0 · react-native-v0.2.0  →  npm (@debdaru07/*)
+#   flutter-v0.2.0                                                   →  pub.dev (theme_studio)
+#
+# Guards: the tagged commit must be on main, the tag version must equal the package version, tests must pass,
+# and the "release" environment (approval required) gates every publish.
+name: Release
+
+on:
+  push:
+    tags: ['schema-v*', 'web-v*', 'react-v*', 'react-native-v*', 'flutter-v*']
+
+permissions: {}
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  npm:
+    name: npm (${{ github.ref_name }})
+    if: ${{ !startsWith(github.ref_name, 'flutter-v') }}
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write # OIDC: npm trusted publishing and provenance
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - name: Resolve package and check the tag
+        id: pkg
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          name="${TAG%-v*}"
+          version="${TAG##*-v}"
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main || { echo "Tagged commit is not on main"; exit 1; }
+          node scripts/release-check.mjs "$name" "$version"
+          case "$name" in schema) dir=packages/schema ;; *) dir="sdks/$name" ;; esac
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "dir=$dir" >> "$GITHUB_OUTPUT"
+      - run: npm ci
+      - name: Test
+        run: npm test -w "./${{ steps.pkg.outputs.dir }}"
+      - name: Build the publish folder
+        run: node scripts/pack.mjs "${{ steps.pkg.outputs.name }}"
+      - name: Publish with provenance
+        run: |
+          npm --version
+          npm publish "./${{ steps.pkg.outputs.dir }}/dist" --provenance --access public
+
+  pub:
+    name: pub.dev (${{ github.ref_name }})
+    if: ${{ startsWith(github.ref_name, 'flutter-v') }}
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write # OIDC: pub.dev automated publishing
+    defaults:
+      run:
+        working-directory: sdks/flutter
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check the tag
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main || { echo "Tagged commit is not on main"; exit 1; }
+          node ../../scripts/release-check.mjs flutter "${TAG##*-v}"
+      # Exchanges the GitHub OIDC token for a short-lived pub.dev credential.
+      - uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d # v1.8.1
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: 3.38.9
+          channel: stable
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+      - run: flutter pub publish --force

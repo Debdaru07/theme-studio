@@ -1,8 +1,8 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { useState, type ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { Theme } from '@dts/schema';
-import globexJson from '@dts/schema/fixtures/globex.json' with { type: 'json' };
+import type { Theme } from '@debdaru07/schema';
+import globexJson from '@debdaru07/schema/fixtures/globex.json' with { type: 'json' };
 import {
   Alert,
   Avatar,

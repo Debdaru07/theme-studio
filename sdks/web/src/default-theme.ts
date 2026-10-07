@@ -1,5 +1,5 @@
-import type { Theme } from '@dts/schema';
-import defaultThemeJson from '@dts/schema/fixtures/default.json' with { type: 'json' };
+import type { Theme } from '@debdaru07/schema';
+import defaultThemeJson from '@debdaru07/schema/fixtures/default.json' with { type: 'json' };
 
 /**
  * The platform default theme, bundled so apps always have something to render

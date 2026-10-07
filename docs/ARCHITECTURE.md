@@ -28,26 +28,26 @@ Three deliverables:
 
 ```text
 /packages
-  /schema          @dts/schema   – token schema (Zod), defaults, resolver, color derivation,
+  /schema          @debdaru07/schema   – token schema (Zod), defaults, resolver, color derivation,
                                    contrast checks, JSON Schema export, conformance fixtures
 /apps
   /server          @dts/server   – Fastify REST API, libSQL (SQLite locally / Turso), seed data
   /site            @dts/site     – product & SDK docs (Astro Starlight)
   /admin           @dts/admin    – React admin + live preview
 /sdks
-  /web             @dts/web            – framework-agnostic core: fetch, cache, CSS variables
-  /react           @dts/react          – <ThemeProvider>, useTheme(), useToken()
-  /react-native    @dts/react-native   – Provider + hooks, RN-ready style values
-  /flutter         dynamic_theme       – Dart package: ThemeData, ThemeExtension, widgets
+  /web             @debdaru07/web            – framework-agnostic core: fetch, cache, CSS variables
+  /react           @debdaru07/react          – <ThemeProvider>, useTheme(), useToken()
+  /react-native    @debdaru07/react-native   – Provider + hooks, RN-ready style values
+  /flutter         theme_studio        – Dart package: ThemeData, ThemeExtension, widgets
 /docs
 ```
 
 JS packages use npm workspaces. The Flutter package lives in the same repo but is built with `flutter`/`dart`.
-`@dts` / `dynamic_theme` are placeholder names (see Open Questions).
+`@dts` / `theme_studio` are placeholder names (see Open Questions).
 
 ## 3. Key design decisions
 
-1. **One source of truth for tokens.** The schema is written in Zod inside `@dts/schema`. A JSON Schema
+1. **One source of truth for tokens.** The schema is written in Zod inside `@debdaru07/schema`. A JSON Schema
    is generated from it so non-TS SDKs (Dart) and external tools can validate themes.
 2. **The server resolves themes; SDKs stay thin.** Defaults, tenant base, client overrides,
    token references (`"{shape.radius.md}"`) and derived colors are all resolved on the server.
@@ -145,7 +145,7 @@ Publishing the tenant base theme re-resolves every client that inherits from it.
 * **Editor layout:** category tabs on the left (Colors, Typography, Spacing, Shape, Elevation, Motion,
   Navigation, Components, Effects, Assets) · **live preview** on the right · contrast warnings inline ·
   locked tokens shown with a lock and the reason.
-* **Live preview:** uses `@dts/react` scoped to the preview container (CSS variables on an element, not `:root`),
+* **Live preview:** uses `@debdaru07/react` scoped to the preview container (CSS variables on an element, not `:root`),
   so it is the same code path apps use. It provides:
   * Device frames (mobile / tablet / desktop), which also switch the **navigation pattern**
   * Light/dark toggle
@@ -167,17 +167,17 @@ fallback order: network → cache → bundled default theme
 
 | SDK | API surface |
 | --- | --- |
-| **Flutter** `dynamic_theme` | `DynamicTheme.init(...)` · `DynamicThemeApp`/`DynamicThemeBuilder` provide `ThemeData` (light+dark: `ColorScheme`, `TextTheme`, component themes) · `ThemeExtension<DtTokens>` for tokens Material lacks (`context.dt.spacing.md`, `context.dt.motion…`) · `DtPageTransitionsBuilder` (from `motion.pageTransition`) · `DtAdaptiveScaffold` (bottom bar / rail / drawer / sidebar from `navigation.pattern` per breakpoint) · cache via `shared_preferences` · fonts via `google_fonts` |
-| **Web** `@dts/web` | `createThemeClient({ key, endpoint })` · `applyTheme(theme, { root, mode })` writes `--dts-color-primary`, `--dts-space-md`, … · follows `prefers-color-scheme` · `localStorage` cache · optional Tailwind preset (v2) |
-| **React** `@dts/react` | `<ThemeProvider client={…}>` · `useTheme()` · `useToken('color.primary')` · `useBreakpoint()` · `useNavigationPattern()` |
-| **React Native** `@dts/react-native` | `<ThemeProvider>` · `useTheme()` (numbers and colors ready for `StyleSheet`) · pluggable storage (AsyncStorage adapter) · motion helpers for `Animated`/Reanimated · navigation pattern for React Navigation |
+| **Flutter** `theme_studio` | `DynamicTheme.init(...)` · `DynamicThemeApp`/`DynamicThemeBuilder` provide `ThemeData` (light+dark: `ColorScheme`, `TextTheme`, component themes) · `ThemeExtension<DtTokens>` for tokens Material lacks (`context.dt.spacing.md`, `context.dt.motion…`) · `DtPageTransitionsBuilder` (from `motion.pageTransition`) · `DtAdaptiveScaffold` (bottom bar / rail / drawer / sidebar from `navigation.pattern` per breakpoint) · cache via `shared_preferences` · fonts via `google_fonts` |
+| **Web** `@debdaru07/web` | `createThemeClient({ key, endpoint })` · `applyTheme(theme, { root, mode })` writes `--dts-color-primary`, `--dts-space-md`, … · follows `prefers-color-scheme` · `localStorage` cache · optional Tailwind preset (v2) |
+| **React** `@debdaru07/react` | `<ThemeProvider client={…}>` · `useTheme()` · `useToken('color.primary')` · `useBreakpoint()` · `useNavigationPattern()` |
+| **React Native** `@debdaru07/react-native` | `<ThemeProvider>` · `useTheme()` (numbers and colors ready for `StyleSheet`) · pluggable storage (AsyncStorage adapter) · motion helpers for `Animated`/Reanimated · navigation pattern for React Navigation |
 
 ## 9. Build order
 
 | Phase | Output | Done when |
 | --- | --- | --- |
 | 0 | Monorepo scaffold, tooling (TS, lint, test), `git init` | `npm test` runs across workspaces |
-| 1 | `@dts/schema`: Zod schema, defaults, resolver, color derivation, contrast, JSON Schema, fixtures | Unit tests for merge/refs/derivation/policy/contrast pass |
+| 1 | `@debdaru07/schema`: Zod schema, defaults, resolver, color derivation, contrast, JSON Schema, fixtures | Unit tests for merge/refs/derivation/policy/contrast pass |
 | 2 | `@dts/server`: DB, auth, CRUD, draft/publish/versions, public endpoint, demo seed (1 tenant, 2 clients) | API tests pass; `curl /v1/theme` returns a resolved theme with ETag |
 | 3 | **Flutter SDK** + example app | Fixture tests pass; example switches between the two demo clients live |
 | 4 | Admin app with editor, live preview, publish, history | A demo client can be re-themed and published end to end, and the Flutter example picks it up |
@@ -187,19 +187,22 @@ fallback order: network → cache → bundled default theme
 ## 10. Out of scope for the MVP
 
 Billing and subscriptions, SSO, custom font uploads (Google Fonts only), icon and illustration theming,
-real-time push (SDKs refresh on launch and resume, plus an optional poll interval), multi-region hosting,
-and publishing packages to npm or pub.dev.
+real-time push (SDKs refresh on launch and resume, plus an optional poll interval) and multi-region hosting.
+Publishing to npm and pub.dev is set up (see [PUBLISHING.md](PUBLISHING.md)) but no version is released yet.
 
 ## 11. Decisions (2026-10-06)
 
-1. **Names:** `@dts/*` (npm) and `dynamic_theme` (pub) are kept for now.
+1. **Names (updated 2026-10-08):** npm packages are `@debdaru07/{schema,web,react,react-native}` (the `@dts` scope
+   belongs to someone else) and the Flutter package is `theme_studio` (`dynamic_theme` is taken on pub.dev). Private
+   apps keep their internal `@dts/admin`, `@dts/server`, `@dts/site` names.
 2. **Publishing:** client editors can publish their own client theme. The version history records who published it.
 3. **Fonts:** Google Fonts only for the MVP. Custom font uploads will be scoped later.
 4. **Contrast:** *core pairs* must pass WCAG AA 4.5:1 or publishing is blocked. Core pairs are
    `onSurface`/`surface`, `onSurface`/`background`, and `on{Primary,Secondary,Accent}`/`{primary,secondary,accent}`,
    checked in both modes. Every other pair is a warning only.
 5. **Dev packaging:** JS workspace packages export their TypeScript source directly (run with `tsx`, Vite and Vitest).
-   A build step for publishing is added when the packages are released.
+   `scripts/pack.mjs` builds the publishable npm packages (JS + `.d.ts` in `<package>/dist`), and tags release them
+   through trusted publishing; see [PUBLISHING.md](PUBLISHING.md).
 6. **Database:** libSQL via `@libsql/client`. It's a local SQLite file in development and Turso in production, with
    the same SQL in both. It sits behind a small repository layer (`apps/server/src/repo.ts`). It replaced
    `node:sqlite` so the API can run on free hosts that have no persistent disk.

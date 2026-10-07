@@ -1,12 +1,12 @@
 import { useContext, useMemo, useSyncExternalStore } from 'react';
-import type { Breakpoint, Theme } from '@dts/schema';
-import { getToken, motionTokens, type MotionTokens, type TokenPath, type TokenValue } from '@dts/web';
+import type { Breakpoint, Theme } from '@debdaru07/schema';
+import { getToken, motionTokens, type MotionTokens, type TokenPath, type TokenValue } from '@debdaru07/web';
 import { ThemeContext, type ThemeContextValue } from './ThemeProvider.tsx';
 
 /** Theme, resolved mode, current-mode colors, breakpoint and load status. Must be inside `<ThemeProvider>`. */
 export function useTheme(): ThemeContextValue {
   const ctx = useContext(ThemeContext);
-  if (!ctx) throw new Error('useTheme() must be used inside <ThemeProvider> from @dts/react');
+  if (!ctx) throw new Error('useTheme() must be used inside <ThemeProvider> from @debdaru07/react');
   return ctx;
 }
 

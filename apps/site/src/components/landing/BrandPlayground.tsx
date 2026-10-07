@@ -1,6 +1,6 @@
 import { useDeferredValue, useId, useMemo, useState } from 'react';
-import { DEMO_TENANT_BASE, contrastRatio, resolveTheme, type ThemeInput } from '@dts/schema';
-import type { Theme } from '@dts/react';
+import { DEMO_TENANT_BASE, contrastRatio, resolveTheme, type ThemeInput } from '@debdaru07/schema';
+import type { Theme } from '@debdaru07/react';
 import Device from './Device.tsx';
 import Segmented from './Segmented.tsx';
 

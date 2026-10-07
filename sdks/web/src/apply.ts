@@ -1,4 +1,4 @@
-import type { Breakpoint, Theme } from '@dts/schema';
+import type { Breakpoint, Theme } from '@debdaru07/schema';
 import { toCssVariables } from './css.ts';
 import { loadGoogleFonts } from './fonts.ts';
 import { type ColorMode, type ModePreference, breakpointFor } from './tokens.ts';

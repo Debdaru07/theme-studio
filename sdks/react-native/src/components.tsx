@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ActivityIndicator, Image, Modal, Pressable, Switch as RNSwitch, Text as RNText, TextInput, View } from 'react-native';
-import type { ColorScheme, TextStyleName } from '@dts/schema';
+import type { ColorScheme, TextStyleName } from '@debdaru07/schema';
 import { useTheme } from './ThemeProvider.tsx';
 import { shadow, textStyle } from './styles.ts';
 
 /**
- * Themed UI components for React Native. Same names and props as @dts/react, in RN terms
+ * Themed UI components for React Native. Same names and props as @debdaru07/react, in RN terms
  * (`onPress`, `onChangeText`, `onValueChange`, `visible`). Every value comes from the theme via useTheme().
  */
 

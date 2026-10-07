@@ -1,5 +1,5 @@
 name: dynamic_theme_example
-description: Demo app for the dynamic_theme SDK (Acme / Globex demo clients).
+description: Demo app for the theme_studio SDK (Acme / Globex demo clients).
 publish_to: none
 version: 1.0.0+1
 
@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  dynamic_theme:
+  theme_studio:
     path: ../
   http: ^1.6.0
 

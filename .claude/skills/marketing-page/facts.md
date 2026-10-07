@@ -8,7 +8,7 @@ re-check the source if the code may have changed, and add new facts here (with a
 | Fact | Source |
 | --- | --- |
 | Themes are applied at runtime; publishing a change needs no app rebuild or store release | `docs/ARCHITECTURE.md` §1, SDK clients |
-| Four SDKs: Flutter (`dynamic_theme`), Web (`@dts/web`, CSS variables), React (`@dts/react`), React Native (`@dts/react-native`) | `sdks/*` |
+| Four SDKs: Flutter (`theme_studio`), Web (`@debdaru07/web`, CSS variables), React (`@debdaru07/react`), React Native (`@debdaru07/react-native`) | `sdks/*` |
 | Three layers: platform defaults → agency (tenant) base theme → client theme | `packages/schema/src/resolve.ts` |
 | A client can give one brand color; light and dark palettes are generated from it (Material HCT tonal palettes) and any color can be overridden | `packages/schema/src/color.ts` |
 | Publishing is blocked when core text/background pairs fail WCAG AA (4.5:1); other pairs warn | `packages/schema/src/contrast.ts` |

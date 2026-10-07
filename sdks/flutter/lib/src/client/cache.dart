@@ -39,7 +39,7 @@ class MemoryThemeCache implements ThemeCache {
 
 /// Stores the theme in `shared_preferences` as a single string per key.
 class SharedPreferencesThemeCache implements ThemeCache {
-  SharedPreferencesThemeCache({Future<SharedPreferences>? preferences, this.prefix = 'dynamic_theme.'})
+  SharedPreferencesThemeCache({Future<SharedPreferences>? preferences, this.prefix = 'theme_studio.'})
       : _prefs = preferences;
 
   final String prefix;

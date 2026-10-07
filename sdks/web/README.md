@@ -1,4 +1,4 @@
-# @dts/web
+# @debdaru07/web
 
 Framework-agnostic web SDK: fetches the client's published theme, caches it, and applies it as CSS custom properties.
 The server sends a fully resolved theme, so this package only maps values. It does not merge layers or derive colors.
@@ -6,13 +6,13 @@ The server sends a fully resolved theme, so this package only maps values. It do
 ## Install
 
 ```sh
-npm install @dts/web   # inside this monorepo it is already a workspace package
+npm install @debdaru07/web   # inside this monorepo it is already a workspace package
 ```
 
 ## Quickstart
 
 ```ts
-import { createThemeClient, applyTheme } from '@dts/web';
+import { createThemeClient, applyTheme } from '@debdaru07/web';
 
 const client = createThemeClient({ endpoint: 'http://localhost:8787', key: 'pk_demo_acme' });
 
@@ -63,7 +63,7 @@ and `@media (min-width)` layout blocks. Inline it in `<head>` to avoid a flash o
 
 `storage` is any `{ getItem, setItem }`, sync or async. The default is a `localStorage` wrapper that never throws.
 For SSR or tests, use `memoryStorage()`.
-`@dts/web/core` is a DOM-free entry point (client + token helpers) for non-browser runtimes.
+`@debdaru07/web/core` is a DOM-free entry point (client + token helpers) for non-browser runtimes.
 
 ## CSS variables
 

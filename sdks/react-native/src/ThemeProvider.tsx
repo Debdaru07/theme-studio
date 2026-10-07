@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { AccessibilityInfo, useColorScheme, useWindowDimensions } from 'react-native';
-import type { Breakpoint, ColorScheme, Theme } from '@dts/schema';
+import type { Breakpoint, ColorScheme, Theme } from '@debdaru07/schema';
 import {
   breakpointFor,
   DEFAULT_THEME,
@@ -16,7 +16,7 @@ import {
   type ThemeSnapshot,
   type ThemeSource,
   type ThemeStatus,
-} from '@dts/web/core';
+} from '@debdaru07/web/core';
 
 export interface NativeThemeContextValue {
   theme: Theme;
@@ -88,7 +88,7 @@ export function ThemeProvider({ client, theme: themeProp, fallback = DEFAULT_THE
 /** Theme, resolved mode, current-mode colors, breakpoint and status. Must be inside `<ThemeProvider>`. */
 export function useTheme(): NativeThemeContextValue {
   const ctx = useContext(ThemeContext);
-  if (!ctx) throw new Error('useTheme() must be used inside <ThemeProvider> from @dts/react-native');
+  if (!ctx) throw new Error('useTheme() must be used inside <ThemeProvider> from @debdaru07/react-native');
   return ctx;
 }
 

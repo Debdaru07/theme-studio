@@ -1,0 +1,5 @@
+# Not part of the published package.
+build/
+tool/
+*.log
+.dart_tool/

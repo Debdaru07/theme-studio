@@ -19,7 +19,7 @@
 
 | Level | Check | How to test |
 | --- | --- | --- |
-| Must | Body text ≥ 4.5:1; large text (≥ 24px, or ≥ 18.66px bold) and UI boundaries ≥ 3:1 — in light **and** dark | `contrastRatio()` from `@dts/schema`, or devtools |
+| Must | Body text ≥ 4.5:1; large text (≥ 24px, or ≥ 18.66px bold) and UI boundaries ≥ 3:1 — in light **and** dark | `contrastRatio()` from `@debdaru07/schema`, or devtools |
 | Must | Color is never the only signal (errors have text, chips have words, links in text are underlined) | Grayscale screenshot |
 | Should | Disabled controls still readable (≥ 3:1) and explain *why* when not obvious (tooltip/hint) | Visual |
 
@@ -68,7 +68,7 @@ Every data-driven view needs all of these, designed — not left to the browser:
 
 - Admin JS budget: keep the main chunk < 200 kB gzip; lazy-load heavy, rarely used data (e.g. the Google Fonts
   catalog) with `import()`.
-- Fonts: `display=swap`; preload only the primary UI font; preview fonts load on demand via `@dts/web`.
+- Fonts: `display=swap`; preload only the primary UI font; preview fonts load on demand via `@debdaru07/web`.
 - No layout thrash in scroll/resize handlers; use `ResizeObserver` / CSS container queries.
 - Docs: images in `apps/site/src/assets` (optimized by Astro), not `public/`.
 

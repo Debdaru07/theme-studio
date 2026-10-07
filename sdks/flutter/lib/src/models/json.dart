@@ -22,7 +22,7 @@ class DtUnsupportedSchemaVersionException implements Exception {
   @override
   String toString() =>
       'DtUnsupportedSchemaVersionException: theme has schemaVersion $found but this '
-      'version of dynamic_theme supports up to $supported. Upgrade the SDK.';
+      'version of theme_studio supports up to $supported. Upgrade the SDK.';
 }
 
 /// Typed, path-aware access to a decoded JSON object.

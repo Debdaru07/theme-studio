@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import type { Theme } from '@dts/react';
-import acmeJson from '@dts/schema/fixtures/acme.json';
-import globexJson from '@dts/schema/fixtures/globex.json';
+import type { Theme } from '@debdaru07/react';
+import acmeJson from '@debdaru07/schema/fixtures/acme.json';
+import globexJson from '@debdaru07/schema/fixtures/globex.json';
 import Device from './Device.tsx';
 import Segmented from './Segmented.tsx';
 
 /**
- * Hero demo: two published client themes of one agency, rendered by `@dts/react`.
+ * Hero demo: two published client themes of one agency, rendered by `@debdaru07/react`.
  * Plays one short Acme → Globex → dark sequence (under 5s, WCAG 2.2.2), skipped with reduced motion
  * and cancelled by any interaction.
  */

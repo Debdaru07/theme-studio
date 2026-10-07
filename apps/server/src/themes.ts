@@ -8,7 +8,7 @@ import {
   type ResolvedTheme,
   type Theme,
   type ThemeInput,
-} from '@dts/schema';
+} from '@debdaru07/schema';
 import { HttpError, notFound } from './errors.ts';
 import type { Client, OwnerType, Repo, Role, Tenant, User, VersionSummary } from './repo.ts';
 

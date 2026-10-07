@@ -1,5 +1,5 @@
 import type { HTMLAttributes, ReactNode } from 'react';
-import type { TextStyleName } from '@dts/web';
+import type { TextStyleName } from '@debdaru07/web';
 import { cx, type Tone } from './shared.tsx';
 
 const kebab = (s: string) => s.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();

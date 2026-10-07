@@ -6,7 +6,7 @@ import {
   canEdit,
   type ColorRole,
   type TextStyleName,
-} from '@dts/schema';
+} from '@debdaru07/schema';
 import { FontPicker, availableWeights, fontInfo } from './fonts.tsx';
 import { useState, type ReactNode } from 'react';
 import {

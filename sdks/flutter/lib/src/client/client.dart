@@ -102,7 +102,7 @@ class DynamicThemeClient {
         ));
 
   static const String defaultEndpoint = 'http://localhost:8787';
-  static const String bundledAsset = 'packages/dynamic_theme/assets/default_theme.json';
+  static const String bundledAsset = 'packages/theme_studio/assets/default_theme.json';
 
   final String endpoint;
   final String publishableKey;

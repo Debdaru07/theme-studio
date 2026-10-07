@@ -1,5 +1,5 @@
 {
-  "name": "@dts/schema",
+  "name": "@debdaru07/schema",
   "version": "0.1.0",
   "description": "Dynamic Theming System token schema, defaults, resolver and contrast checks",
   "type": "module",

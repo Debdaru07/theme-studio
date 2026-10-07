@@ -1,5 +1,5 @@
 {
-  "name": "@dts/web",
+  "name": "@debdaru07/web",
   "version": "0.1.0",
   "description": "Dynamic Theming System web SDK: theme client (fetch + cache) and CSS variables",
   "type": "module",
@@ -16,7 +16,7 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@dts/schema": "*"
+    "@debdaru07/schema": "*"
   },
   "devDependencies": {
     "happy-dom": "^20.0.0"

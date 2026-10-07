@@ -12,9 +12,9 @@
     "fonts": "node scripts/build-fonts.mjs"
   },
   "dependencies": {
-    "@dts/react": "*",
-    "@dts/schema": "*",
-    "@dts/web": "*",
+    "@debdaru07/react": "*",
+    "@debdaru07/schema": "*",
+    "@debdaru07/web": "*",
     "@tanstack/react-query": "^5.90.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

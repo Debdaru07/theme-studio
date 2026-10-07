@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:dynamic_theme/dynamic_theme.dart';
+import 'package:theme_studio/theme_studio.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 /// Runs before every test file: never fetch fonts in tests.

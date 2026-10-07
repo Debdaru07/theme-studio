@@ -9,7 +9,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react';
-import type { Breakpoint, ColorScheme, Theme } from '@dts/schema';
+import type { Breakpoint, ColorScheme, Theme } from '@debdaru07/schema';
 import {
   applyTheme,
   breakpointFor,
@@ -22,7 +22,7 @@ import {
   type ThemeSnapshot,
   type ThemeSource,
   type ThemeStatus,
-} from '@dts/web';
+} from '@debdaru07/web';
 
 export interface ThemeContextValue {
   theme: Theme;
@@ -44,7 +44,7 @@ export const ThemeContext = createContext<ThemeContextValue | null>(null);
 ThemeContext.displayName = 'DtsThemeContext';
 
 export interface ThemeProviderProps {
-  /** Theme client from `createThemeClient` (`@dts/web`). Loaded on mount unless `autoLoad={false}`. */
+  /** Theme client from `createThemeClient` (`@debdaru07/web`). Loaded on mount unless `autoLoad={false}`. */
   client?: ThemeClient;
   /** Explicit theme (e.g. an admin draft). Takes precedence over `client`. */
   theme?: Theme;

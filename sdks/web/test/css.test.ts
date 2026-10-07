@@ -3,7 +3,7 @@ import {
   TEXT_STYLES,
   type ColorRole,
   type Theme,
-} from '@dts/schema';
+} from '@debdaru07/schema';
 import {
   breakpointFor,
   cssVar,

@@ -13,7 +13,7 @@
     "dev:server": "npm run dev -w @dts/server",
     "dev:admin": "npm run dev -w @dts/admin",
     "seed": "npm run seed -w @dts/server",
-    "fixtures": "npm run fixtures -w @dts/schema",
+    "fixtures": "npm run fixtures -w @debdaru07/schema",
     "audit:ui": "node .claude/skills/functional-ui/scripts/audit.mjs",
     "dev:site": "npm run dev -w @dts/site"
   },

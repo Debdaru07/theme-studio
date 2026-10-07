@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { useTheme } from '@dts/react';
+import { useTheme } from '@debdaru07/react';
 
 /**
  * A small client app screen ("Northwind Bookings") rendered inside a scoped `<ThemeProvider>`.

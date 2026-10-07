@@ -11,7 +11,7 @@ import {
   type Theme,
   type ThemeInput,
   type ThemeIssue,
-} from '@dts/schema';
+} from '@debdaru07/schema';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { api, type Role, type ThemeState, type VersionSummary } from '../api.ts';

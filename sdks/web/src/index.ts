@@ -1,4 +1,4 @@
-export type { Breakpoint, ColorRole, ColorScheme, TextStyle, TextStyleName, Theme, ThemeMeta } from '@dts/schema';
+export type { Breakpoint, ColorRole, ColorScheme, TextStyle, TextStyleName, Theme, ThemeMeta } from '@debdaru07/schema';
 export * from './core.ts';
 export {
   boxShadow,

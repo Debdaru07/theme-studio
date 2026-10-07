@@ -17,8 +17,8 @@ jobs:
     name: JS / TS (schema, API, SDKs, admin, docs)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
           cache: npm
@@ -31,6 +31,8 @@ jobs:
         run: |
           npm run fixtures
           git diff --exit-code -- packages/schema
+      - name: Packages build for publishing
+        run: for p in schema web react react-native; do node scripts/pack.mjs "$p"; done
       - name: Build Theme Studio
         run: npm run build -w @dts/admin
       - name: Build docs site
@@ -43,8 +45,8 @@ jobs:
       run:
         working-directory: sdks/flutter
     steps:
-      - uses: actions/checkout@v5
-      - uses: subosito/flutter-action@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           flutter-version: 3.38.9
           channel: stable

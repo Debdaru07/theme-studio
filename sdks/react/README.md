@@ -1,18 +1,18 @@
-# @dts/react
+# @debdaru07/react
 
-React 19 bindings for the Dynamic Theming System: a `<ThemeProvider>` plus hooks, built on `@dts/web`.
-This package re-exports everything from `@dts/web`.
+React 19 bindings for the Dynamic Theming System: a `<ThemeProvider>` plus hooks, built on `@debdaru07/web`.
+This package re-exports everything from `@debdaru07/web`.
 
 ## Install
 
 ```sh
-npm install @dts/react react   # react ^19 is a peer dependency
+npm install @debdaru07/react react   # react ^19 is a peer dependency
 ```
 
 ## Quickstart
 
 ```tsx
-import { createThemeClient, ThemeProvider, useTheme, cssVar } from '@dts/react';
+import { createThemeClient, ThemeProvider, useTheme, cssVar } from '@debdaru07/react';
 
 const client = createThemeClient({ endpoint: 'http://localhost:8787', key: 'pk_demo_acme' });
 

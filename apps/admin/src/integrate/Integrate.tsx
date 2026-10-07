@@ -1,5 +1,5 @@
-import type { Theme } from '@dts/schema';
-import { themeStylesheet } from '@dts/web';
+import type { Theme } from '@debdaru07/schema';
+import { themeStylesheet } from '@debdaru07/web';
 import { Fragment, useId, useMemo, useState } from 'react';
 import { API_URL } from '../api.ts';
 import type { ThemeEditor } from '../editor/useThemeEditor.ts';

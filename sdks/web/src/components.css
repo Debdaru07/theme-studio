@@ -1,7 +1,7 @@
 /*
- * @dts/web components: framework-agnostic classes styled only with the --dts-* variables that applyTheme() /
+ * @debdaru07/web components: framework-agnostic classes styled only with the --dts-* variables that applyTheme() /
  * <ThemeProvider> write, so every component follows the client's published theme (colors, type, shape,
- * elevation, motion) in light and dark. Import once:  import '@dts/web/components.css';
+ * elevation, motion) in light and dark. Import once:  import '@debdaru07/web/components.css';
  *
  * Naming: .dts-<component>, .dts-<component>--<modifier>, .dts-<component>__<part>. State lives in ARIA and
  * native attributes (disabled, aria-invalid, aria-pressed, aria-selected, aria-busy, aria-checked), so styles

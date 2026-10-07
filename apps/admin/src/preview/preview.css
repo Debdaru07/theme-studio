@@ -1,5 +1,5 @@
 /*
- * Preview app styles. Only --dts-* variables from @dts/web are used for anything themeable,
+ * Preview app styles. Only --dts-* variables from @debdaru07/web are used for anything themeable,
  * which makes this file a reference for how a customer's web app consumes the SDK.
  */
 
@@ -778,7 +778,7 @@
 }
 
 /* ── Components gallery (preview "Components" view) ─────────────────────────
- * Its own root (not .dts-app), so only @dts/react components.css styles the components: the gallery shows
+ * Its own root (not .dts-app), so only @debdaru07/react components.css styles the components: the gallery shows
  * exactly what a customer app gets. These rules only lay the demos out. */
 
 .g-app {

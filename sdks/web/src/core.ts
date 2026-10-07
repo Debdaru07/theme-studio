@@ -1,6 +1,6 @@
 /**
- * DOM-free subset of @dts/web (theme client + token helpers), for React Native and other
- * non-browser runtimes: `import { createThemeClient } from '@dts/web/core'`.
+ * DOM-free subset of @debdaru07/web (theme client + token helpers), for React Native and other
+ * non-browser runtimes: `import { createThemeClient } from '@debdaru07/web/core'`.
  */
 export { DEFAULT_THEME } from './default-theme.ts';
 export {

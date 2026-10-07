@@ -11,7 +11,7 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@dts/schema": "*",
+    "@debdaru07/schema": "*",
     "@fastify/cors": "^11.0.0",
     "@fastify/jwt": "^10.0.0",
     "@libsql/client": "^0.18.0",

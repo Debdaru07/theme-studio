@@ -1,12 +1,12 @@
-# @dts/react-native
+# @debdaru07/react-native
 
 React Native bindings for the Dynamic Theming System: a provider, hooks, and pure helpers that turn the resolved
-theme into values you can pass to `StyleSheet`. It reuses the DOM-free theme client from `@dts/web/core`.
+theme into values you can pass to `StyleSheet`. It reuses the DOM-free theme client from `@debdaru07/web/core`.
 
 ## Install
 
 ```sh
-npm install @dts/react-native
+npm install @debdaru07/react-native
 # optional, for a persistent cache:
 npm install @react-native-async-storage/async-storage
 ```
@@ -19,7 +19,7 @@ package: pass any `{ getItem, setItem }`.
 ```tsx
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Easing, StyleSheet, Text, View } from 'react-native';
-import { createThemeClient, ThemeProvider, useTheme, textStyle, shadow, radius } from '@dts/react-native';
+import { createThemeClient, ThemeProvider, useTheme, textStyle, shadow, radius } from '@debdaru07/react-native';
 
 // AsyncStorage already has the { getItem, setItem } shape the client needs.
 const client = createThemeClient({ endpoint: 'https://themes.example.com', key: 'pk_demo_acme', storage: AsyncStorage });

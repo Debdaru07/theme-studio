@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
-import { DEMO_CLIENTS, DEMO_TENANT_BASE, resolveTheme, type ThemeInput } from '@dts/schema';
-import type { Theme } from '@dts/react';
+import { DEMO_CLIENTS, DEMO_TENANT_BASE, resolveTheme, type ThemeInput } from '@debdaru07/schema';
+import type { Theme } from '@debdaru07/react';
 import Device from './Device.tsx';
 
 /**
  * Theme layers, one step at a time: the same screen resolved from platform defaults, then the demo agency's
- * base theme, then one client's overrides. The JSON shown is the layer each step adds, from `@dts/schema`.
+ * base theme, then one client's overrides. The JSON shown is the layer each step adds, from `@debdaru07/schema`.
  */
 const STEPS: Array<{ id: string; title: string; who: string; body: string; layer: ThemeInput | null }> = [
   {

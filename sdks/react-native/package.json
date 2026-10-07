@@ -1,5 +1,5 @@
 {
-  "name": "@dts/react-native",
+  "name": "@debdaru07/react-native",
   "version": "0.1.0",
   "description": "Dynamic Theming System React Native bindings: ThemeProvider, hooks and RN style helpers",
   "type": "module",
@@ -12,8 +12,8 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@dts/schema": "*",
-    "@dts/web": "*"
+    "@debdaru07/schema": "*",
+    "@debdaru07/web": "*"
   },
   "peerDependencies": {
     "react": "^19.0.0",

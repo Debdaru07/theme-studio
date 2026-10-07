@@ -1,4 +1,4 @@
-# dynamic_theme
+# theme_studio
 
 Flutter SDK for the Dynamic Theming System. It fetches a client's **fully resolved, published theme**
 at runtime and applies it natively: Material 3 `ThemeData` (light and dark), a `ThemeExtension<DtTokens>`
@@ -12,14 +12,14 @@ The package is not on pub.dev yet, so depend on it by path or git:
 
 ```yaml
 dependencies:
-  dynamic_theme:
+  theme_studio:
     path: ../sdks/flutter   # or a git: reference to this repo
 ```
 
 ## Quickstart
 
 ```dart
-import 'package:dynamic_theme/dynamic_theme.dart';
+import 'package:theme_studio/theme_studio.dart';
 import 'package:flutter/material.dart';
 
 final client = DynamicThemeClient('http://localhost:8787', 'pk_demo_acme');

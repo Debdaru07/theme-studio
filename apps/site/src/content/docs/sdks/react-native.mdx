@@ -1,17 +1,17 @@
 ---
 title: React Native SDK
-description: "@dts/react-native: provider, hooks and StyleSheet-ready helpers for React Native."
+description: "@debdaru07/react-native: provider, hooks and StyleSheet-ready helpers for React Native."
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-`@dts/react-native` provides a provider, hooks, and pure helpers that turn the resolved theme into values you can
-pass to `StyleSheet`. It reuses the DOM-free theme client from `@dts/web/core` and re-exports it.
+`@debdaru07/react-native` provides a provider, hooks, and pure helpers that turn the resolved theme into values you can
+pass to `StyleSheet`. It reuses the DOM-free theme client from `@debdaru07/web/core` and re-exports it.
 
 ## Install
 
 ```sh
-npm install @dts/react-native
+npm install @debdaru07/react-native
 # optional, for a persistent cache:
 npm install @react-native-async-storage/async-storage
 ```
@@ -24,7 +24,7 @@ npm install @react-native-async-storage/async-storage
 ```tsx
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Text, View } from 'react-native';
-import { createThemeClient, ThemeProvider, useTheme, textStyle, shadow, radius } from '@dts/react-native';
+import { createThemeClient, ThemeProvider, useTheme, textStyle, shadow, radius } from '@debdaru07/react-native';
 
 // AsyncStorage already has the { getItem, setItem } shape the client needs.
 const client = createThemeClient({ endpoint: 'https://themes.example.com', key: 'pk_demo_acme', storage: AsyncStorage });
@@ -101,7 +101,7 @@ const styles = textStyles(theme, breakpoint, {
 ```tsx
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import { useNavigationPattern } from '@dts/react-native';
+import { useNavigationPattern } from '@debdaru07/react-native';
 
 const Tabs = createBottomTabNavigator();
 const Drawer = createDrawerNavigator();
@@ -123,7 +123,7 @@ function RootNavigator() {
 
 ```tsx
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { screenAnimation, useReducedMotion, useTheme } from '@dts/react-native';
+import { screenAnimation, useReducedMotion, useTheme } from '@debdaru07/react-native';
 
 const Stack = createNativeStackNavigator();
 
@@ -148,7 +148,7 @@ function AppStack() {
 
 ```ts
 import { Animated, Easing } from 'react-native';
-import { easingFunction, useMotion, useTheme } from '@dts/react-native';
+import { easingFunction, useMotion, useTheme } from '@debdaru07/react-native';
 
 const { theme } = useTheme();
 const { duration } = useMotion();
@@ -182,7 +182,7 @@ useEffect(() => {
 | `useTheme`, `useToken`, `useBreakpoint`, `useNavigationPattern`, `useMotion`, `useReducedMotion` | Hooks. |
 | `textStyle`, `textStyles`, `shadow`, `radius`, `easing`, `easingFunction`, `screenAnimation` | Style helpers. |
 | `ThemeContext`, `NativeThemeContextValue`, `ThemeProviderProps`, `RNTextStyle`, `RNShadowStyle`, `TextStyleOptions`, `NativeStackAnimation` | Context and types. |
-| everything from `@dts/web/core` | `createThemeClient`, `memoryStorage`, `DEFAULT_THEME`, `getToken`, `motionTokens`, `breakpointFor`, `ThemeFetchError`, … |
+| everything from `@debdaru07/web/core` | `createThemeClient`, `memoryStorage`, `DEFAULT_THEME`, `getToken`, `motionTokens`, `breakpointFor`, `ThemeFetchError`, … |
 
 ## Troubleshooting
 

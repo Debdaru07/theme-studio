@@ -1,5 +1,5 @@
-import { ThemeProvider } from '@dts/react';
-import type { Theme } from '@dts/schema';
+import { ThemeProvider } from '@debdaru07/react';
+import type { Theme } from '@debdaru07/schema';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { Gallery } from './Gallery.tsx';
 import { HomeScreen, FormScreen, OrdersScreen, OverlaysScreen } from './screens.tsx';

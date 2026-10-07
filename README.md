@@ -18,10 +18,10 @@ Design and decisions: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 | [apps/server](apps/server) | Theme API: Fastify + libSQL (SQLite locally, Turso in production), auth and roles, drafts, publishing, history, public SDK endpoint |
 | [apps/site](apps/site) | Product and SDK documentation site (Astro Starlight) |
 | [apps/admin](apps/admin) | Theme Studio: React admin with a live preview |
-| [sdks/flutter](sdks/flutter) | `dynamic_theme`: ThemeData, `context.dt` tokens, adaptive navigation, page transitions, example app |
-| [sdks/web](sdks/web) | `@dts/web`: client, cache, CSS variables (`--dts-*`) |
-| [sdks/react](sdks/react) | `@dts/react`: `<ThemeProvider>` and hooks |
-| [sdks/react-native](sdks/react-native) | `@dts/react-native`: provider, hooks, style helpers |
+| [sdks/flutter](sdks/flutter) | `theme_studio`: ThemeData, `context.dt` tokens, adaptive navigation, page transitions, example app |
+| [sdks/web](sdks/web) | `@debdaru07/web`: client, cache, CSS variables (`--dts-*`) |
+| [sdks/react](sdks/react) | `@debdaru07/react`: `<ThemeProvider>` and hooks |
+| [sdks/react-native](sdks/react-native) | `@debdaru07/react-native`: provider, hooks, style helpers |
 
 ## Quick start
 

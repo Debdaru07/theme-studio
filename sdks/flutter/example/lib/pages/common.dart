@@ -1,4 +1,4 @@
-import 'package:dynamic_theme/dynamic_theme.dart';
+import 'package:theme_studio/theme_studio.dart';
 import 'package:flutter/material.dart';
 
 /// A scrollable page padded by the theme's layout tokens.

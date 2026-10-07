@@ -1,18 +1,18 @@
 ---
 title: Web SDK
-description: "@dts/web: a framework-agnostic theme client and CSS custom properties (--dts-*)."
+description: "@debdaru07/web: a framework-agnostic theme client and CSS custom properties (--dts-*)."
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-`@dts/web` fetches the client's published theme, caches it, and applies it as CSS custom properties. It works
+`@debdaru07/web` fetches the client's published theme, caches it, and applies it as CSS custom properties. It works
 with any framework or none. The [React SDK](/sdks/react/) and the [React Native SDK](/sdks/react-native/) are built
 on it.
 
 ## Install
 
 ```sh
-npm install @dts/web
+npm install @debdaru07/web
 ```
 
 Inside this monorepo it is already a workspace package. It is not published to npm yet. During development the
@@ -21,7 +21,7 @@ packages export their TypeScript source, so use a bundler that compiles TS (Vite
 ## Quickstart
 
 ```ts
-import { createThemeClient, applyTheme } from '@dts/web';
+import { createThemeClient, applyTheme } from '@debdaru07/web';
 
 const client = createThemeClient({ endpoint: 'http://localhost:8787', key: 'pk_demo_acme' });
 
@@ -91,7 +91,7 @@ It returns a dispose function that removes every property and attribute it set a
 From CSS, use the [variables](#css-variables). From TypeScript:
 
 ```ts
-import { cssVar, cssVarName, getToken, motionTokens, breakpointFor, navigationPattern } from '@dts/web';
+import { cssVar, cssVarName, getToken, motionTokens, breakpointFor, navigationPattern } from '@debdaru07/web';
 
 cssVar('color.onPrimaryContainer');           // 'var(--dts-color-on-primary-container)', type-checked path
 cssVar('space.md', '12px');                    // with a CSS fallback
@@ -198,7 +198,7 @@ sizes on the web, scale them in your CSS per `data-dts-breakpoint`.
 | `ThemeFetchError` | `error.status`: HTTP status or `0`. |
 | Types | `Theme`, `ThemeClient`, `ThemeClientOptions`, `ThemeSnapshot`, `ThemeStatus`, `ThemeSource`, `ThemeStorage`, `ApplyThemeOptions`, `CssVarPath`, `TokenPath`, `ColorMode`, `ModePreference`, `MotionTokens`, … |
 
-`@dts/web/core` is a DOM-free entry point (client, storage and token helpers, no CSS or fonts) for non-browser
+`@debdaru07/web/core` is a DOM-free entry point (client, storage and token helpers, no CSS or fonts) for non-browser
 runtimes.
 
 ## Troubleshooting

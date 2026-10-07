@@ -1,4 +1,4 @@
-import type { Theme } from '@dts/schema';
+import type { Theme } from '@debdaru07/schema';
 
 const SYSTEM_FAMILIES = new Set([
   'serif',

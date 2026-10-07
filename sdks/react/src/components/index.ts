@@ -1,4 +1,4 @@
-// Themed UI components. Styles: import '@dts/react/components.css' once (it re-exports @dts/web's).
+// Themed UI components. Styles: import '@debdaru07/react/components.css' once (it re-exports @debdaru07/web's).
 export { Button, IconButton, type ButtonProps, type ButtonVariant, type IconButtonProps } from './actions.tsx';
 export { Checkbox, Chip, Switch, TextField, type ChipProps, type TextFieldProps, type ToggleProps } from './inputs.tsx';
 export {

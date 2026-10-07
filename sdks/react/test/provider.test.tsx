@@ -1,8 +1,8 @@
 import { act, cleanup, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Theme } from '@dts/schema';
-import acmeJson from '@dts/schema/fixtures/acme.json' with { type: 'json' };
-import globexJson from '@dts/schema/fixtures/globex.json' with { type: 'json' };
+import type { Theme } from '@debdaru07/schema';
+import acmeJson from '@debdaru07/schema/fixtures/acme.json' with { type: 'json' };
+import globexJson from '@debdaru07/schema/fixtures/globex.json' with { type: 'json' };
 import {
   createThemeClient,
   DEFAULT_THEME,

@@ -1,4 +1,4 @@
-import type { Breakpoint, ColorRole, ColorScheme, Theme } from '@dts/schema';
+import type { Breakpoint, ColorRole, ColorScheme, Theme } from '@debdaru07/schema';
 
 export type ColorMode = 'light' | 'dark';
 export type ModePreference = ColorMode | 'system';

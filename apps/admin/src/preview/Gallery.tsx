@@ -22,13 +22,13 @@ import {
   Text,
   TextField,
   Toast,
-} from '@dts/react';
+} from '@debdaru07/react';
 import { useRef, useState, type ReactNode } from 'react';
 import { Icon } from './icons.tsx';
 
 /**
- * Every @dts/react component in the client's theme. It renders the real SDK components and
- * '@dts/react/components.css' only (no preview styles), so it is exactly what a customer app gets.
+ * Every @debdaru07/react component in the client's theme. It renders the real SDK components and
+ * '@debdaru07/react/components.css' only (no preview styles), so it is exactly what a customer app gets.
  */
 const SECTIONS = ['Buttons', 'Inputs', 'Cards', 'Lists', 'Feedback', 'Overlays', 'Navigation', 'Empty states', 'Typography'] as const;
 type SectionId = (typeof SECTIONS)[number];
@@ -90,7 +90,7 @@ export function Gallery() {
           Components
         </Text>
         <Text variant="bodyMedium" muted>
-          Live @dts/react components in this theme. Switch device and mode above; the Integrate tab shows the code for every SDK.
+          Live @debdaru07/react components in this theme. Switch device and mode above; the Integrate tab shows the code for every SDK.
         </Text>
         <nav className="g-jump" aria-label="Component groups">
           {SECTIONS.map((s) => (

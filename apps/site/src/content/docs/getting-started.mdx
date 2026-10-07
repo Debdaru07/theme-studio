@@ -81,12 +81,12 @@ Requires **Node 22.13+** (24 recommended). Flutter 3.38+ is only needed for the 
 
 ```yaml title="pubspec.yaml"
 dependencies:
-  dynamic_theme:
+  theme_studio:
     path: ../sdks/flutter   # or a git: reference to the repo
 ```
 
 ```dart title="lib/main.dart"
-import 'package:dynamic_theme/dynamic_theme.dart';
+import 'package:theme_studio/theme_studio.dart';
 import 'package:flutter/material.dart';
 
 final client = DynamicThemeClient('http://localhost:8787', 'pk_demo_acme');
@@ -104,7 +104,7 @@ void main() => runApp(DynamicThemeApp(
 <TabItem label="Web">
 
 ```ts
-import { createThemeClient, applyTheme } from '@dts/web';
+import { createThemeClient, applyTheme } from '@debdaru07/web';
 
 const client = createThemeClient({ endpoint: 'http://localhost:8787', key: 'pk_demo_acme' });
 
@@ -120,7 +120,7 @@ await client.load();
 <TabItem label="React">
 
 ```tsx
-import { createThemeClient, ThemeProvider } from '@dts/react';
+import { createThemeClient, ThemeProvider } from '@debdaru07/react';
 
 const client = createThemeClient({ endpoint: 'http://localhost:8787', key: 'pk_demo_acme' });
 
@@ -138,7 +138,7 @@ export function App() {
 
 ```tsx
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createThemeClient, ThemeProvider } from '@dts/react-native';
+import { createThemeClient, ThemeProvider } from '@debdaru07/react-native';
 
 const client = createThemeClient({ endpoint: 'https://themes.example.com', key: 'pk_demo_acme', storage: AsyncStorage });
 

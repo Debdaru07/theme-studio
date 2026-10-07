@@ -1,6 +1,6 @@
 import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
-import { ThemeValidationError, type ThemeInput } from '@dts/schema';
+import { ThemeValidationError, type ThemeInput } from '@debdaru07/schema';
 import Fastify, { type FastifyInstance, type FastifyRequest } from 'fastify';
 import { z, ZodError } from 'zod';
 import type { Db } from './db.ts';

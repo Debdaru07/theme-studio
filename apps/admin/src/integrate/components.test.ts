@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import * as react from '@dts/react';
+import * as react from '@debdaru07/react';
 import { describe, expect, it } from 'vitest';
 import { COMPONENT_SETUP, COMPONENTS } from './components.ts';
 import { SDKS } from './sdks.ts';
@@ -29,7 +29,7 @@ describe('component docs', () => {
     for (const id of ids) expect(COMPONENT_SETUP[id]).toBeDefined();
   });
 
-  it('Web examples only use classes defined in @dts/web/components.css', () => {
+  it('Web examples only use classes defined in @debdaru07/web/components.css', () => {
     for (const c of COMPONENTS) {
       for (const [, cls] of c.code.web.matchAll(/class="([^"]+)"/g)) {
         for (const name of cls!.split(/\s+/).filter((n) => n.startsWith('dts-'))) {
@@ -39,13 +39,13 @@ describe('component docs', () => {
     }
   });
 
-  it('React examples only use @dts/react exports', () => {
+  it('React examples only use @debdaru07/react exports', () => {
     for (const c of COMPONENTS) {
       for (const tag of tags(c.code.react)) expect(react, `${c.name}: <${tag}>`).toHaveProperty(tag);
     }
   });
 
-  it('React Native examples only use @dts/react-native components', () => {
+  it('React Native examples only use @debdaru07/react-native components', () => {
     for (const c of COMPONENTS) {
       for (const tag of tags(c.code['react-native'])) {
         expect(rnSource, `${c.name}: <${tag}>`).toMatch(new RegExp(`export function ${tag}\\(`));

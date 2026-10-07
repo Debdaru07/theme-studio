@@ -55,7 +55,7 @@ import { ADMIN_URL, REPO_URL } from '../../config.ts';
     <h2 id="try-it-title">Bring your brand</h2>
     <p class="lp-lead">
       Pick a color, a typeface and a shape. This page resolves your client layer with the same code the Theme API
-      runs, then renders it with <code>@dts/react</code>.
+      runs, then renders it with <code>@debdaru07/react</code>.
     </p>
   </div>
   <BrandPlayground client:visible />
@@ -93,7 +93,7 @@ import { ADMIN_URL, REPO_URL } from '../../config.ts';
 <TabItem label="React">
 
 ```tsx
-import { createThemeClient, ThemeProvider, useTheme } from '@dts/react';
+import { createThemeClient, ThemeProvider, useTheme } from '@debdaru07/react';
 
 const client = createThemeClient({ endpoint: 'https://themes.example.com', key: 'pk_demo_acme' });
 
@@ -112,7 +112,7 @@ export function App() {
 <TabItem label="Flutter">
 
 ```dart
-import 'package:dynamic_theme/dynamic_theme.dart';
+import 'package:theme_studio/theme_studio.dart';
 import 'package:flutter/material.dart';
 
 final client = DynamicThemeClient('https://themes.example.com', 'pk_demo_acme');
@@ -129,7 +129,7 @@ void main() => runApp(DynamicThemeApp(
 <TabItem label="Web">
 
 ```ts
-import { createThemeClient, applyTheme } from '@dts/web';
+import { createThemeClient, applyTheme } from '@debdaru07/web';
 
 const client = createThemeClient({ endpoint: 'https://themes.example.com', key: 'pk_demo_acme' });
 
@@ -148,7 +148,7 @@ await client.load(); // then style with var(--dts-color-primary) and friends
 
 ```tsx
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createThemeClient, ThemeProvider } from '@dts/react-native';
+import { createThemeClient, ThemeProvider } from '@debdaru07/react-native';
 
 const client = createThemeClient({ endpoint: 'https://themes.example.com', key: 'pk_demo_acme', storage: AsyncStorage });
 

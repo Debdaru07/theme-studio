@@ -1,4 +1,4 @@
-import type { Theme } from '@dts/schema';
+import type { Theme } from '@debdaru07/schema';
 import { DEFAULT_THEME } from './default-theme.ts';
 
 /** Minimal key/value storage; sync (localStorage) or async (React Native AsyncStorage). */

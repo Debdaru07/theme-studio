@@ -6,7 +6,7 @@
 // Uses plain `test` (not `testWidgets`): the widget binding replaces HttpClient with a fake.
 import 'dart:io';
 
-import 'package:dynamic_theme/dynamic_theme.dart';
+import 'package:theme_studio/theme_studio.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

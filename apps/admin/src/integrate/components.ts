@@ -2,7 +2,7 @@ import type { SdkId } from './sdks.ts';
 
 /**
  * Component docs for the Integrate tab. Examples use only the real APIs in sdks/* (checked by
- * components.test.ts): @dts/web classes, @dts/react and @dts/react-native exports, Flutter Dt* widgets.
+ * components.test.ts): @debdaru07/web classes, @debdaru07/react and @debdaru07/react-native exports, Flutter Dt* widgets.
  */
 
 export interface Prop {
@@ -33,28 +33,28 @@ export const COMPONENT_SETUP: Record<SdkId, { lang: string; file: string; code: 
     lang: 'ts',
     file: 'src/main.ts',
     note: 'Import the stylesheet once. Components are plain HTML with dts-* classes; state lives in native and ARIA attributes.',
-    code: `import '@dts/web/components.css'; // after applyTheme() from the Connect step`,
+    code: `import '@debdaru07/web/components.css'; // after applyTheme() from the Connect step`,
   },
   react: {
     lang: 'tsx',
     file: 'src/main.tsx',
     note: 'Import the stylesheet once; components must render inside <ThemeProvider> to pick up theme defaults.',
-    code: `import '@dts/react/components.css';
-import { Button, Card, TextField } from '@dts/react';`,
+    code: `import '@debdaru07/react/components.css';
+import { Button, Card, TextField } from '@debdaru07/react';`,
   },
   'react-native': {
     lang: 'tsx',
     file: 'App.tsx',
     note: 'No stylesheet: components read the theme from <ThemeProvider> through useTheme().',
-    code: `import { Button, Card, TextField } from '@dts/react-native';
+    code: `import { Button, Card, TextField } from '@debdaru07/react-native';
 // React Native's own Text / Switch also exist: alias one, e.g.
-// import { Text as DtText } from '@dts/react-native';`,
+// import { Text as DtText } from '@debdaru07/react-native';`,
   },
   flutter: {
     lang: 'dart',
     file: 'lib/main.dart',
     note: 'Use inside DynamicThemeApp: Dt* widgets wrap Material 3 widgets, so ThemeData from the theme styles them.',
-    code: `import 'package:dynamic_theme/dynamic_theme.dart';
+    code: `import 'package:theme_studio/theme_studio.dart';
 // DtButton, DtTextField, DtCard, showDtConfirmDialog, showDtToast…`,
   },
 };

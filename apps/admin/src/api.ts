@@ -1,4 +1,4 @@
-import type { ContrastReport, Theme, ThemeInput, ThemeIssue } from '@dts/schema';
+import type { ContrastReport, Theme, ThemeInput, ThemeIssue } from '@debdaru07/schema';
 
 export const API_URL: string = import.meta.env.VITE_API_URL ?? 'http://localhost:8787';
 

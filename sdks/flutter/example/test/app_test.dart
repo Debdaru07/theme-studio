@@ -1,4 +1,4 @@
-import 'package:dynamic_theme/dynamic_theme.dart';
+import 'package:theme_studio/theme_studio.dart';
 import 'package:dynamic_theme_example/demo_settings.dart';
 import 'package:dynamic_theme_example/main.dart';
 import 'package:flutter/material.dart';

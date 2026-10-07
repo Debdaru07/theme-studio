@@ -22,12 +22,12 @@ import {
   Text,
   TextField,
   Toast,
-} from '@dts/react';
+} from '@debdaru07/react';
 import { useState, type ReactNode } from 'react';
 import { Icon } from '../preview/icons.tsx';
 
 /**
- * Live examples for the Integrate tab: each component's variants, rendered with the real @dts/react
+ * Live examples for the Integrate tab: each component's variants, rendered with the real @debdaru07/react
  * components inside the client's theme. Keyed by ComponentDoc.id (checked by components.test.ts).
  */
 function V({ label, children, stack }: { label: string; children: ReactNode; stack?: boolean }) {

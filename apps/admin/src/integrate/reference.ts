@@ -1,10 +1,10 @@
-import { leafPaths, seedOf, type Theme } from '@dts/schema';
-import { cssVarName, type CssVarPath } from '@dts/web';
+import { leafPaths, seedOf, type Theme } from '@debdaru07/schema';
+import { cssVarName, type CssVarPath } from '@debdaru07/web';
 import type { SdkId } from './sdks.ts';
 
 /**
  * One row per token a developer can read, with its value in this client's resolved theme and the exact
- * expression for each SDK. Accessors mirror `sdks/*`: CSS variables from `@dts/web`'s naming,
+ * expression for each SDK. Accessors mirror `sdks/*`: CSS variables from `@debdaru07/web`'s naming,
  * `context.dt` fields in Flutter (where `2xl` is `xxl`), `useTheme()` / helpers in React and React Native.
  */
 export type Category = 'Color' | 'Typography' | 'Spacing & layout' | 'Shape & elevation' | 'Motion' | 'Components' | 'Navigation';

@@ -1,4 +1,4 @@
-# dynamic_theme example
+# theme_studio example
 
 This demo app switches between the two demo clients, **Acme** (`pk_demo_acme`) and **Globex** (`pk_demo_globex`), at runtime.
 
