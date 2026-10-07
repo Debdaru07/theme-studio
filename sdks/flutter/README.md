@@ -1,40 +1,82 @@
 # theme_studio
 
-Flutter SDK for the Dynamic Theming System. It fetches a client's **fully resolved, published theme**
-at runtime and applies it natively: Material 3 `ThemeData` (light and dark), a `ThemeExtension<DtTokens>`
-for the tokens Material has no slot for, page transitions, and an adaptive navigation scaffold.
+[![pub package](https://img.shields.io/pub/v/theme_studio.svg)](https://pub.dev/packages/theme_studio) [![license: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/Debdaru07/theme-studio/blob/main/sdks/flutter/LICENSE)
 
-The server resolves themes. This SDK does not merge layers or derive colors. It only parses and maps.
+Runtime, multi-tenant theming for Flutter. Fetches a client's published theme from the Theme Studio API and applies
+it natively: Material 3 `ThemeData` (light and dark), a `ThemeExtension` with every token Material has no slot for,
+page transitions, an adaptive navigation scaffold and themed widgets. One app can carry every client's brand, and a
+new brand reaches users without a store release.
+
+[Docs](https://theme-studio-docs.debdarudasgupta0799.workers.dev/sdks/flutter/) · [Theme Studio](https://theme-studio.debdarudasgupta0799.workers.dev) · [GitHub](https://github.com/Debdaru07/theme-studio)
+
+## Before you start
+
+You need a Theme API **endpoint** and a client's **publishable key** (`pk_…`, read-only and safe to ship in an app).
+Both are on the client's **Integrate** tab in Theme Studio. To try it straight away, use the hosted demo:
+endpoint `https://theme-studio-api.onrender.com`, key `pk_demo_acme` or `pk_demo_globex`. The free demo API can take
+up to a minute to wake up; the app shows its cached (or bundled default) theme meanwhile.
 
 ## Install
 
-The package is not on pub.dev yet, so depend on it by path or git:
-
-```yaml
-dependencies:
-  theme_studio:
-    path: ../sdks/flutter   # or a git: reference to this repo
+```sh
+flutter pub add theme_studio
 ```
 
-## Quickstart
+## Quick start
 
 ```dart
-import 'package:theme_studio/theme_studio.dart';
 import 'package:flutter/material.dart';
+import 'package:theme_studio/theme_studio.dart';
 
-final client = DynamicThemeClient('http://localhost:8787', 'pk_demo_acme');
+final client = DynamicThemeClient('https://theme-studio-api.onrender.com', 'pk_demo_acme');
 
 void main() => runApp(DynamicThemeApp(
-      client: client,                 // cache first, then GET /v1/theme with If-None-Match
+      client: client, // cache first, then GET /v1/theme with If-None-Match
+      themeMode: ThemeMode.system,
       pollInterval: const Duration(minutes: 5),
-      home: Builder(builder: (context) => Padding(
-        padding: EdgeInsets.all(context.dt.layout.pagePadding),
-        child: DtButton(label: 'Hello', onPressed: () {}),
-      )),
+      home: const HomePage(),
     ));
+
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final dt = context.dt; // tokens for the current mode and breakpoint
+    return Scaffold(
+      body: Padding(
+        padding: EdgeInsets.all(dt.layout.pagePadding),
+        child: DtCard(
+          title: 'Next booking',
+          subtitle: 'Thu 14 Nov · 09:30',
+          actions: [DtButton(label: 'Reschedule', onPressed: () {})],
+          child: const DtStatusChip(label: 'Confirmed', tone: DtTone.success),
+        ),
+      ),
+    );
+  }
+}
 ```
 
-## What you get
+Material widgets (`FilledButton`, `Card`, `NavigationBar`, `TextField`…) pick up the theme through `ThemeData`
+automatically. Text styles map to `Theme.of(context).textTheme` (`headline` → `headlineMedium`, `caption` →
+`labelSmall`, the rest by name).
+
+## Widgets
+
+| Group | Widgets |
+| --- | --- |
+| Actions | `DtButton` (theme variant, `danger`, `text`, `loading`), `DtIconButton` |
+| Inputs | `DtTextField` (label, hint, error, prefix/suffix), `DtCheckbox`, `DtSwitch`, `DtChip` (filter, input) |
+| Display | `DtCard` (elevated, outlined, filled), `DtStatCard`, `DtListItem`, `DtAvatar`, `DtBadge`, `DtStatusChip` |
+| Feedback | `DtAlert`, `showDtToast`, `DtProgress`, `DtSkeleton`, `DtEmptyState` |
+| Overlays | `DtDialog`, `showDtConfirmDialog` (resolves `true`/`false`) |
+| Navigation | `DtTabs`, `DtAdaptiveScaffold` |
+
+Every widget takes its colors, shapes and text from the theme; loaders and progress use theme colors, never
+Material's defaults. Props and a live preview of each are on **Integrate → Components** in Theme Studio.
+
+## API
 
 | API | Purpose |
 | --- | --- |
@@ -44,32 +86,28 @@ void main() => runApp(DynamicThemeApp(
 | `DtThemeBuilder(theme, {breakpoint, fonts})` | Maps a `DtTheme` to `ThemeData` directly (`.light`, `.dark`, `.build(brightness)`). |
 | `context.dt` | Tokens and the current breakpoint: `context.dt.spacing.md`, `.colors.success`, `.layout.pagePadding`, `.breakpoint`, `.navPattern`, `.shadow(2)`, `.motion`, `.reduceMotion`. |
 | `DtAdaptiveScaffold` | Bottom bar, rail, modal drawer, sidebar or top tabs, following `navigation.pattern[breakpoint]`. |
-| `DtButton` | Uses the theme's button variant (filled, tonal or outlined) and applies `textTransform`. |
 | `DtPageTransitionsBuilder` | fade, slide, scale, sharedAxis or none, using the theme's motion tokens. Honours reduced motion. |
 | `ThemeCache` | `SharedPreferencesThemeCache` (default) or `MemoryThemeCache`. |
 
-`DtTheme.fromJson` throws `DtUnsupportedSchemaVersionException` when `schemaVersion` is newer than 1,
-and `DtThemeFormatException` (with a JSON path) for malformed input.
+`DtTheme.fromJson` throws `DtUnsupportedSchemaVersionException` when `schemaVersion` is newer than 1, and
+`DtThemeFormatException` (with a JSON path) for malformed input.
 
 ## Fonts
 
-Fonts load through `google_fonts`. A family that is not in its catalog falls back to a plain `fontFamily`.
-To turn off fetching (for tests, or for apps that bundle fonts), set `DtFonts.resolver = DtFonts.system`
-or pass `fonts:` to `DynamicThemeApp`/`DtThemeBuilder`.
+Fonts load through `google_fonts`. A family that isn't in its catalog falls back to a plain `fontFamily`. To turn off
+fetching (for tests, or for apps that bundle fonts), set `DtFonts.resolver = DtFonts.system` or pass `fonts:` to
+`DynamicThemeApp` / `DtThemeBuilder`.
 
-## Development
+## Example
 
-```sh
-dart tool/sync_fixtures.dart   # copy packages/schema/fixtures → test/fixtures, example assets, bundled default
-flutter test
-flutter analyze
-cd example && flutter run -d chrome --dart-define=DTS_ENDPOINT=http://localhost:8787
-```
+The [example app](https://github.com/Debdaru07/theme-studio/tree/main/sdks/flutter/example) shows the Acme and Globex
+demo clients across dashboard, orders, form and component pages, with an offline mode that serves bundled fixtures
+through the same client code path.
 
-The example has an **offline demo** (the cloud icon). It serves the bundled Acme and Globex fixtures through the
-same client code path, so it works without the API.
+> **Windows note:** if your Flutter SDK path contains a space (for example `C:\Flutter SDK`), `flutter test` and
+> `flutter build` can fail in the `objective_c` native-assets build hook (pulled in via `path_provider` /
+> `google_fonts`). Install Flutter at a path without spaces, or call it through its short 8.3 path.
 
-> **Windows note:** if the Flutter SDK path contains a space (for example `C:\Flutter SDK`), `flutter test`
-> and `flutter build` fail in the `objective_c` native-assets build hook, which comes in via
-> `path_provider`/`google_fonts`. Install Flutter at a path without spaces, or run it through a directory
-> junction that has none.
+## License
+
+MIT © Debdaru07

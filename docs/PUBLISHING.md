@@ -43,7 +43,7 @@ runtime, so a copyleft schema would reach every app that uses them.
   from outside collaborators.
 - **Settings → Code security**: enable secret scanning with push protection, and Dependabot alerts.
 
-### 4. First release (by hand)
+### 4. First release (by hand) — done: 0.1.0 on 2026-10-07
 
 Both registries only let you set up trusted publishing for a package that already exists, so publish `0.1.0` once
 from your machine. npm packages go in dependency order:

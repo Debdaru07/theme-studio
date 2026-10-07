@@ -1,6 +1,6 @@
 {
   "name": "@debdaru07/react-native",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Theme Studio React Native bindings: ThemeProvider, hooks and RN style helpers",
   "license": "MIT",
   "type": "module",

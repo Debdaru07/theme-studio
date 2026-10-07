@@ -27,21 +27,15 @@ export const DOCS_URL: string = (
   import.meta.env.VITE_DOCS_URL ?? 'https://theme-studio-docs.debdarudasgupta0799.workers.dev'
 ).replace(/\/+$/, '');
 
-const REPO = 'https://github.com/Debdaru07/theme-studio';
-
 export const SDKS: Sdk[] = [
   {
     id: 'flutter',
     label: 'Flutter',
     guide: '/sdks/flutter/',
     install: {
-      lang: 'yaml',
-      note: 'Not on pub.dev yet: add it from git (or a local path) in pubspec.yaml.',
-      code: `dependencies:
-  theme_studio:
-    git:
-      url: ${REPO}.git
-      path: sdks/flutter`,
+      lang: 'sh',
+      note: 'Published on pub.dev as theme_studio.',
+      code: 'flutter pub add theme_studio',
     },
     setup: (endpoint, key) => ({
       lang: 'dart',
@@ -156,7 +150,7 @@ AnimatedContainer(
     guide: '/sdks/web/',
     install: {
       lang: 'sh',
-      note: 'Not on npm yet: install from the repository or use it as a workspace package. Needs a bundler that compiles TypeScript.',
+      note: 'Published on npm as @debdaru07/web: compiled ES modules with type definitions.',
       code: 'npm install @debdaru07/web',
     },
     setup: (endpoint, key) => ({
@@ -295,7 +289,7 @@ applyTheme(theme, {
     guide: '/sdks/react/',
     install: {
       lang: 'sh',
-      note: 'Not on npm yet: install from the repository or use it as a workspace package. React 19 is a peer dependency.',
+      note: 'Published on npm as @debdaru07/react. React 19 is a peer dependency.',
       code: 'npm install @debdaru07/react react',
     },
     setup: (endpoint, key) => ({
@@ -414,7 +408,7 @@ function AppShell({ children }) {
     guide: '/sdks/react-native/',
     install: {
       lang: 'sh',
-      note: 'Not on npm yet: install from the repository. AsyncStorage is optional but gives an offline cache.',
+      note: 'Published on npm as @debdaru07/react-native. AsyncStorage is optional but gives an offline cache.',
       code: `npm install @debdaru07/react-native
 npm install @react-native-async-storage/async-storage`,
     },

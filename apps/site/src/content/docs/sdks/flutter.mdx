@@ -4,13 +4,6 @@ description: theme_studio. Runtime ThemeData, context.dt tokens, adaptive naviga
 ---
 
 import { Aside, Code, Tabs, TabItem } from '@astrojs/starlight/components';
-import { REPO_URL } from '../../../config.ts';
-
-export const gitDep = `dependencies:
-  theme_studio:
-    git:
-      url: ${REPO_URL}.git
-      path: sdks/flutter`;
 
 `theme_studio` fetches a client's **resolved, published theme** at runtime and applies it natively:
 Material 3 `ThemeData` for light and dark, a `ThemeExtension<DtTokens>` for the tokens Material has no slot for,
@@ -21,24 +14,11 @@ Requires Flutter **3.38+** (Dart 3.10+). Dependencies: `http`, `shared_preferenc
 
 ## Install
 
-The package is not on pub.dev yet. Depend on it by path or git:
+Published on pub.dev as [`theme_studio`](https://pub.dev/packages/theme_studio):
 
-<Tabs>
-<TabItem label="Path">
-
-```yaml title="pubspec.yaml"
-dependencies:
-  theme_studio:
-    path: ../sdks/flutter
+```sh
+flutter pub add theme_studio
 ```
-
-</TabItem>
-<TabItem label="Git">
-
-<Code code={gitDep} lang="yaml" title="pubspec.yaml" />
-
-</TabItem>
-</Tabs>
 
 ## Quickstart
 

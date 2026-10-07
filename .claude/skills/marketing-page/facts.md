@@ -21,6 +21,7 @@ re-check the source if the code may have changed, and add new facts here (with a
 | SDKs load the cached theme instantly, then revalidate with `ETag` / `If-None-Match` (304 when unchanged), and fall back to a bundled default offline | `sdks/web/src/client.ts`, `sdks/flutter/lib/src/client/client.dart` |
 | Live device preview in Theme Studio: phone, tablet, desktop, wide; light and dark | `apps/admin/src/preview/Preview.tsx` |
 | Theme Studio works from 320px phones to wide desktops, including phone landscape | `apps/admin/src/styles/responsive.css`, `npm run audit:ui` |
+| Published: npm `@debdaru07/schema`, `@debdaru07/web`, `@debdaru07/react`, `@debdaru07/react-native`; pub.dev `theme_studio` | npmjs.com, pub.dev |
 | Open source on GitHub: SDKs and schema are MIT; the platform (Theme Studio, API, docs) is AGPL-3.0 | `LICENSE`, `sdks/*/LICENSE`, `packages/schema/LICENSE`, README |
 | Platform defaults alone resolve to a complete theme with no contrast issues (`resolveTheme([])`) | `packages/schema/src/defaults.ts`, `resolve.ts` |
 | Publishable keys (`pk_…`) are read-only and safe to ship in an app | `apps/site/src/content/docs/getting-started.mdx` |
@@ -37,6 +38,5 @@ re-check the source if the code may have changed, and add new facts here (with a
 ## Not claimable (yet)
 
 - Customer names, logos, testimonials, usage numbers — none exist.
-- Packages published to npm / pub.dev — they are not yet (install by path or git).
 - Uptime, latency or scale figures — not measured.
 - Custom font uploads, icon theming — not built.

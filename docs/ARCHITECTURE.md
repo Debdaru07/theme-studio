@@ -188,7 +188,7 @@ fallback order: network → cache → bundled default theme
 
 Billing and subscriptions, SSO, custom font uploads (Google Fonts only), icon and illustration theming,
 real-time push (SDKs refresh on launch and resume, plus an optional poll interval) and multi-region hosting.
-Publishing to npm and pub.dev is set up (see [PUBLISHING.md](PUBLISHING.md)) but no version is released yet.
+The SDKs are published on npm (`@debdaru07/*`) and pub.dev (`theme_studio`); see [PUBLISHING.md](PUBLISHING.md).
 
 ## 11. Decisions (2026-10-06)
 

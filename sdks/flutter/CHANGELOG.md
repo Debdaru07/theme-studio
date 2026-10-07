@@ -1,3 +1,7 @@
+## 0.1.1
+
+* Documentation: pub.dev README with install, a quick start against the hosted demo API, the widget catalogue and links. No code changes.
+
 ## 0.1.0
 
 * Initial SDK: schema v1 models, ThemeData + DtTokens mapping, client with ETag caching,

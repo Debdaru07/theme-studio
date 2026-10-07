@@ -140,7 +140,7 @@ export function Integrate({ ed }: { ed: ThemeEditor }) {
         <li>
           <h3>Install</h3>
           <p className="muted small">{sdk.install.note}</p>
-          <CodeBlock code={sdk.install.code} label={sdk.id === 'flutter' ? 'pubspec.yaml' : 'Terminal'} lang={sdk.install.lang} copy={copy} />
+          <CodeBlock code={sdk.install.code} label="Terminal" lang={sdk.install.lang} copy={copy} />
         </li>
         <li>
           <h3>Connect</h3>

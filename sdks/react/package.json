@@ -1,6 +1,6 @@
 {
   "name": "@debdaru07/react",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Theme Studio React bindings: ThemeProvider and hooks over @debdaru07/web",
   "license": "MIT",
   "type": "module",
