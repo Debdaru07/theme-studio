@@ -296,12 +296,6 @@ h3 {
 .mobile-preferences .header-cta {
   margin-inline-start: 0;
 }
-/* Below 72rem the full nav crowds the search box; keep the app link and icons. */
-@media (min-width: 50rem) and (max-width: 72rem) {
-  .header .header-link {
-    display: none;
-  }
-}
 
 /* ── Sidebar ─────────────────────────────────────────────────────────────── */
 

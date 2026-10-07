@@ -81,6 +81,8 @@ export default defineConfig({
         { tag: 'script', attrs: { type: 'application/ld+json' }, content: JSON.stringify(jsonLd) },
       ],
       lastUpdated: false,
+      // No site search: the header links, sidebar and /llms.txt cover navigation.
+      pagefind: false,
       plugins: [starlightLinksValidator()],
       sidebar: [
         {
