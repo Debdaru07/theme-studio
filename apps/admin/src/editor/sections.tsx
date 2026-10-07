@@ -8,7 +8,7 @@ import {
   type TextStyleName,
 } from '@debdaru07/schema';
 import { FontPicker, availableWeights, fontInfo } from './fonts.tsx';
-import { useState, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import {
   BezierField,
   ColorField,
@@ -18,6 +18,7 @@ import {
   SelectField,
   TextField,
   ToggleField,
+  LockIcon,
   humanize,
   useEditor,
   useField,
@@ -61,6 +62,7 @@ const ROLE_GROUPS: { title: string; roles: ColorRole[] }[] = [
 function ColorsSection() {
   const [mode, setMode] = useState<'light' | 'dark'>('light');
   const [advanced, setAdvanced] = useState(false);
+  const fineTuneId = useId();
   return (
     <>
       <ContrastPanel />
@@ -76,11 +78,15 @@ function ColorsSection() {
         <ColorField path="color.seed.error" label="Error" />
         <ColorField path="color.seed.info" label="Info" />
       </Group>
-      <button type="button" className="btn ghost small block" onClick={() => setAdvanced((a) => !a)}>
-        {advanced ? 'Hide' : 'Fine-tune'} individual colors
+      <button type="button" className="disclosure" aria-expanded={advanced} aria-controls={fineTuneId} onClick={() => setAdvanced((a) => !a)}>
+        <span>Fine-tune individual colors</span>
+        <span className="muted small">Override any generated color, per mode</span>
+        <svg className="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+          <path d="m6 9 6 6 6-6" />
+        </svg>
       </button>
       {advanced && (
-        <>
+        <div id={fineTuneId}>
           <div className="segmented wide">
             {(['light', 'dark'] as const).map((m) => (
               <button key={m} type="button" className={mode === m ? 'on' : ''} onClick={() => setMode(m)}>
@@ -96,7 +102,7 @@ function ColorsSection() {
               ))}
             </Group>
           ))}
-        </>
+        </div>
       )}
     </>
   );
@@ -137,18 +143,19 @@ function WeightField({ style }: { style: TextStyleName }) {
   const f = useField<number>(`typography.styles.${style}.weight`);
   const weights = availableWeights(family);
   const missing = f.value !== undefined && !weights.includes(f.value);
+  const labelId = useId();
   return (
     <div className={`tf ${f.locked ? 'locked' : ''}`} title={f.lockedReason}>
       <div className="tf-label">
-        <span>Weight</span>
-        {f.locked && <span className="lock">🔒</span>}
+        <span id={labelId}>Weight</span>
+        {f.locked && <LockIcon label={f.lockedReason} />}
         {f.overridden && !f.locked && (
-          <button type="button" className="reset" onClick={f.reset}>
-            reset
+          <button type="button" className="reset" onClick={f.reset} title="Reset to inherited value" aria-label="Reset Weight">
+            Reset
           </button>
         )}
       </div>
-      <select value={f.value} disabled={f.locked} onChange={(e) => f.set(Number(e.target.value))}>
+      <select aria-labelledby={labelId} value={f.value} disabled={f.locked} onChange={(e) => f.set(Number(e.target.value))}>
         {[...weights, ...(missing ? [f.value] : [])].map((w) => (
           <option key={w} value={w}>
             {w} · {WEIGHT_NAMES[w]}
@@ -166,15 +173,16 @@ function ItalicField({ style }: { style: TextStyleName }) {
   const f = useField<boolean>(`typography.styles.${style}.italic`);
   const info = fontInfo(family);
   const unsupported = info && !info.i;
+  const labelId = useId();
   return (
     <div className={`tf ${f.locked ? 'locked' : ''}`} title={f.lockedReason}>
       <div className="tf-label">
-        <span>Italic</span>
-        {f.locked && <span className="lock">🔒</span>}
+        <span id={labelId}>Italic</span>
+        {f.locked && <LockIcon label={f.lockedReason} />}
       </div>
       <label className="switch">
-        <input type="checkbox" checked={!!f.value} disabled={f.locked || (unsupported && !f.value)} onChange={(e) => f.set(e.target.checked)} />
-        <span>{unsupported ? 'Not available' : f.value ? 'Italic' : 'Upright'}</span>
+        <input type="checkbox" aria-labelledby={labelId} checked={!!f.value} disabled={f.locked || (unsupported && !f.value)} onChange={(e) => f.set(e.target.checked)} />
+        <span>{unsupported ? 'Not in this font' : f.value ? 'On' : 'Off'}</span>
       </label>
     </div>
   );

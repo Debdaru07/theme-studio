@@ -1,5 +1,5 @@
 import { canEdit } from '@debdaru07/schema';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useDeferredValue, useEffect, useId, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { useAuth } from '../auth.tsx';
 import { TopBar } from '../components/TopBar.tsx';
@@ -22,6 +22,9 @@ type Tab = (typeof SECTIONS)[number]['id'] | 'history' | 'integrate';
 
 function EditorPage({ kind, id }: { kind: OwnerKind; id: string }) {
   const ed = useThemeEditor(kind, id);
+  // Fields update at input priority; the preview re-renders in a deferred pass React can interrupt, so a burst of
+  // keystrokes or a color-picker drag never waits on rendering the sample app.
+  const previewTheme = useDeferredValue(ed.resolved.theme);
   const [tab, setTab] = useState<Tab>('colors');
   const [publishing, setPublishing] = useState(false);
   /** Compact layouts (phones, short landscape) show one pane at a time; wider layouts ignore this. */
@@ -61,7 +64,12 @@ function EditorPage({ kind, id }: { kind: OwnerKind; id: string }) {
             <SaveBadge ed={ed} />
           </div>
           <button className="btn primary publish-btn" onClick={() => setPublishing(true)} disabled={ed.changes.length === 0 || ed.saveStatus === 'saving'}>
-            Publish{ed.changes.length ? ` (${ed.changes.length})` : ''}
+            Publish
+            {ed.changes.length > 0 && (
+              <span className="count" aria-label={`${ed.changes.length} unpublished change${ed.changes.length === 1 ? '' : 's'}`}>
+                {ed.changes.length}
+              </span>
+            )}
           </button>
         </TopBar>
 
@@ -70,7 +78,11 @@ function EditorPage({ kind, id }: { kind: OwnerKind; id: string }) {
             {SECTIONS.map((s) => (
               <button key={s.id} className={tab === s.id ? 'on' : ''} aria-current={tab === s.id ? 'page' : undefined} onClick={() => selectTab(s.id)}>
                 {s.title}
-                {sectionChanged(ed, s.paths) && <span className="dot" title="Unpublished changes" />}
+                {sectionChanged(ed, s.paths) && (
+                  <span className="dot" title="Unpublished changes">
+                    <span className="sr-only">(unpublished changes)</span>
+                  </span>
+                )}
               </button>
             ))}
             <hr />
@@ -102,7 +114,7 @@ function EditorPage({ kind, id }: { kind: OwnerKind; id: string }) {
           </div>
 
           <div className="editor-preview">
-            <Preview theme={ed.resolved.theme} focus={tab === 'components'} />
+            <Preview theme={previewTheme ?? ed.resolved.theme} focus={tab === 'components'} />
           </div>
         </div>
 
@@ -127,13 +139,21 @@ function sectionChanged(ed: ThemeEditor, prefixes: string[]) {
 }
 
 function SaveBadge({ ed }: { ed: ThemeEditor }) {
+  // Saving is routine, so it reads neutral; amber/red are kept for problems. The label names the real state.
+  const n = ed.changes.length;
+  const unpublished = `${n} unpublished change${n === 1 ? '' : 's'}`;
   const label = {
-    idle: ed.changes.length ? 'Draft saved' : 'Up to date',
+    idle: n ? unpublished : 'Up to date',
     saving: 'Saving…',
-    saved: 'Draft saved',
+    saved: n ? unpublished : 'Up to date',
     error: ed.saveError ?? 'Not saved',
   }[ed.saveStatus];
-  return <span className={`pill ${ed.saveStatus === 'error' ? 'error' : ed.changes.length ? 'warn' : 'ok'}`}>{label}</span>;
+  const tone = ed.saveStatus === 'error' ? 'error' : n || ed.saveStatus === 'saving' ? 'neutral' : 'ok';
+  return (
+    <span className={`pill ${tone}`} role="status" aria-live="polite">
+      {label}
+    </span>
+  );
 }
 
 function PublishDialog({ ed, blocked, onClose }: { ed: ThemeEditor; blocked: boolean; onClose(): void }) {

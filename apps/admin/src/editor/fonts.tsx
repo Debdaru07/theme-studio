@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import FONTS from './google-fonts.json';
-import { useField } from './fields.tsx';
+import { LockIcon, useField } from './fields.tsx';
 
 export type FontCategory = 'sans' | 'serif' | 'display' | 'handwriting' | 'mono';
 
@@ -111,7 +111,7 @@ export function FontPicker({ path, label, hint }: { path: string; label: string;
     <div className={`tf ${f.locked ? 'locked' : ''} ${f.issue ? 'invalid' : ''}`} title={f.lockedReason} ref={root}>
       <div className="tf-label">
         <span>{label}</span>
-        {f.locked && <span className="lock">🔒</span>}
+        {f.locked && <LockIcon label={f.lockedReason} />}
         {f.overridden && !f.locked && (
           <button type="button" className="reset" onClick={f.reset} title="Reset to inherited value" aria-label={`Reset ${label}`}>
             Reset

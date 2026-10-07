@@ -1,6 +1,6 @@
 import { ThemeProvider } from '@debdaru07/react';
 import type { Theme } from '@debdaru07/schema';
-import { useLayoutEffect, useRef, useState } from 'react';
+import { memo, useLayoutEffect, useRef, useState } from 'react';
 import { Gallery } from './Gallery.tsx';
 import { Specimen } from './Specimen.tsx';
 import { HomeScreen, FormScreen, OrdersScreen, OverlaysScreen } from './screens.tsx';
@@ -14,8 +14,11 @@ const DEVICES = {
 } as const;
 type Device = keyof typeof DEVICES;
 
-/** `focus`: the Components tab is open, so show the component being tuned instead of screens/gallery. */
-export function Preview({ theme, focus = false }: { theme: Theme; focus?: boolean }) {
+/**
+ * `focus`: the Components tab is open, so show the component being tuned instead of screens/gallery.
+ * Memoized: it re-renders only when the (deferred) theme or focus changes, not on every editor render.
+ */
+export const Preview = memo(function Preview({ theme, focus = false }: { theme: Theme; focus?: boolean }) {
   const [device, setDevice] = useState<Device>('mobile');
   const [mode, setMode] = useState<'light' | 'dark'>('light');
   /** Sample app screens, or the gallery of every SDK component. */
@@ -109,4 +112,4 @@ export function Preview({ theme, focus = false }: { theme: Theme; focus?: boolea
       </div>
     </div>
   );
-}
+});
