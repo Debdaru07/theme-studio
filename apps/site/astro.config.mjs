@@ -38,6 +38,7 @@ export default defineConfig({
       components: {
         Hero: './src/components/landing/Hero.astro',
         PageTitle: './src/components/docs/PageTitle.astro',
+        SiteTitle: './src/components/docs/SiteTitle.astro',
         SocialIcons: './src/components/docs/SocialIcons.astro',
         // Light only (design-taste/direction.md).
         ThemeProvider: './src/components/docs/ThemeProvider.astro',

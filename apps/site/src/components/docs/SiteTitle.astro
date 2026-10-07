@@ -1,0 +1,17 @@
+---
+/**
+ * Header lockup (overrides Starlight's SiteTitle): the Theme Studio mark and wordmark, plus a "Docs" descriptor on
+ * every page except the landing page, so the docs read as part of the product family (brand/README.md).
+ */
+import { logos } from 'virtual:starlight/user-images';
+
+const { siteTitle, siteTitleHref, entry } = Astro.locals.starlightRoute;
+const isLanding = entry.data.template === 'splash';
+const logo = logos.dark;
+---
+
+<a href={siteTitleHref} class="site-title sl-flex" aria-label={isLanding ? siteTitle : `${siteTitle} Docs`}>
+  {logo && <img alt="" src={logo.src} width={logo.width} height={logo.height} />}
+  <span translate="no">{siteTitle}</span>
+  {!isLanding && <span class="site-title-section" aria-hidden="true">Docs</span>}
+</a>

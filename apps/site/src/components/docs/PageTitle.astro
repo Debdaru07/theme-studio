@@ -25,7 +25,7 @@ const markdownUrl = `/${entry.id}.md`;
 ---
 
 <div class="page-head">
-  {section && <p class="page-eyebrow">{section}</p>}
+  {section && section !== entry.data.title && <p class="page-eyebrow">{section}</p>}
   <h1 id="_top">{entry.data.title}</h1>
   {entry.data.description && <p class="page-lead">{entry.data.description}</p>}
   <copy-page class="page-actions" data-src={markdownUrl}>

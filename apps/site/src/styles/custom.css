@@ -218,12 +218,34 @@ h3 {
   width: 1.5rem;
   height: 1.5rem;
 }
+/* components/docs/SiteTitle.astro replaces Starlight's, so its scoped base styles are restated here. */
 .site-title {
+  align-items: center;
+  min-width: 0;
+  white-space: nowrap;
+  text-decoration: none;
+  font-size: var(--sl-text-h4);
   gap: 0.5rem;
   font-family: var(--ts-font-display);
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--sl-color-white);
+}
+/* Product-family descriptor: hairline, then "Docs" in the text face (brand/README.md). */
+.site-title-section {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--sl-font);
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--sl-color-gray-3);
+}
+.site-title-section::before {
+  content: '';
+  width: 1px;
+  height: 1.125rem;
+  background: var(--sl-color-gray-5);
 }
 .header-nav {
   display: flex;

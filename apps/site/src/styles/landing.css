@@ -244,6 +244,10 @@ html[data-has-hero] {
   flex-wrap: wrap;
   gap: 12px 32px;
 }
+/* Switches above the device: the re-theme is the hero's point, so its controls must sit above the fold. */
+.hero-demo .demo-controls {
+  order: -1;
+}
 .demo-controls .segmented-label {
   min-width: 0;
 }
