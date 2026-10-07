@@ -4,9 +4,12 @@
   "description": "Dynamic Theming System React bindings: ThemeProvider and hooks over @dts/web",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./components.css": "./src/components.css"
   },
-  "sideEffects": false,
+  "sideEffects": [
+    "*.css"
+  ],
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json"

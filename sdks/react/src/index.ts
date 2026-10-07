@@ -14,3 +14,5 @@ export {
 } from './hooks.ts';
 // Re-export the framework-agnostic core so apps need a single import.
 export * from '@dts/web';
+// Themed UI components (styles: import '@dts/react/components.css').
+export * from './components/index.ts';

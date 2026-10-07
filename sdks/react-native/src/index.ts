@@ -26,3 +26,5 @@ export {
 export type { Breakpoint, ColorRole, ColorScheme, Theme } from '@dts/schema';
 // DOM-free core: client, storage helpers, token helpers.
 export * from '@dts/web/core';
+// Themed UI components (same names and props as @dts/react, in React Native terms).
+export * from './components.tsx';

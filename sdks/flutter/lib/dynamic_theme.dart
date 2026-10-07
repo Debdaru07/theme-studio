@@ -22,5 +22,6 @@ export 'src/models/navigation.dart';
 export 'src/models/theme.dart';
 export 'src/models/typography.dart';
 export 'src/widgets/adaptive_scaffold.dart';
+export 'src/widgets/components.dart';
 export 'src/widgets/dt_button.dart';
 export 'src/widgets/dynamic_theme_builder.dart';
