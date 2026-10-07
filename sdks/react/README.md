@@ -1,6 +1,6 @@
 # @debdaru07/react
 
-React 19 bindings for the Dynamic Theming System: a `<ThemeProvider>` plus hooks, built on `@debdaru07/web`.
+React 19 bindings for Theme Studio: a `<ThemeProvider>` plus hooks, built on `@debdaru07/web`.
 This package re-exports everything from `@debdaru07/web`.
 
 ## Install

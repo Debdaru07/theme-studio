@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useAuth } from '../auth.tsx';
+import { BrandMark } from '../components/TopBar.tsx';
 
 const DEMO_LOGINS = [
   { label: 'Agency admin (Northwind)', email: 'owner@northwind.test', password: 'northwind123' },
@@ -39,7 +40,10 @@ export function Login() {
   return (
     <div className="login">
       <form className="login-card" onSubmit={submit}>
-        <h1>Theme Studio</h1>
+        <h1 className="login-brand">
+          <BrandMark size={28} />
+          Theme Studio
+        </h1>
         <p className="muted">Sign in to manage your themes.</p>
         <label className="field">
           <span>Email</span>

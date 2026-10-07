@@ -1,7 +1,7 @@
 {
   "name": "@debdaru07/web",
   "version": "0.1.0",
-  "description": "Dynamic Theming System web SDK: theme client (fetch + cache) and CSS variables",
+  "description": "Theme Studio web SDK: theme client (fetch + cache) and CSS variables",
   "license": "MIT",
   "type": "module",
   "exports": {

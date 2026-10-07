@@ -261,10 +261,20 @@ pre {
   color: var(--text);
 }
 .brand-mark {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  background: conic-gradient(from 200deg, #3b5bdb, #e8590c, #0f766e, #7c3aed, #3b5bdb);
+  flex: none;
+  display: block;
+}
+/* Wordmark: Bricolage Grotesque 700, -2% tracking (brand sheet). */
+.brand-name,
+.login-brand {
+  font-family: 'Bricolage Grotesque', Inter, system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 .topbar-middle {
   flex: 1;

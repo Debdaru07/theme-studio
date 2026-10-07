@@ -1,7 +1,7 @@
 {
   "name": "@debdaru07/react",
   "version": "0.1.0",
-  "description": "Dynamic Theming System React bindings: ThemeProvider and hooks over @debdaru07/web",
+  "description": "Theme Studio React bindings: ThemeProvider and hooks over @debdaru07/web",
   "license": "MIT",
   "type": "module",
   "exports": {

@@ -37,9 +37,24 @@ page hero and in Theme Studio's preview.
 | Canvas | `#F6F7F9` / `#0F1115` | Page background |
 | Surface | `#FFFFFF` / `#171A20` | Cards, panels |
 | Text | `#16181D` / `#E8EAEE`; muted `#5D6573` / `#9AA3B2` | All muted text ≥ 4.5:1 |
-| Brand spectrum | `#3B5BDB` `#E8590C` `#0F766E` `#7C3AED` | Only in the brand mark and *inside* product demos (they are client palettes) — never as page decoration or gradients |
+| Brand spectrum | `#3B5BDB` `#E8590C` `#0F766E` `#7C3AED` | Only *inside* product demos (they are client palettes) — never as page decoration or gradients |
 
-No gradients on text or page backgrounds. The conic brand mark is the only multicolor element in our chrome.
+No gradients on text or page backgrounds. Our chrome has no multicolor elements.
+
+## Brand mark (decision 2026-10-07)
+
+Source files in `brand/` (`mark.svg` light, `mark-dark.svg` dark, `mark-mono.svg` currentColor).
+
+- Three shapes sharing the bottom-left corner on a 32-unit grid: squares of 32 and 22 units and a 12-unit dot,
+  all with a 6-unit corner. They stand for platform defaults → agency base theme → client theme.
+- One color makes the mark: the two larger shapes are 30% and 62% of the brand color mixed toward the ground.
+  Light: `#C4CEF4` `#8699E9` `#3B5BDB`. Dark: `#353D5B` `#5E6CA6` `#8EA4FF`. On a brand-colored ground: white at
+  32% / 62% / 100%.
+- Wordmark: "Theme Studio" in Bricolage Grotesque 700, −2% tracking. Mark ≈ 1.4× cap height; gap = ⅓ of the mark.
+- Clear space: the dot's width on every side. Smallest size 16px. Never recolor the layers separately, add
+  gradients, rotate or outline it.
+- Naming: **Theme Studio** is the product; *Studio* the editor app, *Theme API* the service, *Theme Studio SDKs*
+  the packages. "Dynamic Theming System" is retired.
 
 **Light only on the docs site and landing (decision 2026-10-07).** The site always renders the light column above
 (Starlight's `ThemeProvider` / `ThemeSelect` are overridden; no theme picker). Dark values stay listed for Theme

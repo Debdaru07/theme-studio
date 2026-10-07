@@ -8,12 +8,23 @@ export function TopBar({ children }: { children?: ReactNode }) {
   return (
     <header className="topbar">
       <Link to="/" className="brand" aria-label="Theme Studio home">
-        <span className="brand-mark" aria-hidden />
+        <BrandMark />
         <span className="brand-name">Theme Studio</span>
       </Link>
       <div className="topbar-middle">{children}</div>
       <UserMenu />
     </header>
+  );
+}
+
+/** Theme Studio mark: platform, agency and client layers in tints of one brand color (brand/mark.svg). */
+export function BrandMark({ size = 22 }: { size?: number }) {
+  return (
+    <svg className="brand-mark" width={size} height={size} viewBox="0 0 32 32" aria-hidden>
+      <rect width="32" height="32" rx="6" fill="#c4cef4" />
+      <rect y="10" width="22" height="22" rx="6" fill="#8699e9" />
+      <circle cx="6" cy="26" r="6" fill="#3b5bdb" />
+    </svg>
   );
 }
 

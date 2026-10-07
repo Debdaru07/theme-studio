@@ -1,6 +1,6 @@
 # @debdaru07/react-native
 
-React Native bindings for the Dynamic Theming System: a provider, hooks, and pure helpers that turn the resolved
+React Native bindings for Theme Studio: a provider, hooks, and pure helpers that turn the resolved
 theme into values you can pass to `StyleSheet`. It reuses the DOM-free theme client from `@debdaru07/web/core`.
 
 ## Install

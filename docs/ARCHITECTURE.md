@@ -1,4 +1,4 @@
-# Dynamic Theming System — Architecture & MVP Plan
+# Theme Studio — Architecture & MVP Plan
 
 Status: **MVP built (phases 0–6)** · 2026-10-06. Setup and commands are in the [README](../README.md).
 

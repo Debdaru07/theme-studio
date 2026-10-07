@@ -1,7 +1,7 @@
 {
   "name": "@debdaru07/react-native",
   "version": "0.1.0",
-  "description": "Dynamic Theming System React Native bindings: ThemeProvider, hooks and RN style helpers",
+  "description": "Theme Studio React Native bindings: ThemeProvider, hooks and RN style helpers",
   "license": "MIT",
   "type": "module",
   "exports": {

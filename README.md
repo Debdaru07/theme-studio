@@ -1,4 +1,4 @@
-# Dynamic Theming System
+# Theme Studio
 
 Multi-tenant theming for SaaS products. An agency (tenant) builds one product and sells it to many clients, and
 each client gets its own brand. Clients edit their theme in **Theme Studio**, see it live on phone, tablet and
