@@ -1,4 +1,5 @@
 import type { Breakpoint, ColorRole, Theme } from '@debdaru07/schema';
+import { componentTokens, roleColor, type ButtonSize, type ButtonVariantName } from './component-tokens.ts';
 import { type ColorMode, type ElevationLevel, cubicBezierCss, rgba } from './tokens.ts';
 
 // ── Naming ───────────────────────────────────────────────────────────────────
@@ -34,17 +35,32 @@ export type CssVarPath =
   | 'button.height'
   | 'button.paddingX'
   | 'button.textTransform'
+  | 'button.borderWidth'
+  | 'button.iconGap'
+  | `button.${ButtonSize}.${'height' | 'paddingX' | 'textFamily' | 'textSize' | 'textWeight' | 'textLineHeight' | 'textLetterSpacing' | 'textStyle'}`
+  | `button.${ButtonVariantName}.${'container' | 'content' | 'border' | 'shadow'}`
   | 'input.radius'
   | 'input.height'
+  | 'input.borderWidth'
+  | 'input.paddingX'
+  | 'input.labelGap'
   | 'card.radius'
   | 'card.shadow'
   | 'card.border'
   | 'card.padding'
+  | 'card.itemGap'
   | 'dialog.radius'
   | 'dialog.shadow'
   | 'dialog.padding'
+  | 'dialog.actionGap'
   | 'chip.radius'
+  | 'chip.height'
+  | 'chip.paddingX'
+  | 'chip.iconGap'
+  | 'chip.selectedContainer'
+  | 'chip.selectedContent'
   | 'badge.radius'
+  | 'badge.paddingX'
   | 'listGap'
   | 'formGap'
   | 'pagePadding'
@@ -133,6 +149,16 @@ export function modeVariables(theme: Theme, mode: ColorMode): Record<string, str
   }
   set('card.shadow', boxShadow(theme, theme.components.card.elevation, mode));
   set('dialog.shadow', boxShadow(theme, theme.components.dialog.elevation, mode));
+  // Component colors are theme roles, so they resolve per mode.
+  const ct = componentTokens(theme);
+  for (const [name, v] of Object.entries(ct.button.variants) as [ButtonVariantName, (typeof ct.button.variants)[ButtonVariantName]][]) {
+    set(`button.${name}.container`, roleColor(scheme, v.container));
+    set(`button.${name}.content`, roleColor(scheme, v.content));
+    set(`button.${name}.border`, roleColor(scheme, v.border));
+    set(`button.${name}.shadow`, boxShadow(theme, v.elevation, mode));
+  }
+  set('chip.selectedContainer', roleColor(scheme, ct.chip.selected.container));
+  set('chip.selectedContent', roleColor(scheme, ct.chip.selected.content));
   const gradient = brandGradient(theme, mode);
   if (gradient) set('gradient.brand', gradient);
   return out;
@@ -183,22 +209,46 @@ export function staticVariables(theme: Theme): Record<string, string> {
   set('minTouchTarget', px(t.sizing.minTouchTarget));
   set('appBar.height', px(t.navigation.appBar.height));
 
-  const c = t.components;
+  // Component tuning (componentTokens fills values missing from themes published before tuning existed).
+  const c = componentTokens(t);
   set('button.radius', px(c.button.radius));
   set('button.height', px(c.button.height));
   set('button.paddingX', px(c.button.paddingX));
   set('button.textTransform', c.button.textTransform);
+  set('button.borderWidth', px(c.button.borderWidth));
+  set('button.iconGap', px(c.button.iconGap));
+  for (const [size, v] of Object.entries(c.button.sizes) as [ButtonSize, (typeof c.button.sizes)[ButtonSize]][]) {
+    const ts = t.typography.styles[v.textStyle];
+    set(`button.${size}.height`, px(v.height));
+    set(`button.${size}.paddingX`, px(v.paddingX));
+    set(`button.${size}.textStyle`, v.textStyle);
+    set(`button.${size}.textFamily`, fontStack(ts.family, ts.family === t.typography.fontFamily.mono ? 'mono' : 'sans'));
+    set(`button.${size}.textSize`, px(ts.size));
+    set(`button.${size}.textWeight`, ts.weight);
+    set(`button.${size}.textLineHeight`, px(ts.lineHeight));
+    set(`button.${size}.textLetterSpacing`, px(ts.letterSpacing));
+  }
   set('input.radius', px(c.input.radius));
   set('input.height', px(c.input.height));
+  set('input.borderWidth', px(c.input.borderWidth));
+  set('input.paddingX', px(c.input.paddingX));
+  set('input.labelGap', px(c.input.labelGap));
   set('card.radius', px(c.card.radius));
   set('card.border', c.card.bordered ? `${px(t.shape.borderWidth.thin)} solid ${cssVar('color.outlineMuted')}` : 'none');
+  set('card.padding', px(c.card.padding));
+  // card.gap (space inside a card) is --dts-card-item-gap; --dts-card-gap is the layout gap between cards.
+  set('card.itemGap', px(c.card.gap));
   set('dialog.radius', px(c.dialog.radius));
+  set('dialog.padding', px(c.dialog.padding));
+  set('dialog.actionGap', px(c.dialog.actionGap));
   set('chip.radius', px(c.chip.radius));
+  set('chip.height', px(c.chip.height));
+  set('chip.paddingX', px(c.chip.paddingX));
+  set('chip.iconGap', px(c.chip.iconGap));
   set('badge.radius', px(c.badge.radius));
+  set('badge.paddingX', px(c.badge.paddingX));
 
   const sc = t.spacing.component;
-  set('card.padding', px(sc.cardPadding));
-  set('dialog.padding', px(sc.dialogPadding));
   set('listGap', px(sc.listGap));
   set('formGap', px(sc.formGap));
   return out;

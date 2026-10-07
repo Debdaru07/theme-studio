@@ -87,6 +87,9 @@ class DtTokens extends ThemeExtension<DtTokens> {
 
   List<BoxShadow> shadow(int level) => shadows[level.clamp(0, shadows.length - 1)];
 
+  /// A color role name from component tokens → its color in this mode (see [DtColorScheme.resolve]).
+  Color color(String role) => colors.resolve(role);
+
   String? get logo => assets.logo(brightness);
 
   @override
@@ -205,6 +208,9 @@ class DtContext {
   String? get logo => tokens.logo;
 
   List<BoxShadow> shadow(int level) => tokens.shadow(level);
+
+  /// A color role name from component tokens → its color in this mode (see [DtColorScheme.resolve]).
+  Color color(String role) => tokens.color(role);
 
   /// True when animations should be skipped (`respectReducedMotion` and the OS asks for it).
   bool get reduceMotion => tokens.motion.respectReducedMotion && _disableAnimations;

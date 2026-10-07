@@ -48,6 +48,16 @@ class _ComponentsPageState extends State<ComponentsPage> {
         ]),
       ),
       Section(
+        title: 'Button sizes × variants (component tuning)',
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: s, children: [
+          for (final kind in DtButtonKind.values)
+            Wrap(spacing: s, runSpacing: s, crossAxisAlignment: WrapCrossAlignment.center, children: [
+              for (final size in DtButtonSize.values)
+                DtButton(label: '${kind.name} ${size.name}', kind: kind, size: size, onPressed: () {}),
+            ]),
+        ]),
+      ),
+      Section(
         title: 'Dialog & snackbar',
         child: Wrap(spacing: s, runSpacing: s, children: [
           OutlinedButton.icon(onPressed: _showDialog, icon: const Icon(Icons.open_in_new), label: const Text('Dialog')),

@@ -430,7 +430,7 @@
       "radius": 2,
       "height": 48,
       "borderWidth": 1,
-      "paddingX": 16,
+      "paddingX": 12,
       "labelGap": 4
     },
     "card": {

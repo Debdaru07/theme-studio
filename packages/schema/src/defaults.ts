@@ -119,7 +119,7 @@ export const PLATFORM_DEFAULTS = {
       radius: '{shape.radius.sm}',
       height: '{sizing.controlHeight.lg}',
       borderWidth: '{shape.borderWidth.thin}',
-      paddingX: '{spacing.scale.lg}',
+      paddingX: '{spacing.scale.md}',
       labelGap: '{spacing.scale.xs}',
     },
     card: {

@@ -123,11 +123,88 @@ class DtThemeBuilder {
   // ── Shape ────────────────────────────────────────────────────────────────
 
   /// Rounded or cut ([BeveledRectangleBorder]) corners per `shape.cornerStyle`.
-  OutlinedBorder shapeFor(double radius, {BorderSide side = BorderSide.none}) {
+  OutlinedBorder shapeFor(double radius, {BorderSide side = BorderSide.none}) =>
+      cornerShape(theme.shape.cornerStyle, radius, side: side);
+
+  /// Rounded or cut ([BeveledRectangleBorder]) corners for [style].
+  static OutlinedBorder cornerShape(DtCornerStyle style, double radius, {BorderSide side = BorderSide.none}) {
     final r = BorderRadius.circular(radius);
-    return theme.shape.cornerStyle == DtCornerStyle.cut
+    return style == DtCornerStyle.cut
         ? BeveledRectangleBorder(borderRadius: r, side: side)
         : RoundedRectangleBorder(borderRadius: r, side: side);
+  }
+
+  // ── Components ───────────────────────────────────────────────────────────
+
+  /// The [TextTheme] slot for a schema text style name, using the same mapping as [textTheme]: `display` →
+  /// displayMedium, `headline` → headlineMedium, `caption` → labelSmall; the other seven keep their names.
+  /// Unknown names fall back to labelLarge.
+  static TextStyle? textStyleNamed(TextTheme textTheme, String name) => switch (name) {
+        'display' => textTheme.displayMedium,
+        'headline' => textTheme.headlineMedium,
+        'titleLarge' => textTheme.titleLarge,
+        'titleMedium' => textTheme.titleMedium,
+        'bodyLarge' => textTheme.bodyLarge,
+        'bodyMedium' => textTheme.bodyMedium,
+        'bodySmall' => textTheme.bodySmall,
+        'labelMedium' => textTheme.labelMedium,
+        'caption' => textTheme.labelSmall,
+        _ => textTheme.labelLarge,
+      };
+
+  /// A complete [ButtonStyle] for one button variant and size from `components.button`: min height and
+  /// horizontal padding from `sizes[size]`, label style by name, radius (cut corners per `shape.cornerStyle`),
+  /// `borderWidth`, and the variant's container / content / border roles and elevation level.
+  ///
+  /// The `text` variant uses half of `paddingX` (it has no container edge to pad against), as before tuning.
+  /// Disabled: `onSurfaceDisabled` content (onSurface at the theme's disabled opacity) on a 12% onSurface
+  /// container; transparent containers stay transparent and borders turn 12% onSurface.
+  /// Hover / focus / press overlays use the content color at `effects.opacity` hover / pressed.
+  static ButtonStyle buttonStyle(
+    DtTokens tokens,
+    TextTheme textTheme, {
+    required DtButtonKind kind,
+    DtButtonSize size = DtButtonSize.md,
+  }) {
+    final b = tokens.components.button;
+    final s = b.size(size);
+    final v = b.style(kind);
+    final c = tokens.colors;
+    final container = tokens.color(v.container);
+    final content = tokens.color(v.content);
+    final disabledContainer = container.a == 0 ? container : c.onSurface.withValues(alpha: 0.12);
+    final disabledContent = c.onSurfaceDisabled;
+    final hasBorder = v.border != DtColorScheme.transparentRole && b.borderWidth > 0;
+    final opacity = tokens.effects.opacity;
+    Color fg(Set<WidgetState> states) => states.contains(WidgetState.disabled) ? disabledContent : content;
+    return ButtonStyle(
+      textStyle: WidgetStatePropertyAll(textStyleNamed(textTheme, s.textStyle)),
+      backgroundColor:
+          WidgetStateProperty.resolveWith((st) => st.contains(WidgetState.disabled) ? disabledContainer : container),
+      foregroundColor: WidgetStateProperty.resolveWith(fg),
+      iconColor: WidgetStateProperty.resolveWith(fg),
+      overlayColor: WidgetStateProperty.resolveWith((st) {
+        if (st.contains(WidgetState.pressed) || st.contains(WidgetState.focused)) {
+          return content.withValues(alpha: opacity.pressed);
+        }
+        if (st.contains(WidgetState.hovered)) return content.withValues(alpha: opacity.hover);
+        return null;
+      }),
+      surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
+      elevation: WidgetStateProperty.resolveWith(
+        (st) => st.contains(WidgetState.disabled) ? 0 : dpForLevel(v.elevation),
+      ),
+      padding: WidgetStatePropertyAll(
+        EdgeInsets.symmetric(horizontal: kind == DtButtonKind.text ? s.paddingX / 2 : s.paddingX),
+      ),
+      minimumSize: WidgetStatePropertyAll(Size(s.height, s.height)),
+      side: WidgetStateProperty.resolveWith((st) {
+        if (!hasBorder) return BorderSide.none;
+        final color = st.contains(WidgetState.disabled) ? c.onSurface.withValues(alpha: 0.12) : tokens.color(v.border);
+        return BorderSide(color: color, width: b.borderWidth);
+      }),
+      shape: WidgetStatePropertyAll(cornerShape(tokens.shape.cornerStyle, b.radius)),
+    );
   }
 
   OutlinedBorder get _pill =>
@@ -143,10 +220,14 @@ class DtThemeBuilder {
     final bw = theme.shape.borderWidth;
     final nav = theme.navigation;
 
+    final tokens = DtTokens.fromTheme(theme, brightness);
+
     final btn = comp.button;
+    final btnMd = btn.size(DtButtonSize.md);
     final btnShape = shapeFor(btn.radius);
-    final btnMin = Size(btn.height, btn.height);
-    final btnPad = EdgeInsets.symmetric(horizontal: btn.paddingX);
+    final btnMin = Size(btnMd.height, btnMd.height);
+    final btnPad = EdgeInsets.symmetric(horizontal: btnMd.paddingX);
+    final btnText = textStyleNamed(tt, btnMd.textStyle);
 
     final indicatorColor = nav.indicator == DtNavIndicator.none ? Colors.transparent : cs.secondaryContainer;
     final ShapeBorder indicatorShape = switch (nav.indicator) {
@@ -169,31 +250,18 @@ class DtThemeBuilder {
       pageTransitionsTheme: PageTransitionsTheme(builders: {
         for (final p in TargetPlatform.values) p: DtPageTransitionsBuilder(theme.motion),
       }),
-      extensions: [DtTokens.fromTheme(theme, brightness)],
+      extensions: [tokens],
       dividerTheme: DividerThemeData(color: c.outlineMuted, thickness: bw.thin, space: bw.thin),
+      // FilledButton and FilledButton.tonal share one theme slot, so only size and shape go there; the filled
+      // and tonal variant colors apply through DtButton. Elevated has no matching variant.
       filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(shape: btnShape, minimumSize: btnMin, padding: btnPad, textStyle: tt.labelLarge),
+        style: FilledButton.styleFrom(shape: btnShape, minimumSize: btnMin, padding: btnPad, textStyle: btnText),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(shape: btnShape, minimumSize: btnMin, padding: btnPad, textStyle: tt.labelLarge),
+        style: ElevatedButton.styleFrom(shape: btnShape, minimumSize: btnMin, padding: btnPad, textStyle: btnText),
       ),
-      outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          shape: btnShape,
-          minimumSize: btnMin,
-          padding: btnPad,
-          textStyle: tt.labelLarge,
-          side: BorderSide(color: cs.outline, width: bw.thin),
-        ),
-      ),
-      textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          shape: btnShape,
-          minimumSize: btnMin,
-          padding: EdgeInsets.symmetric(horizontal: btn.paddingX / 2),
-          textStyle: tt.labelLarge,
-        ),
-      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(style: buttonStyle(tokens, tt, kind: DtButtonKind.outlined)),
+      textButtonTheme: TextButtonThemeData(style: buttonStyle(tokens, tt, kind: DtButtonKind.text)),
       floatingActionButtonTheme: FloatingActionButtonThemeData(shape: shapeFor(theme.shape.radius.lg)),
       inputDecorationTheme: _inputTheme(cs, c, tt),
       cardTheme: CardThemeData(
@@ -209,6 +277,8 @@ class DtThemeBuilder {
       ),
       dialogTheme: DialogThemeData(
         shape: shapeFor(comp.dialog.radius),
+        // DialogThemeData has no title/content padding or action spacing; DtDialog sets those on AlertDialog.
+        actionsPadding: EdgeInsets.fromLTRB(comp.dialog.padding, 0, comp.dialog.padding, comp.dialog.padding),
         elevation: dpForLevel(comp.dialog.elevation),
         backgroundColor: c.surfaceContainerHigh,
         shadowColor: cs.shadow,
@@ -216,12 +286,13 @@ class DtThemeBuilder {
         titleTextStyle: tt.headlineSmall,
         contentTextStyle: tt.bodyMedium?.copyWith(color: c.onSurfaceMuted),
       ),
-      chipTheme: ChipThemeData(
-        shape: shapeFor(comp.chip.radius),
-        side: BorderSide(color: c.outlineMuted, width: bw.thin),
-        labelStyle: tt.labelLarge,
+      chipTheme: _chipTheme(c, tt),
+      badgeTheme: BadgeThemeData(
+        backgroundColor: c.error,
+        textColor: c.onError,
+        textStyle: tt.labelSmall,
+        padding: EdgeInsets.symmetric(horizontal: comp.badge.paddingX),
       ),
-      badgeTheme: BadgeThemeData(backgroundColor: c.error, textColor: c.onError, textStyle: tt.labelSmall),
       appBarTheme: AppBarThemeData(
         centerTitle: nav.appBar.centeredTitle,
         toolbarHeight: nav.appBar.height,
@@ -277,6 +348,37 @@ class DtThemeBuilder {
     );
   }
 
+  /// Material chips have no height or icon-gap setting: the height comes from vertical padding around the label
+  /// (Material never draws a chip shorter than 32 plus its border), and the gap is the label's horizontal
+  /// padding, so a label-only chip is inset by exactly `paddingX` and a leading icon by `paddingX - iconGap`.
+  /// Both include the border, which Material adds inside the chip (like CSS `border-box`). DtChip reaches heights
+  /// below that floor with a negative vertical density; raw Material chips stay at the floor.
+  ChipThemeData _chipTheme(DtColorScheme c, TextTheme tt) {
+    final chip = theme.components.chip;
+    final bw = theme.shape.borderWidth;
+    final selectedContainer = c.resolve(chip.selectedContainer);
+    final selectedContent = c.resolve(chip.selectedContent);
+    final labelHeight = theme.typography.styles.labelLarge.lineHeight;
+    return ChipThemeData(
+      shape: shapeFor(chip.radius),
+      side: BorderSide(color: c.outlineMuted, width: bw.thin),
+      labelStyle: tt.labelLarge?.copyWith(
+        color: WidgetStateColor.resolveWith((st) {
+          if (st.contains(WidgetState.disabled)) return c.onSurfaceDisabled;
+          return st.contains(WidgetState.selected) ? selectedContent : c.onSurface;
+        }),
+      ),
+      selectedColor: selectedContainer,
+      secondarySelectedColor: selectedContainer,
+      checkmarkColor: selectedContent,
+      padding: EdgeInsets.symmetric(
+        horizontal: math.max(0, chip.paddingX - chip.iconGap - bw.thin),
+        vertical: math.max(0, (chip.height - labelHeight) / 2 - bw.thin),
+      ),
+      labelPadding: EdgeInsets.symmetric(horizontal: chip.iconGap),
+    );
+  }
+
   InputDecorationThemeData _inputTheme(ColorScheme cs, DtColorScheme c, TextTheme tt) {
     final input = theme.components.input;
     final bw = theme.shape.borderWidth;
@@ -292,19 +394,21 @@ class DtThemeBuilder {
             borderSide: BorderSide(color: color, width: width),
           );
     final lineHeight = theme.typography.styles.bodyLarge.lineHeight;
+    // Focus thickens the border by the theme's thin → thick step.
+    final focusedWidth = input.borderWidth + math.max(0, bw.thick - bw.thin);
     return InputDecorationThemeData(
       filled: filled,
       fillColor: c.surfaceContainerHigh,
       contentPadding: EdgeInsets.symmetric(
-        horizontal: theme.spacing.scale.lg,
+        horizontal: input.paddingX,
         vertical: math.max(4, (input.height - lineHeight) / 2),
       ),
-      border: border(c.outline, bw.thin),
-      enabledBorder: border(filled ? c.onSurfaceMuted : c.outline, bw.thin),
-      focusedBorder: border(c.primary, bw.thick),
-      errorBorder: border(c.error, bw.thin),
-      focusedErrorBorder: border(c.error, bw.thick),
-      disabledBorder: border(c.onSurfaceDisabled, bw.thin),
+      border: border(c.outline, input.borderWidth),
+      enabledBorder: border(filled ? c.onSurfaceMuted : c.outline, input.borderWidth),
+      focusedBorder: border(c.primary, focusedWidth),
+      errorBorder: border(c.error, input.borderWidth),
+      focusedErrorBorder: border(c.error, focusedWidth),
+      disabledBorder: border(c.onSurfaceDisabled, input.borderWidth),
       labelStyle: tt.bodyLarge?.copyWith(color: c.onSurfaceMuted),
       floatingLabelStyle: tt.bodySmall?.copyWith(color: c.primary),
       hintStyle: tt.bodyLarge?.copyWith(color: c.onSurfaceMuted),

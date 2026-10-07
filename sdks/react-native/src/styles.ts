@@ -1,5 +1,15 @@
 import type { Breakpoint, Theme } from '@debdaru07/schema';
-import { parseHex, type ColorMode, type CubicBezier, type EasingName, type ElevationLevel } from '@debdaru07/web/core';
+import {
+  componentTokens,
+  parseHex,
+  roleColor,
+  type ButtonSize,
+  type ButtonVariantName,
+  type ColorMode,
+  type CubicBezier,
+  type EasingName,
+  type ElevationLevel,
+} from '@debdaru07/web/core';
 
 type TextStyleName = keyof Theme['typography']['styles'];
 type RadiusName = keyof Theme['shape']['radius'];
@@ -131,4 +141,191 @@ export function radius(theme: Theme, name: RadiusName, options: { cut?: 'square'
   const value = theme.shape.radius[name];
   if (theme.shape.cornerStyle !== 'cut' || name === 'full' || options.cut === 'radius') return value;
   return 0;
+}
+
+// ── Component styles ─────────────────────────────────────────────────────────
+// Pure helpers that turn the theme's component tuning tokens into RN style objects. Tuning is always read through
+// `componentTokens(theme)`, so themes published before component tuning existed get the same defaults the server uses.
+
+/** Corner radius in px honoring `shape.cornerStyle`: `cut` themes render square corners (RN can't chamfer), pills stay pills. */
+export function cornerRadius(theme: Theme, value: number): number {
+  return theme.shape.cornerStyle === 'cut' && value < theme.shape.radius.full ? 0 : value;
+}
+
+const withAlpha = (hex: string, a: number) => `${hex.slice(0, 7)}${Math.round(a * 255).toString(16).padStart(2, '0')}`;
+
+/** Structurally compatible with RN's `ViewStyle` (the subset these helpers produce). */
+export interface RNBoxStyle extends Partial<RNShadowStyle> {
+  minHeight?: number;
+  minWidth?: number;
+  height?: number;
+  padding?: number;
+  paddingHorizontal?: number;
+  gap?: number;
+  borderRadius: number;
+  borderBottomLeftRadius?: number;
+  borderBottomRightRadius?: number;
+  borderWidth: number;
+  borderBottomWidth?: number;
+  borderColor: string;
+  backgroundColor: string;
+  overflow?: 'hidden' | 'visible';
+}
+
+/** RN text style plus color (and the button text transform). */
+export interface RNLabelStyle extends RNTextStyle {
+  color: string;
+  textTransform?: 'none' | 'uppercase' | 'capitalize';
+}
+
+export interface ButtonStyleOptions {
+  /** Defaults to the theme's `components.button.variant`. */
+  variant?: ButtonVariantName;
+  /** Defaults to `md`. */
+  size?: ButtonSize;
+  mode: ColorMode;
+  /** Disabled/loading look: 12% on-surface container, disabled content, no border or shadow. */
+  disabled?: boolean;
+}
+
+/** Container + label styles for a button size × variant. `container.gap` is the icon gap. */
+export function buttonStyles(theme: Theme, options: ButtonStyleOptions): { container: RNBoxStyle; label: RNLabelStyle } {
+  const b = componentTokens(theme).button;
+  const scheme = theme.color[options.mode];
+  const size = b.sizes[options.size ?? 'md'];
+  const v = b.variants[options.variant ?? b.variant];
+  const off = Boolean(options.disabled);
+  const border = off ? 'transparent' : v.border;
+  return {
+    container: {
+      minHeight: size.height,
+      // Text buttons sit inline with copy, so they keep a tighter inset than the size's padding (same as web).
+      paddingHorizontal: (options.variant ?? b.variant) === 'text' ? theme.spacing.scale.md : size.paddingX,
+      gap: b.iconGap,
+      borderRadius: cornerRadius(theme, b.radius),
+      borderWidth: border === 'transparent' ? 0 : b.borderWidth,
+      borderColor: roleColor(scheme, border),
+      backgroundColor: off ? withAlpha(scheme.onSurface, 0.12) : roleColor(scheme, v.container),
+      ...shadow(theme, off ? 0 : v.elevation, options.mode),
+    },
+    label: {
+      ...textStyle(theme, size.textStyle),
+      color: off ? scheme.onSurfaceDisabled : roleColor(scheme, v.content),
+      textTransform: b.textTransform,
+    },
+  };
+}
+
+export type InputState = 'default' | 'focused' | 'error' | 'disabled';
+
+export interface InputStyleOptions {
+  /** Defaults to the theme's `components.input.variant`. */
+  variant?: 'outlined' | 'filled';
+  mode: ColorMode;
+  state?: InputState;
+}
+
+/**
+ * Text field styles: `wrapper` (label / field / help column, `gap` = labelGap), `field` (the box), `label`, `text`
+ * (the input itself). Focus and error thicken the border to at least `shape.borderWidth.thick`.
+ */
+export function inputStyles(
+  theme: Theme,
+  options: InputStyleOptions,
+): { wrapper: { gap: number; opacity: number }; field: RNBoxStyle; label: RNLabelStyle; text: RNLabelStyle } {
+  const i = componentTokens(theme).input;
+  const scheme = theme.color[options.mode];
+  const state = options.state ?? 'default';
+  const filled = (options.variant ?? i.variant) === 'filled';
+  const r = cornerRadius(theme, i.radius);
+  const emphasized = state === 'focused' || state === 'error';
+  const width = emphasized ? Math.max(i.borderWidth, theme.shape.borderWidth.thick) : i.borderWidth;
+  return {
+    wrapper: { gap: i.labelGap, opacity: state === 'disabled' ? theme.effects.opacity.disabled : 1 },
+    field: {
+      minHeight: i.height,
+      paddingHorizontal: i.paddingX,
+      borderRadius: r,
+      borderBottomLeftRadius: filled ? 0 : r,
+      borderBottomRightRadius: filled ? 0 : r,
+      borderWidth: filled ? 0 : width,
+      borderBottomWidth: width,
+      borderColor: state === 'error' ? scheme.error : state === 'focused' ? scheme.primary : scheme.outline,
+      backgroundColor: filled ? scheme.surfaceContainerHigh : 'transparent',
+    },
+    label: { ...textStyle(theme, 'labelMedium'), color: scheme.onSurface },
+    text: { ...textStyle(theme, 'bodyLarge'), color: scheme.onSurface },
+  };
+}
+
+/** Chip container (height, paddingX, radius, `gap` = iconGap) + label; selected colors come from `chip.selected` roles. */
+export function chipStyles(theme: Theme, options: { selected?: boolean; mode: ColorMode }): { container: RNBoxStyle; label: RNLabelStyle } {
+  const c = componentTokens(theme).chip;
+  const scheme = theme.color[options.mode];
+  const selected = Boolean(options.selected);
+  return {
+    container: {
+      minHeight: c.height,
+      paddingHorizontal: c.paddingX,
+      gap: c.iconGap,
+      borderRadius: cornerRadius(theme, c.radius),
+      borderWidth: selected ? 0 : theme.shape.borderWidth.thin,
+      borderColor: selected ? 'transparent' : scheme.outline,
+      backgroundColor: selected ? roleColor(scheme, c.selected.container) : 'transparent',
+    },
+    label: { ...textStyle(theme, 'labelLarge'), color: selected ? roleColor(scheme, c.selected.content) : scheme.onSurface },
+  };
+}
+
+export type CardVariant = 'elevated' | 'outlined' | 'filled';
+
+/** Card surface: padding, gap, radius, elevation shadow (elevated), border (outlined, or elevated + `card.bordered`). */
+export function cardStyle(theme: Theme, mode: ColorMode, variant: CardVariant = 'elevated'): RNBoxStyle {
+  const c = componentTokens(theme).card;
+  const scheme = theme.color[mode];
+  const bordered = variant === 'outlined' || (variant === 'elevated' && c.bordered);
+  return {
+    padding: c.padding,
+    gap: c.gap,
+    borderRadius: cornerRadius(theme, c.radius),
+    overflow: 'hidden',
+    backgroundColor: variant === 'filled' ? scheme.surfaceContainerHigh : scheme.surface,
+    borderWidth: bordered ? theme.shape.borderWidth.thin : 0,
+    borderColor: bordered ? scheme.outlineMuted : 'transparent',
+    ...shadow(theme, variant === 'elevated' ? c.elevation : 0, mode),
+  };
+}
+
+/** Dialog surface (padding, radius, elevation) + action row (`gap` = actionGap). */
+export function dialogStyles(
+  theme: Theme,
+  mode: ColorMode,
+): { container: RNBoxStyle; actions: { flexDirection: 'row'; flexWrap: 'wrap'; justifyContent: 'flex-end'; gap: number } } {
+  const d = componentTokens(theme).dialog;
+  return {
+    container: {
+      padding: d.padding,
+      gap: theme.spacing.scale.lg,
+      borderRadius: cornerRadius(theme, d.radius),
+      borderWidth: 0,
+      borderColor: 'transparent',
+      backgroundColor: theme.color[mode].surfaceContainerHigh,
+      ...shadow(theme, d.elevation, mode),
+    },
+    actions: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-end', gap: d.actionGap },
+  };
+}
+
+/** Count badge pill: 18px tall, `badge.paddingX`, badge radius, error color. Its text color is `onError`. */
+export function badgeStyle(theme: Theme, mode: ColorMode): RNBoxStyle {
+  const b = componentTokens(theme).badge;
+  return {
+    minWidth: 18,
+    height: 18,
+    paddingHorizontal: b.paddingX,
+    borderRadius: cornerRadius(theme, b.radius),
+    borderWidth: 0,
+    borderColor: 'transparent',
+    backgroundColor: theme.color[mode].error,
+  };
 }

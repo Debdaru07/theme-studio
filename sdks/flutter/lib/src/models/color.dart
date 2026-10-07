@@ -195,6 +195,27 @@ class DtColorScheme {
   /// Looks up a role by its schema name (used for gradient stops). Null if unknown.
   Color? byName(String role) => toMap()[role];
 
+  /// The pseudo-role component tokens use for "no color" (button containers and borders).
+  static const String transparentRole = 'transparent';
+
+  /// True for every name [resolve] accepts: the 40 [roles] plus [transparentRole].
+  static bool isRole(String name) => name == transparentRole || roles.contains(name);
+
+  /// Maps a color role name from component tokens (`primary`, `onSecondaryContainer`, `outline`, …) to its color
+  /// in this mode. `transparent` → fully transparent.
+  ///
+  /// An unknown name is a bug or a theme from a newer schema: debug builds throw an [ArgumentError] naming it;
+  /// release builds fall back to [onSurface] so the app keeps rendering.
+  Color resolve(String role) {
+    if (role == transparentRole) return const Color(0x00000000);
+    final color = byName(role);
+    if (color != null) return color;
+    assert(() {
+      throw ArgumentError.value(role, 'role', 'Unknown color role. Expected one of ${roles.join(', ')} or transparent');
+    }());
+    return onSurface;
+  }
+
   Map<String, Object?> toJson() => toMap().map((k, v) => MapEntry(k, toHexColor(v)));
 
   static DtColorScheme lerp(DtColorScheme a, DtColorScheme b, double t) {

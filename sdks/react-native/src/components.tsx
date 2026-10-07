@@ -2,7 +2,8 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ActivityIndicator, Image, Modal, Pressable, Switch as RNSwitch, Text as RNText, TextInput, View } from 'react-native';
 import type { ColorScheme, TextStyleName } from '@debdaru07/schema';
 import { useTheme } from './ThemeProvider.tsx';
-import { shadow, textStyle } from './styles.ts';
+import { componentTokens } from '@debdaru07/web/core';
+import { badgeStyle, buttonStyles, cardStyle, chipStyles, dialogStyles, inputStyles, shadow, textStyle } from './styles.ts';
 
 /**
  * Themed UI components for React Native. Same names and props as @debdaru07/react, in RN terms
@@ -12,13 +13,10 @@ import { shadow, textStyle } from './styles.ts';
 export type Tone = 'success' | 'warning' | 'error' | 'info';
 type ToneOrNeutral = Tone | 'neutral';
 
-/** `#RRGGBB` + alpha (0–1) → `#RRGGBBAA`. */
-const alpha = (hex: string, a: number) => `${hex.slice(0, 7)}${Math.round(a * 255).toString(16).padStart(2, '0')}`;
-
 function useKit() {
   const ctx = useTheme();
   const { theme, colors, breakpoint } = ctx;
-  return { ...ctx, s: theme.spacing.scale, c: theme.components, t: (name: TextStyleName) => textStyle(theme, name, breakpoint) };
+  return { ...ctx, s: theme.spacing.scale, c: componentTokens(theme), t: (name: TextStyleName) => textStyle(theme, name, breakpoint) };
 }
 
 function toneColors(colors: ColorScheme, tone: ToneOrNeutral) {
@@ -68,21 +66,11 @@ export interface ButtonProps {
   testID?: string;
 }
 
-/** Themed button with the theme's height, radius, padding and text transform. */
+/** Themed button: the theme's size (height, padding, text style) × variant (role colors, border, elevation) tuning. */
 export function Button({ title, onPress, variant, size = 'md', icon, loading, disabled, block, accessibilityLabel, testID }: ButtonProps) {
-  const { theme, colors, s, c, t } = useKit();
-  const v = variant ?? c.button.variant;
+  const { theme, mode } = useKit();
   const off = disabled || loading;
-  const palette = {
-    filled: [colors.primary, colors.onPrimary, 'transparent'],
-    tonal: [colors.secondaryContainer, colors.onSecondaryContainer, 'transparent'],
-    outlined: ['transparent', colors.primary, colors.outline],
-    text: ['transparent', colors.primary, 'transparent'],
-    danger: [colors.error, colors.onError, 'transparent'],
-  }[v] as [string, string, string];
-  const [bg, fg, border] = off ? [alpha(colors.onSurface, 0.12), colors.onSurfaceDisabled, 'transparent'] : palette;
-  const height = size === 'sm' ? theme.sizing.controlHeight.sm : size === 'lg' ? theme.sizing.controlHeight.lg : c.button.height;
-  const label = c.button.textTransform === 'uppercase' ? title.toUpperCase() : title;
+  const { container, label } = buttonStyles(theme, { variant, size, mode, disabled: off });
   return (
     <Pressable
       onPress={onPress}
@@ -91,24 +79,18 @@ export function Button({ title, onPress, variant, size = 'md', icon, loading, di
       accessibilityLabel={accessibilityLabel ?? title}
       accessibilityState={{ disabled: off, busy: loading }}
       testID={testID}
-      hitSlop={Math.max(0, (theme.sizing.minTouchTarget - height) / 2)}
+      hitSlop={Math.max(0, (theme.sizing.minTouchTarget - (container.minHeight ?? 0)) / 2)}
       style={({ pressed }: { pressed: boolean }) => ({
-        minHeight: height,
-        paddingHorizontal: v === 'text' ? s.md : c.button.paddingX,
-        borderRadius: c.button.radius,
-        borderWidth: theme.shape.borderWidth.thin,
-        borderColor: border,
-        backgroundColor: bg,
+        ...container,
         opacity: pressed ? 1 - theme.effects.opacity.pressed : 1,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: s.sm,
         alignSelf: block ? 'stretch' : 'flex-start',
       })}
     >
-      {loading ? <ActivityIndicator color={fg} size="small" /> : icon}
-      <RNText style={[t('labelLarge'), { color: fg }]}>{label}</RNText>
+      {loading ? <ActivityIndicator color={label.color} size="small" /> : icon}
+      <RNText style={label}>{title}</RNText>
     </Pressable>
   );
 }
@@ -175,28 +157,20 @@ export interface TextFieldProps {
 
 /** Labelled text input with hint and error, in the theme's input variant. */
 export function TextField({ label, hint, error, multiline, prefix, suffix, variant, editable, ...input }: TextFieldProps) {
-  const { theme, colors, s, c, t } = useKit();
+  const { theme, colors, mode, s, t } = useKit();
   const [focused, setFocused] = useState(false);
-  const v = variant ?? c.input.variant;
-  const borderColor = error ? colors.error : focused ? colors.primary : colors.outline;
-  const filled = v === 'filled';
+  const state = editable === false ? 'disabled' : error ? 'error' : focused ? 'focused' : 'default';
+  const st = inputStyles(theme, { variant, mode, state });
   return (
-    <View style={{ gap: s.xs, opacity: editable === false ? theme.effects.opacity.disabled : 1 }}>
-      <RNText style={[t('labelMedium'), { color: colors.onSurface }]}>{label}</RNText>
+    <View style={st.wrapper}>
+      <RNText style={st.label}>{label}</RNText>
       <View
         style={{
+          ...st.field,
           flexDirection: 'row',
           alignItems: multiline ? 'flex-start' : 'center',
           gap: s.sm,
-          minHeight: multiline ? c.input.height * 2 : c.input.height,
-          paddingHorizontal: s.md,
-          borderRadius: c.input.radius,
-          borderBottomLeftRadius: filled ? 0 : c.input.radius,
-          borderBottomRightRadius: filled ? 0 : c.input.radius,
-          backgroundColor: filled ? colors.surfaceContainerHigh : 'transparent',
-          borderWidth: filled ? 0 : focused ? theme.shape.borderWidth.thick : theme.shape.borderWidth.thin,
-          borderBottomWidth: filled ? theme.shape.borderWidth.thick : focused ? theme.shape.borderWidth.thick : theme.shape.borderWidth.thin,
-          borderColor,
+          minHeight: multiline ? (st.field.minHeight ?? 0) * 2 : st.field.minHeight,
         }}
       >
         {prefix}
@@ -209,7 +183,7 @@ export function TextField({ label, hint, error, multiline, prefix, suffix, varia
           placeholderTextColor={colors.onSurfaceMuted}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          style={[t('bodyLarge'), { flex: 1, color: colors.onSurface, paddingVertical: s.sm }]}
+          style={[st.text, { flex: 1, paddingVertical: s.sm }]}
         />
         {suffix}
       </View>
@@ -288,35 +262,25 @@ export interface ChipProps {
 
 /** Filter, choice or input chip in the theme's chip radius. */
 export function Chip({ label, selected, onPress, onRemove, icon }: ChipProps) {
-  const { theme, colors, s, c, t } = useKit();
-  const fg = selected ? colors.onSecondaryContainer : colors.onSurface;
+  const { theme, mode, s } = useKit();
+  const { container, label: labelStyle } = chipStyles(theme, { selected, mode });
+  const { paddingHorizontal, gap, ...box } = container;
   return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        alignSelf: 'flex-start',
-        minHeight: 32,
-        borderRadius: c.chip.radius,
-        borderWidth: selected ? 0 : theme.shape.borderWidth.thin,
-        borderColor: colors.outline,
-        backgroundColor: selected ? colors.secondaryContainer : 'transparent',
-      }}
-    >
+    <View style={{ ...box, flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start' }}>
       <Pressable
         onPress={onPress}
         accessibilityRole="button"
         accessibilityLabel={label}
         accessibilityState={{ selected }}
-        hitSlop={6}
-        style={{ flexDirection: 'row', alignItems: 'center', gap: s.xs, paddingHorizontal: s.md, minHeight: 32 }}
+        hitSlop={Math.max(0, (theme.sizing.minTouchTarget - (box.minHeight ?? 0)) / 2)}
+        style={{ flexDirection: 'row', alignItems: 'center', gap, paddingHorizontal, minHeight: box.minHeight }}
       >
         {icon}
-        <RNText style={[t('labelLarge'), { color: fg }]}>{label}</RNText>
+        <RNText style={labelStyle}>{label}</RNText>
       </Pressable>
       {onRemove ? (
         <Pressable onPress={onRemove} accessibilityRole="button" accessibilityLabel={`Remove ${label}`} hitSlop={8} style={{ paddingRight: s.sm }}>
-          <RNText style={{ color: fg, fontSize: 16 }}>×</RNText>
+          <RNText style={{ color: labelStyle.color, fontSize: 16 }}>×</RNText>
         </Pressable>
       ) : null}
     </View>
@@ -354,18 +318,15 @@ export interface BadgeProps {
 
 /** Count or dot badge, standalone or anchored to `children`. */
 export function Badge({ count, max = 99, dot, label, children }: BadgeProps) {
-  const { colors, c } = useKit();
-  const size = dot ? 8 : 18;
+  const { theme, colors, mode } = useKit();
+  const pill = badgeStyle(theme, mode);
   const badge = (
     <View
       accessibilityRole="text"
       accessibilityLabel={label}
       style={{
-        minWidth: size,
-        height: size,
-        paddingHorizontal: dot ? 0 : 5,
-        borderRadius: c.badge.radius,
-        backgroundColor: colors.error,
+        ...pill,
+        ...(dot ? { minWidth: 8, height: 8, paddingHorizontal: 0 } : null),
         alignItems: 'center',
         justifyContent: 'center',
         ...(children ? { position: 'absolute', top: -2, right: -2, borderWidth: 2, borderColor: colors.surface } : null),
@@ -398,20 +359,12 @@ export interface CardProps {
 
 /** Surface for related content: elevated (theme shadow), outlined or filled. */
 export function Card({ variant = 'elevated', title, subtitle, media, actions, onPress, accessibilityLabel, children }: CardProps) {
-  const { theme, colors, mode, s, c, t } = useKit();
-  const style = {
-    padding: theme.spacing.component.cardPadding,
-    gap: s.sm,
-    borderRadius: c.card.radius,
-    overflow: 'hidden' as const,
-    backgroundColor: variant === 'filled' ? colors.surfaceContainerHigh : colors.surface,
-    borderWidth: variant === 'outlined' || (variant === 'elevated' && c.card.bordered) ? theme.shape.borderWidth.thin : 0,
-    borderColor: colors.outlineMuted,
-    ...(variant === 'elevated' ? shadow(theme, c.card.elevation, mode) : null),
-  };
+  const { theme, colors, mode, s, t } = useKit();
+  const style = cardStyle(theme, mode, variant);
+  const pad = style.padding ?? 0;
   const body = (
     <>
-      {media ? <View style={{ marginTop: -theme.spacing.component.cardPadding, marginHorizontal: -theme.spacing.component.cardPadding, marginBottom: s.sm }}>{media}</View> : null}
+      {media ? <View style={{ marginTop: -pad, marginHorizontal: -pad, marginBottom: s.sm }}>{media}</View> : null}
       {title ? <RNText accessibilityRole="header" style={[t('titleMedium'), { color: colors.onSurface }]}>{title}</RNText> : null}
       {subtitle ? <RNText style={[t('bodySmall'), { color: colors.onSurfaceMuted }]}>{subtitle}</RNText> : null}
       {children}
@@ -698,22 +651,15 @@ export interface DialogProps {
 
 /** Modal dialog in the theme's dialog radius, padding and elevation. */
 export function Dialog({ visible, onClose, title, description, icon, actions, children, dismissible = true }: DialogProps) {
-  const { theme, colors, mode, s, c, t } = useKit();
+  const { theme, colors, mode, t } = useKit();
+  const st = dialogStyles(theme, mode);
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={() => dismissible && onClose()}>
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: theme.spacing.layout.mobile.pagePadding }}>
         <Pressable accessibilityLabel="Close dialog" disabled={!dismissible} onPress={onClose} style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: colors.scrim }} />
         <View
           accessibilityViewIsModal
-          style={{
-            width: '100%',
-            maxWidth: 440,
-            gap: s.lg,
-            padding: theme.spacing.component.dialogPadding,
-            borderRadius: c.dialog.radius,
-            backgroundColor: colors.surfaceContainerHigh,
-            ...shadow(theme, c.dialog.elevation, mode),
-          }}
+          style={{ ...st.container, width: '100%', maxWidth: 440 }}
         >
           {icon ? <View style={{ alignSelf: 'center' }}>{icon}</View> : null}
           <RNText accessibilityRole="header" style={[t('headline'), { color: colors.onSurface }]}>
@@ -721,7 +667,7 @@ export function Dialog({ visible, onClose, title, description, icon, actions, ch
           </RNText>
           {description ? <RNText style={[t('bodyMedium'), { color: colors.onSurfaceMuted }]}>{description}</RNText> : null}
           {children}
-          {actions ? <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-end', gap: s.sm }}>{actions}</View> : null}
+          {actions ? <View style={st.actions}>{actions}</View> : null}
         </View>
       </View>
     </Modal>

@@ -1,6 +1,24 @@
 import 'json.dart';
 
-enum DtButtonVariant { filled, tonal, outlined }
+/// The theme's default button variant (`components.button.variant`). [DtButtonKind] has all five.
+enum DtButtonVariant {
+  filled,
+  tonal,
+  outlined;
+
+  /// The same variant as a [DtButtonKind].
+  DtButtonKind get kind => switch (this) {
+        DtButtonVariant.filled => DtButtonKind.filled,
+        DtButtonVariant.tonal => DtButtonKind.tonal,
+        DtButtonVariant.outlined => DtButtonKind.outlined,
+      };
+}
+
+/// Every button variant the theme tunes (`components.button.variants`), keyed by [name].
+enum DtButtonKind { filled, tonal, outlined, text, danger }
+
+/// Button sizes (`components.button.sizes`), keyed by [name].
+enum DtButtonSize { sm, md, lg }
 
 enum DtTextTransform {
   none,
@@ -128,6 +146,12 @@ class DtButtonTokens {
         'lg': const DtControlSize(height: 48, paddingX: 32, textStyle: 'labelLarge'),
       };
 
+  /// Height, padding and text style for [size].
+  DtControlSize size(DtButtonSize size) => sizes[size.name]!;
+
+  /// Colors and elevation for [kind].
+  DtButtonVariantStyle style(DtButtonKind kind) => variants[kind.name] ?? _defaultVariants[kind.name]!;
+
   Map<String, Object?> toJson() => {
         'variant': variant.name,
         'radius': jsonNum(radius),
@@ -147,7 +171,7 @@ class DtInputTokens {
     required this.radius,
     required this.height,
     this.borderWidth = 1,
-    this.paddingX = 16,
+    this.paddingX = 12,
     this.labelGap = 4,
   });
 
@@ -156,7 +180,7 @@ class DtInputTokens {
         radius: r.number('radius'),
         height: r.number('height'),
         borderWidth: r.optNumber('borderWidth') ?? 1,
-        paddingX: r.optNumber('paddingX') ?? 16,
+        paddingX: r.optNumber('paddingX') ?? 12,
         labelGap: r.optNumber('labelGap') ?? 4,
       );
 

@@ -35,3 +35,11 @@ export {
   type TokenPath,
   type TokenValue,
 } from './tokens.ts';
+export {
+  componentTokens,
+  roleColor,
+  type ButtonSize,
+  type ButtonVariantName,
+  type ButtonVariantStyle,
+  type ComponentTokens,
+} from './component-tokens.ts';

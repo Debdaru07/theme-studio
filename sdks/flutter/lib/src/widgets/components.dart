@@ -93,7 +93,7 @@ class DtTextField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
-      spacing: dt.spacing.xs,
+      spacing: dt.components.input.labelGap,
       children: [
         Text(label, style: text.labelMedium?.copyWith(color: dt.colors.onSurface)),
         TextFormField(
@@ -162,10 +162,22 @@ class DtChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ChipTheme (from DtThemeBuilder) sets padding and colors. Material never draws a chip shorter than 32 plus its
+    // border, so a shorter `chip.height` is reached with a negative vertical density (Material allows down to -4).
+    final dt = context.dt;
+    final floor = 32 + 2 * dt.shape.borderWidth.thin;
+    final shortfall = floor - dt.components.chip.height;
+    final density = shortfall > 0 ? VisualDensity(vertical: (-shortfall / 2).clamp(VisualDensity.minimumDensity, 0)) : null;
     if (onDeleted != null) {
-      return InputChip(label: Text(label), avatar: icon, onDeleted: onDeleted, deleteButtonTooltipMessage: 'Remove $label');
+      return InputChip(
+        label: Text(label),
+        avatar: icon,
+        onDeleted: onDeleted,
+        deleteButtonTooltipMessage: 'Remove $label',
+        visualDensity: density,
+      );
     }
-    return FilterChip(label: Text(label), avatar: icon, selected: selected, onSelected: onSelected);
+    return FilterChip(label: Text(label), avatar: icon, selected: selected, onSelected: onSelected, visualDensity: density);
   }
 }
 
@@ -206,12 +218,14 @@ class DtBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.dt.colors;
+    final dt = context.dt;
+    final c = dt.colors;
     final badge = dot || count == null
         ? Badge(backgroundColor: c.error, smallSize: 8, child: child)
         : Badge(
             backgroundColor: c.error,
             textColor: c.onError,
+            padding: EdgeInsets.symmetric(horizontal: dt.components.badge.paddingX),
             label: Text(count! > max ? '$max+' : '$count'),
             child: child,
           );
@@ -248,24 +262,24 @@ class DtCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final dt = context.dt;
     final text = Theme.of(context).textTheme;
-    final pad = dt.componentSpacing.cardPadding;
+    final card = dt.components.card;
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
         ?media,
         Padding(
-          padding: EdgeInsets.all(pad),
+          padding: EdgeInsets.all(card.padding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
-            spacing: dt.spacing.sm,
+            spacing: card.gap,
             children: [
               if (title != null) Semantics(header: true, child: Text(title!, style: text.titleMedium)),
               if (subtitle != null) Text(subtitle!, style: text.bodySmall?.copyWith(color: dt.colors.onSurfaceMuted)),
               ?child,
               if (actions.isNotEmpty)
-                Align(alignment: Alignment.centerRight, child: Wrap(spacing: dt.spacing.sm, children: actions)),
+                Align(alignment: Alignment.centerRight, child: Wrap(spacing: card.gap, runSpacing: card.gap, children: actions)),
             ],
           ),
         ),
@@ -523,17 +537,31 @@ class DtDialog extends StatelessWidget {
   final Widget? child;
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
-        icon: icon,
-        title: Text(title),
-        content: description == null && child == null
-            ? null
-            : Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, spacing: context.dt.spacing.lg, children: [
-                if (description != null) Text(description!),
-                ?child,
-              ]),
-        actions: actions,
-      );
+  Widget build(BuildContext context) {
+    final dt = context.dt;
+    final d = dt.components.dialog;
+    final p = d.padding;
+    final hasContent = description != null || child != null;
+    // Material 3's layout with the theme's padding: icon → title 16, title → content 16 (Material's own gaps).
+    return AlertDialog(
+      icon: icon,
+      iconPadding: icon == null ? null : EdgeInsets.fromLTRB(p, p, p, 16),
+      title: Text(title),
+      titlePadding: EdgeInsets.fromLTRB(p, icon == null ? p : 0, p, hasContent ? 0 : 20),
+      contentPadding: EdgeInsets.fromLTRB(p, 16, p, p),
+      content: !hasContent
+          ? null
+          : Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, spacing: dt.spacing.lg, children: [
+              if (description != null) Text(description!),
+              ?child,
+            ]),
+      actions: actions,
+      actionsPadding: EdgeInsets.fromLTRB(p, 0, p, p),
+      // AlertDialog spaces actions by half of buttonPadding's horizontal total (buttonPadding does nothing else).
+      buttonPadding: EdgeInsets.symmetric(horizontal: d.actionGap),
+      actionsOverflowButtonSpacing: d.actionGap,
+    );
+  }
 }
 
 /// Asks a yes/no question. Resolves `true` on confirm, `false` on cancel or dismiss.
