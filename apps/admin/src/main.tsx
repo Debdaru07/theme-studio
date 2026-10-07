@@ -8,6 +8,7 @@ import './styles/admin.css';
 import './styles/responsive.css';
 import '@debdaru07/react/components.css';
 import './preview/preview.css';
+import './styles/components-workspace.css';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },

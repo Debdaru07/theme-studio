@@ -1,0 +1,522 @@
+/* Components workspace (editor/components/*) and the specimen in the preview pane (preview/Specimen.tsx). */
+
+/* ── Inspector ───────────────────────────────────────────────────────────── */
+
+.cw {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.cw-intro,
+.cw-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.cw-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.cw-picker button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+}
+.cw-picker button.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: 600;
+}
+.cw-count {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-grid;
+  place-items: center;
+}
+.cw-presets {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--panel-2);
+}
+.cw-preset-row {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.cw-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid var(--line);
+}
+.cw-title h2 {
+  margin: 12px 0 0;
+}
+.cw-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cw-block h3 {
+  margin: 0;
+  font-size: 13px;
+}
+.cw-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cw-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 9px;
+  background: var(--panel-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.cw-tabs button {
+  flex: 1;
+  height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.cw-tabs button.on {
+  background: var(--panel);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: var(--shadow);
+}
+.cw-code {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.cw-code summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+}
+.cw-code .cw-tabs {
+  margin: 10px 0 8px;
+}
+.cw-code pre {
+  margin: 0;
+  font-size: 12px;
+}
+.cw-code-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* ── Token fields ────────────────────────────────────────────────────────── */
+
+.tk {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.tk-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 20px;
+}
+.tk-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+.tk-origin {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.tk-origin.linked {
+  background: var(--panel-2);
+  color: var(--muted);
+}
+.tk-origin.custom {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.tk-head .reset {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+}
+.tk-row {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+.tk-steps {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--panel-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tk-steps button {
+  flex: 1;
+  min-width: 30px;
+  height: 28px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font: 500 12px/1 'JetBrains Mono', ui-monospace, monospace;
+  cursor: pointer;
+}
+.tk-steps.wide button {
+  font-family: inherit;
+}
+.tk-steps button.on {
+  background: var(--panel);
+  color: var(--text);
+  font-weight: 700;
+  box-shadow: var(--shadow);
+}
+.tk-steps button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.tk-number {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 92px;
+  flex-shrink: 0;
+  padding-right: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 11px;
+}
+.tk-number input {
+  width: 100%;
+  height: 32px;
+  border: 0;
+  background: transparent;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 13px;
+}
+.tk-number:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+.tk-role {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.tk-swatch {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: repeating-conic-gradient(#d9dde4 0 25%, #fff 0 50%) 50% / 10px 10px;
+}
+.tk-swatch span {
+  flex: 1;
+}
+.tk-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  cursor: pointer;
+}
+.tk-toggle .reset {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 12px;
+  cursor: pointer;
+}
+.tk-hint {
+  font-size: 11px;
+  color: var(--muted);
+}
+.tk-issue {
+  font-size: 12px;
+  line-height: 1.4;
+}
+.tk-issue.error {
+  color: var(--err);
+}
+.tk-issue.warning {
+  color: var(--warn);
+}
+.tk.has-error .tk-number,
+.tk.has-error select {
+  border-color: var(--err);
+}
+.tk.locked {
+  opacity: 0.75;
+}
+
+/* Touch tier: same sizing rules as the rest of Studio (44px targets, 16px inputs). */
+@media (pointer: coarse), (max-width: 1023px) {
+  .cw-picker button,
+  .cw-tabs button {
+    min-height: 44px;
+  }
+  .tk-steps button {
+    height: 40px;
+  }
+  .tk-number input {
+    height: 40px;
+    font-size: 16px;
+  }
+  .tk-head .reset,
+  .tk-toggle .reset {
+    min-height: 44px;
+    padding: 0 10px;
+    margin: -12px -10px -12px auto;
+  }
+}
+
+/* ── Specimen (inside the preview's ThemeProvider: --dts-* are the client's tokens) ─ */
+
+.spec-app {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background: var(--dts-color-background);
+  color: var(--dts-color-on-surface);
+}
+.spec {
+  container: spec / inline-size;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.spec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.spec-toggle input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+.spec-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font: 500 14px/1 Inter, system-ui, sans-serif;
+  color: var(--dts-color-on-surface-muted);
+  cursor: pointer;
+}
+.spec-label,
+.spec-col,
+.spec-rowhead {
+  font: 500 12px/1.2 'JetBrains Mono', ui-monospace, monospace;
+  color: var(--dts-color-on-surface-muted);
+}
+.spec-grid {
+  display: grid;
+  grid-template-columns: max-content repeat(3, minmax(max-content, 1fr));
+  gap: 8px;
+  align-items: center;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.spec-row {
+  display: contents;
+}
+.spec-col {
+  text-align: center;
+  padding: 4px 0;
+  border-radius: 6px;
+}
+.spec-col.on,
+.spec-rowhead.on {
+  color: var(--accent);
+  font-weight: 700;
+}
+.spec-cell {
+  display: grid;
+  place-items: center;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px dashed transparent;
+  cursor: pointer;
+}
+.spec-cell:hover {
+  border-color: var(--dts-color-outline-muted);
+}
+.spec-cell.on {
+  border: 2px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+.spec-states {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.spec-stack {
+  display: grid;
+  gap: 16px;
+  max-width: 420px;
+}
+.spec-pair {
+  display: grid;
+  gap: 6px;
+}
+.spec-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+.spec-dialog-stage {
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--dts-color-scrim) 35%, transparent);
+}
+.spec-static-dialog {
+  position: static;
+  max-width: 420px;
+  margin: 0;
+}
+.spec-readout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0 0;
+}
+.spec-readout div {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--dts-color-surface-container);
+}
+.spec-readout dt {
+  font: 500 11px/1 Inter, system-ui, sans-serif;
+  color: var(--dts-color-on-surface-muted);
+}
+.spec-readout dd {
+  margin: 0;
+  font: 600 12px/1 'JetBrains Mono', ui-monospace, monospace;
+  color: var(--dts-color-on-surface);
+}
+
+/* "Show spacing": outline every component's box so padding and gaps are visible against the content. */
+.spec-spacing :is(.dts-button, .dts-chip, .dts-badge, .dts-card, .dts-field__control, .dts-dialog, .dts-field) {
+  outline: 1px dashed #e8590c;
+  outline-offset: 0;
+}
+.spec-spacing :is(.dts-button, .dts-chip, .dts-card, .dts-dialog__actions, .dts-field) > * {
+  outline: 1px dotted rgb(232 89 12 / 0.55);
+}
+.spec-spacing [data-measure] {
+  outline: 2px solid #e8590c;
+}
+
+/* Each cell names its size; shown only in the narrow layout below, where the column headers are hidden. */
+.spec-cell-size {
+  display: none;
+  font: 500 11px/1 'JetBrains Mono', ui-monospace, monospace;
+  color: var(--dts-color-on-surface-muted);
+}
+
+/* Narrow frames (phone preview): one row per variant whose sizes wrap, so large buttons are never cut off. */
+@container spec (max-width: 520px) {
+  .spec {
+    padding: 16px;
+  }
+  .spec-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow: visible;
+  }
+  .spec-corner,
+  .spec-col {
+    display: none;
+  }
+  .spec-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    padding-top: 8px;
+  }
+  .spec-rowhead {
+    flex-basis: 100%;
+  }
+  .spec-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px;
+  }
+  .spec-cell-size {
+    display: inline;
+  }
+}

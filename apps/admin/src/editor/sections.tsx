@@ -22,6 +22,7 @@ import {
   useEditor,
   useField,
 } from './fields.tsx';
+import { ComponentsWorkspace } from './components/ComponentsWorkspace.tsx';
 
 export interface SectionDef {
   id: string;
@@ -364,33 +365,7 @@ function NavigationSection() {
 // ── Components & effects ─────────────────────────────────────────────────────
 
 function ComponentsSection() {
-  return (
-    <>
-      <Group title="Buttons">
-        <SegmentedField path="components.button.variant" label="Primary style" options={['filled', 'tonal', 'outlined']} />
-        <SelectField path="components.button.textTransform" label="Text" options={['none', 'uppercase', 'capitalize']} />
-        <NumberField path="components.button.radius" label="Radius" unit="px" />
-        <NumberField path="components.button.height" label="Height" unit="px" />
-        <NumberField path="components.button.paddingX" label="Horizontal padding" unit="px" />
-      </Group>
-      <Group title="Inputs">
-        <SegmentedField path="components.input.variant" label="Style" options={['outlined', 'filled']} />
-        <NumberField path="components.input.radius" label="Radius" unit="px" />
-        <NumberField path="components.input.height" label="Height" unit="px" />
-      </Group>
-      <Group title="Cards">
-        <NumberField path="components.card.radius" label="Radius" unit="px" />
-        <NumberField path="components.card.elevation" label="Elevation level" min={0} max={5} />
-        <ToggleField path="components.card.bordered" label="Border" />
-      </Group>
-      <Group title="Dialogs, chips & badges">
-        <NumberField path="components.dialog.radius" label="Dialog radius" unit="px" />
-        <NumberField path="components.dialog.elevation" label="Dialog elevation" min={0} max={5} />
-        <NumberField path="components.chip.radius" label="Chip radius" unit="px" />
-        <NumberField path="components.badge.radius" label="Badge radius" unit="px" />
-      </Group>
-    </>
-  );
+  return <ComponentsWorkspace />;
 }
 
 function EffectsSection() {

@@ -8,6 +8,7 @@ import { ContrastPanel, SECTIONS } from '../editor/sections.tsx';
 import { useThemeEditor, type OwnerKind, type ThemeEditor } from '../editor/useThemeEditor.ts';
 import { Integrate } from '../integrate/Integrate.tsx';
 import { Preview } from '../preview/Preview.tsx';
+import { ComponentFocusProvider } from '../editor/components/focus.tsx';
 
 export function TenantThemePage() {
   return <EditorPage kind="tenant" id={useParams().id!} />;
@@ -48,6 +49,7 @@ function EditorPage({ kind, id }: { kind: OwnerKind; id: string }) {
 
   return (
     <EditorContext.Provider value={ed}>
+      <ComponentFocusProvider>
       <div className="page editor-page" data-pane={pane} data-view={tab === 'integrate' ? 'integrate' : undefined}>
         <TopBar>
           <div className="editor-title">
@@ -100,7 +102,7 @@ function EditorPage({ kind, id }: { kind: OwnerKind; id: string }) {
           </div>
 
           <div className="editor-preview">
-            <Preview theme={ed.resolved.theme} />
+            <Preview theme={ed.resolved.theme} focus={tab === 'components'} />
           </div>
         </div>
 
@@ -115,6 +117,7 @@ function EditorPage({ kind, id }: { kind: OwnerKind; id: string }) {
 
         {publishing && <PublishDialog ed={ed} blocked={blocked} onClose={() => setPublishing(false)} />}
       </div>
+      </ComponentFocusProvider>
     </EditorContext.Provider>
   );
 }

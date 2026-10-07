@@ -2,6 +2,7 @@ import { ThemeProvider } from '@debdaru07/react';
 import type { Theme } from '@debdaru07/schema';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { Gallery } from './Gallery.tsx';
+import { Specimen } from './Specimen.tsx';
 import { HomeScreen, FormScreen, OrdersScreen, OverlaysScreen } from './screens.tsx';
 import { DESTINATIONS, Shell, type ScreenId } from './Shell.tsx';
 
@@ -13,7 +14,8 @@ const DEVICES = {
 } as const;
 type Device = keyof typeof DEVICES;
 
-export function Preview({ theme }: { theme: Theme }) {
+/** `focus`: the Components tab is open, so show the component being tuned instead of screens/gallery. */
+export function Preview({ theme, focus = false }: { theme: Theme; focus?: boolean }) {
   const [device, setDevice] = useState<Device>('mobile');
   const [mode, setMode] = useState<'light' | 'dark'>('light');
   /** Sample app screens, or the gallery of every SDK component. */
@@ -46,6 +48,7 @@ export function Preview({ theme }: { theme: Theme }) {
   return (
     <div className="preview">
       <div className="preview-toolbar">
+        {!focus && (
         <div className="segmented" role="group" aria-label="Preview content">
           {(['screens', 'components'] as const).map((v) => (
             <button key={v} type="button" className={view === v ? 'on' : ''} aria-pressed={view === v} onClick={() => setView(v)}>
@@ -53,6 +56,7 @@ export function Preview({ theme }: { theme: Theme }) {
             </button>
           ))}
         </div>
+        )}
         <div className="segmented">
           {(Object.keys(DEVICES) as Device[]).map((d) => (
             <button key={d} type="button" className={device === d ? 'on' : ''} onClick={() => setDevice(d)}>
@@ -67,7 +71,7 @@ export function Preview({ theme }: { theme: Theme }) {
             </button>
           ))}
         </div>
-        {view === 'screens' && (
+        {view === 'screens' && !focus && (
           <button type="button" className="btn ghost small" onClick={() => setReplay((r) => r + 1)} title="Replay page transition">
             ↻ Replay motion
           </button>
@@ -80,7 +84,11 @@ export function Preview({ theme }: { theme: Theme }) {
       <div className="preview-stage" ref={stage}>
         <div className="device" style={{ width: width * scale, height: height * scale }}>
           <div className="device-inner" style={{ width, height, transform: `scale(${scale})` }}>
-            {view === 'components' ? (
+            {focus ? (
+              <ThemeProvider theme={theme} mode={mode} scope="element" className="g-app spec-app">
+                <Specimen />
+              </ThemeProvider>
+            ) : view === 'components' ? (
               <ThemeProvider theme={theme} mode={mode} scope="element" className="g-app">
                 <Gallery />
               </ThemeProvider>

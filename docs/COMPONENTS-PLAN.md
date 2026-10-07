@@ -1,6 +1,6 @@
 # Component tuning — MVP plan
 
-Status: **Phase 1 done** (2026-10-07). Phases 2–4 to do.
+Status: **Phases 1–3 done** (2026-10-08). Phase 4 (docs) to do.
 
 ## Goal
 
@@ -42,7 +42,11 @@ client's theme, and every app using the SDK picks the change up at runtime. The 
   filled variants (error) / transparent variants (warning). The API refuses to publish on errors, like contrast.
 - Flutter models parse the new fields and fall back to the same defaults for themes cached before them.
 
-## Phase 2 — SDKs
+## Phase 2 — SDKs (done)
+
+All SDKs read tuning through a single back-compat entry point (`componentTokens(theme)` in `@debdaru07/web/core`;
+Flutter models carry the same defaults), so themes published before tuning render exactly as before.
+
 
 - **Web** (`@debdaru07/web`): emit per-size/per-variant variables (`--dts-button-lg-height`,
   `--dts-button-tonal-container`, …) and make `components.css` use them instead of hard-coded spacing.
@@ -50,7 +54,12 @@ client's theme, and every app using the SDK picks the change up at runtime. The 
 - **Flutter**: `DtButton` sizes/variants and `ThemeData` button/chip/input/card/dialog themes from the tokens.
 - Conformance: fixtures with non-default tuning; every SDK test asserts the same values.
 
-## Phase 3 — Theme Studio workspace
+## Phase 3 — Theme Studio workspace (done)
+
+Code: `apps/admin/src/editor/components/*` (inspector, presets, token fields, snippets) and
+`apps/admin/src/preview/Specimen.tsx`. Clicking a specimen cell selects that size/variant; values linked to a theme
+scale step show 🔗 *Theme · md*; a readout shows measured px; the spacing overlay outlines component boxes.
+
 
 Three panes in the Components tab: component list (with "n custom" counts) · specimen grid (every variant × size ×
 state, light/dark, phone/desktop, plus an "in context" strip) · inspector (presets for density and shape; values

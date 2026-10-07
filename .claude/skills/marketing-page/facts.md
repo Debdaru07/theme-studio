@@ -26,6 +26,8 @@ re-check the source if the code may have changed, and add new facts here (with a
 | Platform defaults alone resolve to a complete theme with no contrast issues (`resolveTheme([])`) | `packages/schema/src/defaults.ts`, `resolve.ts` |
 | Publishable keys (`pk_…`) are read-only and safe to ship in an app | `apps/site/src/content/docs/getting-started.mdx` |
 | The theme format has a published JSON Schema at `/theme.schema.json` | `apps/site/scripts/copy-schema.mjs` |
+| Component tuning: agencies adjust button sizes and variant colors, input, card, chip, badge and dialog spacing on top of a client theme; values stay linked to theme tokens until overridden; colors are theme roles only; guardrails block unsafe sizes and unreadable text | `packages/schema/src/components.ts`, `apps/admin/src/editor/components/` |
+| All four SDKs apply component tuning at runtime, and themes published before it render unchanged | `sdks/web/src/component-tokens.ts`, `sdks/flutter/lib/src/models/components.dart` |
 
 ## Stack and hosting
 

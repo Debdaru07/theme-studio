@@ -8,6 +8,7 @@ import {
   resolveTheme,
   setPath,
   validateLayerChange,
+  type ComponentReport,
   type ContrastReport,
   type Layer,
   type Theme,
@@ -29,6 +30,8 @@ export interface ResolveState {
   /** Last theme that resolved successfully — the preview keeps showing it while a field is invalid. */
   theme: Theme | null;
   contrast: ContrastReport | null;
+  /** Component tuning guardrails (errors block publishing, like contrast). */
+  components: ComponentReport | null;
   issues: ThemeIssue[];
 }
 
@@ -76,15 +79,15 @@ export function useThemeEditor(kind: OwnerKind, id: string) {
 
   const lastGood = useRef<Theme | null>(null);
   const resolved = useMemo<ResolveState>(() => {
-    if (!layer) return { theme: null, contrast: null, issues: [] };
+    if (!layer) return { theme: null, contrast: null, components: null, issues: [] };
     // Only tokens changed since the last save need the editor's permission (same rule as the server).
     const issues = validateLayerChange(state.data?.draft ?? {}, layer, policy);
     try {
       const r = resolveTheme(layers);
       lastGood.current = r.theme;
-      return { theme: r.theme, contrast: r.contrast, issues };
+      return { theme: r.theme, contrast: r.contrast, components: r.components, issues };
     } catch (e) {
-      if (e instanceof ThemeValidationError) return { theme: lastGood.current, contrast: null, issues: [...issues, ...e.issues] };
+      if (e instanceof ThemeValidationError) return { theme: lastGood.current, contrast: null, components: null, issues: [...issues, ...e.issues] };
       throw e;
     }
   }, [layer, layers, policy, state.data?.draft]);
