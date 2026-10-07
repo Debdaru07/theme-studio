@@ -542,6 +542,8 @@ a.client-card:hover {
   overflow: auto;
 }
 .editor-tabs button {
+  /* Contains the .sr-only label, so the scrolling strip clips it instead of the page scrolling sideways. */
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
