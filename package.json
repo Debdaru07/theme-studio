@@ -15,6 +15,7 @@
     "seed": "npm run seed -w @dts/server",
     "fixtures": "npm run fixtures -w @debdaru07/schema",
     "audit:ui": "node .claude/skills/functional-ui/scripts/audit.mjs",
+    "perf:editor": "node .claude/skills/functional-ui/scripts/perf.mjs",
     "dev:site": "npm run dev -w @dts/site"
   },
   "devDependencies": {

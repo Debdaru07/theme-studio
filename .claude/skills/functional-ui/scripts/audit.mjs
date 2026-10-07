@@ -179,7 +179,12 @@ for (const target of TARGETS.filter((t) => !ONLY || t.app === ONLY)) {
     });
     const vp = `${w}x${h}`;
     try {
-      await target.go(page);
+      // One retry when the network drops (net::ERR_*), so flaky connections don't read as broken pages.
+      await target.go(page).catch(async (e) => {
+        if (!/net::ERR_|Timeout/.test(String(e))) throw e;
+        errors.length = 0;
+        await target.go(page);
+      });
       await page.addStyleTag({ content: 'astro-dev-toolbar{display:none!important}' }).catch(() => {});
       await page.waitForTimeout(600);
       results.push({ target: target.name, vp, ...(await measure(page, touch)), errors });
