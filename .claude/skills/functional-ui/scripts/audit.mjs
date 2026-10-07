@@ -90,6 +90,17 @@ export const TARGETS = [
       await p.waitForSelector('.integrate');
     },
   },
+  {
+    app: 'admin',
+    name: 'admin-component-library',
+    go: async (p) => {
+      await openEditor(p);
+      const toggle = p.getByRole('button', { name: /^.?\s*Preview$/ });
+      if (await toggle.isVisible()) await toggle.click();
+      await p.getByRole('group', { name: 'Preview content' }).getByRole('button', { name: 'Component library' }).click();
+      await p.waitForSelector('.g-root');
+    },
+  },
   { app: 'site', name: 'site-home', go: (p) => p.goto(SITE + '/', { waitUntil: 'networkidle' }) },
   { app: 'site', name: 'site-getting-started', go: (p) => p.goto(SITE + '/getting-started/', { waitUntil: 'networkidle' }) },
   { app: 'site', name: 'site-flutter', go: (p) => p.goto(SITE + '/sdks/flutter/', { waitUntil: 'networkidle' }) },
@@ -110,7 +121,8 @@ const measure = (page, touch) =>
     };
     const visible = (el, r, s) => r.width > 0 && r.height > 0 && s.visibility !== 'hidden' && s.display !== 'none';
     // Known exemptions: skip links (off-screen until focused), heading permalinks, links that flow inline in
-    // running text (WCAG 2.5.8 "inline" exception), and the simulated client app inside the preview frame.
+    // running text (WCAG 2.5.8 "inline" exception), and the simulated client app (preview frame, component library,
+    // Integrate live previews), which renders at the client theme's own sizes.
     // "Stretched links" (an absolutely positioned ::before covering the card, e.g. Starlight LinkCard) make the
     // whole card the target, so the anchor's own text box doesn't matter.
     const stretched = (el) => {
@@ -120,7 +132,7 @@ const measure = (page, touch) =>
     const exempt = (el) =>
       el.matches('.sl-skip-link, .sl-anchor-link') ||
       (el.matches('a') && (getComputedStyle(el).display === 'inline' || stretched(el))) ||
-      !!el.closest('.dts-app');
+      !!el.closest('.dts-app, .g-app, .int-preview-app');
 
     const out = { overflow: document.documentElement.scrollWidth - vw, offenders: [], smallTargets: [], zoomInputs: [], unnamed: [], noAlt: [] };
     for (const el of document.querySelectorAll('body *')) {
