@@ -88,3 +88,14 @@ Editors act at their own role's level on any theme they can open. An agency admi
 remove it. Locked fields in Theme Studio show who manages them.
 
 Core text/background color pairs must pass WCAG AA (4.5:1) to publish; other pairs only warn.
+
+## License
+
+Theme Studio is open source under two licenses:
+
+| Part | License | Means |
+| --- | --- | --- |
+| SDKs and schema: `@debdaru07/schema`, `@debdaru07/web`, `@debdaru07/react`, `@debdaru07/react-native` (`packages/schema`, `sdks/*`) and the Flutter `theme_studio` package | [MIT](sdks/web/LICENSE) | Use them in any app, including closed-source commercial ones. Keep the copyright notice. |
+| Platform: Theme Studio, the Theme API, the docs site and everything else in this repository | [AGPL-3.0](LICENSE) | Free to use, self-host and modify. If you offer a modified version to others as a service, publish your changes under the AGPL. |
+
+Each package folder carries its own `LICENSE` file. For other licensing terms for the platform, open an issue.

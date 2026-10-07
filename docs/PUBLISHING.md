@@ -18,10 +18,11 @@ built each version).
 
 ## One-time setup
 
-### 1. License
+### 1. License (done)
 
-Add a `LICENSE` file at the repository root (pub.dev refuses packages without one; npm warns). `scripts/pack.mjs`
-copies it into every npm package. Copy the same file to `sdks/flutter/LICENSE`.
+The SDKs and schema are MIT (a `LICENSE` in each package folder, copied into the published package); the
+platform is AGPL-3.0 (root `LICENSE`). See the README. Keep `@debdaru07/schema` MIT: the SDKs depend on it at
+runtime, so a copyleft schema would reach every app that uses them.
 
 ### 2. Accounts
 

@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "description": "Theme Studio product and SDK documentation (Astro + Starlight)",
+  "license": "AGPL-3.0-only",
   "scripts": {
     "prebuild": "node scripts/copy-schema.mjs",
     "predev": "node scripts/copy-schema.mjs",
