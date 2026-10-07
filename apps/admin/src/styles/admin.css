@@ -749,7 +749,7 @@ a.client-card:hover {
 }
 .change {
   display: grid;
-  grid-template-columns: 1fr auto auto auto;
+  grid-template-columns: minmax(0, 1fr) auto auto auto auto;
   gap: 8px;
   align-items: center;
   padding: 6px 10px;
@@ -797,4 +797,55 @@ a.client-card:hover {
   overflow: auto;
   white-space: pre;
   line-height: 1.5;
+}
+
+/* Publish dialog: revert one change, or discard them all (with an inline confirmation). */
+.change > span:not(.small) {
+  max-width: 14ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.btn.danger {
+  background: var(--err);
+  border-color: var(--err);
+  color: #fff;
+  font-weight: 600;
+}
+.btn.danger:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+.btn.danger-text {
+  color: var(--err);
+}
+.modal-actions.spread {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.modal-actions-end {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+.discard-confirm {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--err-soft);
+}
+.discard-confirm p {
+  margin: 0;
+  font-size: 13px;
+}
+@media (max-width: 560px) {
+  .change {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .change > code {
+    grid-column: 1 / -1;
+  }
+  .change > span[aria-hidden] {
+    display: none;
+  }
 }

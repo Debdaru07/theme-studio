@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react';
+import { canEdit } from '@debdaru07/schema';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { useAuth } from '../auth.tsx';
 import { TopBar } from '../components/TopBar.tsx';
@@ -134,12 +135,35 @@ function SaveBadge({ ed }: { ed: ThemeEditor }) {
 
 function PublishDialog({ ed, blocked, onClose }: { ed: ThemeEditor; blocked: boolean; onClose(): void }) {
   const [note, setNote] = useState('');
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const [kept, setKept] = useState(0);
+  const titleId = useId();
   const isTenant = ed.kind === 'tenant';
   const fmt = (v: unknown) => (v === undefined ? 'inherited' : typeof v === 'string' ? v : JSON.stringify(v));
+  const editable = ed.changes.filter((c) => canEdit(ed.policy, c.path));
+  const nothing = ed.changes.length === 0;
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (confirmDiscard) setConfirmDiscard(false);
+      else onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [confirmDiscard, onClose]);
+
+  const discardAll = () => {
+    const { kept } = ed.discard();
+    setConfirmDiscard(false);
+    if (kept) setKept(kept);
+    else onClose();
+  };
+
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" role="dialog" aria-modal onClick={(e) => e.stopPropagation()}>
-        <h2>Publish changes</h2>
+      <div className="modal" role="dialog" aria-modal aria-labelledby={titleId} onClick={(e) => e.stopPropagation()}>
+        <h2 id={titleId}>Publish changes</h2>
         {isTenant && (
           <p className="notice info small">Publishing the base theme updates every client that inherits from it.</p>
         )}
@@ -153,33 +177,81 @@ function PublishDialog({ ed, blocked, onClose }: { ed: ThemeEditor; blocked: boo
             ))}
           </div>
         )}
-        <div className="changes">
-          {ed.changes.map((c) => (
-            <div key={c.path} className="change">
-              <code>{c.path}</code>
-              <span className="muted">{fmt(c.from)}</span>
-              <span>→</span>
-              <span>{fmt(c.to)}</span>
-            </div>
-          ))}
-        </div>
+        {kept > 0 && (
+          <p className="notice info small" role="status">
+            Kept {kept} {kept === 1 ? 'change' : 'changes'} managed by your agency. Only they can revert {kept === 1 ? 'it' : 'them'}.
+          </p>
+        )}
+        {nothing ? (
+          <p className="muted small">No unpublished changes. Everything matches the live version.</p>
+        ) : (
+          <div className="changes" role="list" aria-label="Unpublished changes">
+            {ed.changes.map((c) => {
+              const allowed = canEdit(ed.policy, c.path);
+              return (
+                <div key={c.path} className="change" role="listitem">
+                  <code title={c.path}>{c.path}</code>
+                  <span className="muted">{fmt(c.from)}</span>
+                  <span aria-hidden>→</span>
+                  <span>{fmt(c.to)}</span>
+                  {allowed ? (
+                    <button type="button" className="btn ghost small" aria-label={`Revert ${c.path}`} onClick={() => ed.discard([c.path])}>
+                      Revert
+                    </button>
+                  ) : (
+                    <span className="muted small" title="Managed by your agency">Locked</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
         <label className="field">
           <span>Note (optional)</span>
           <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. Spring rebrand" />
         </label>
         {ed.publish.error && <p className="error-text">{ed.publish.error.message}</p>}
-        <div className="modal-actions">
-          <button className="btn ghost" onClick={onClose}>
-            Cancel
-          </button>
-          <button
-            className="btn primary"
-            disabled={blocked || ed.publish.isPending}
-            onClick={() => ed.publish.mutate(note, { onSuccess: onClose })}
-          >
-            {ed.publish.isPending ? 'Publishing…' : 'Publish now'}
-          </button>
-        </div>
+
+        {confirmDiscard ? (
+          <div className="discard-confirm" role="alertdialog" aria-labelledby="discard-q">
+            <p id="discard-q">
+              <strong>Discard {editable.length} unpublished {editable.length === 1 ? 'change' : 'changes'}?</strong> The draft goes back to the live
+              version. This can't be undone.
+            </p>
+            <div className="modal-actions">
+              <button type="button" className="btn ghost" autoFocus onClick={() => setConfirmDiscard(false)}>
+                Keep changes
+              </button>
+              <button type="button" className="btn danger" onClick={discardAll}>
+                Discard changes
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="modal-actions spread">
+            <button
+              type="button"
+              className="btn ghost danger-text"
+              disabled={editable.length === 0 || ed.publish.isPending}
+              onClick={() => setConfirmDiscard(true)}
+            >
+              Discard all changes
+            </button>
+            <span className="modal-actions-end">
+              <button type="button" className="btn ghost" onClick={onClose}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn primary"
+                disabled={blocked || nothing || ed.publish.isPending}
+                onClick={() => ed.publish.mutate(note, { onSuccess: onClose })}
+              >
+                {ed.publish.isPending ? 'Publishing…' : 'Publish now'}
+              </button>
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

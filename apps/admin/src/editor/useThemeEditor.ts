@@ -1,10 +1,12 @@
 import {
   PLATFORM_DEFAULTS,
   ThemeValidationError,
+  canEdit,
   deepMerge,
   getPath,
   leafPaths,
   resolveTheme,
+  setPath,
   validateLayerChange,
   type ContrastReport,
   type Layer,
@@ -158,6 +160,25 @@ export function useThemeEditor(kind: OwnerKind, id: string) {
       .filter((c) => JSON.stringify(c.from) !== JSON.stringify(c.to));
   }, [layer, state.data?.publishedLayer]);
 
+  /**
+   * Reverts unpublished changes back to the published version: all of them, or only [paths]. Tokens this editor
+   * may not change (e.g. an agency's edit on a client theme, seen by a client editor) are kept, because the server
+   * would reject reverting them. Autosave then stores the reverted draft.
+   */
+  const discard = (paths?: string[]) => {
+    if (!layer) return { reverted: 0, kept: 0 };
+    const targets = changes.filter((c) => !paths || paths.includes(c.path));
+    let next: ThemeInput = layer;
+    let reverted = 0;
+    for (const c of targets) {
+      if (!canEdit(policy, c.path)) continue;
+      next = setPath(next, c.path, c.from);
+      reverted++;
+    }
+    if (reverted) setLayerState(next);
+    return { reverted, kept: targets.length - reverted };
+  };
+
   return {
     kind,
     id,
@@ -174,6 +195,7 @@ export function useThemeEditor(kind: OwnerKind, id: string) {
     flushPending: saveStatus === 'saving',
     publish,
     rollback,
+    discard,
   };
 }
 
