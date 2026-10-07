@@ -1,0 +1,12 @@
+---
+/**
+ * Light only (design-taste/direction.md): overrides Starlight's ThemeProvider so the site always renders light,
+ * whatever the system setting or a stored `starlight-theme` preference says. The global stays defined because
+ * Starlight's inline scripts call `StarlightThemeProvider.updatePickers()`.
+ */
+---
+
+<script is:inline>
+  document.documentElement.dataset.theme = 'light';
+  window.StarlightThemeProvider = { updatePickers() {} };
+</script>

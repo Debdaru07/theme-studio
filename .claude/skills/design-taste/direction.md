@@ -41,6 +41,24 @@ page hero and in Theme Studio's preview.
 
 No gradients on text or page backgrounds. The conic brand mark is the only multicolor element in our chrome.
 
+**Light only on the docs site and landing (decision 2026-10-07).** The site always renders the light column above
+(Starlight's `ThemeProvider` / `ThemeSelect` are overridden; no theme picker). Dark values stay listed for Theme
+Studio's own chrome. Dark mode still appears *inside* demos, because it is a client theme setting.
+
+## Docs reading experience
+
+Modelled on developer docs people rate highly (Stripe, Tailwind, Vercel, Supabase):
+
+- Page head: mono section eyebrow (sidebar group) → Bricolage title → `description` as the lead → *Copy page*
+  (copies `/<slug>.md`). Every docs page needs a `description`.
+- Compact heading scale (h2 24px, h3 19px); prose links underlined; inline code as a hairline chip; code in
+  headings plain; table names never break mid-word (tables scroll sideways on phones).
+- Header: Docs · SDKs · API text links with the current section marked, *Theme Studio ↗* as the one bordered
+  action, GitHub icon. Sidebar: small group labels, tinted current row. TOC: a rail with the active item marked.
+- Code blocks: one light theme (`github-light`), 10px radius, hairline border, file-name tabs.
+- For tools: `/llms.txt` indexes the docs; every page is also served as Markdown at `/<slug>.md`.
+- Edit links point at GitHub on docs pages (off on the landing).
+
 ## Layout
 
 - Landing hero: **left-aligned copy + live demo on the right** at ≥ 1024px; stacked (copy, then demo) on

@@ -5,9 +5,7 @@
 
 html[data-has-hero] {
   --sl-content-width: 75rem;
-}
-:root[data-theme='light'][data-has-hero] {
-  --sl-color-bg: var(--sl-color-gray-7);
+  --sl-color-bg: var(--ts-canvas);
 }
 
 /* ── Shared ─────────────────────────────────────────────────────────────── */
@@ -112,9 +110,6 @@ html[data-has-hero] {
   color: var(--sl-color-white);
   box-shadow: var(--ts-shadow), inset 0 0 0 1px var(--ts-line);
 }
-:root:not([data-theme='light']) .segmented button[aria-pressed='true'] {
-  background: var(--sl-color-gray-5);
-}
 .segmented button:focus-visible,
 .pg-preset:focus-visible,
 .layer-steps button:focus-visible,
@@ -132,12 +127,9 @@ html[data-has-hero] {
   height: 540px;
   padding: 6px;
   border-radius: var(--ts-radius-frame);
-  background: #16181d;
-  box-shadow: var(--ts-shadow-object);
+  background: #e9ecf0;
+  box-shadow: var(--ts-shadow-object), inset 0 0 0 1px #d5d9e0;
   flex: none;
-}
-:root:not([data-theme='light']) .device {
-  background: #2a2f38;
 }
 .device-screen {
   height: 100%;
@@ -903,26 +895,18 @@ html[data-has-hero] {
   color: var(--sl-color-text-accent);
 }
 
-/* ── Closing call to action: an inverted panel with locally scoped tokens. ─ */
+/* ── Closing call to action: the hero's artboard again, as a bookend. ───── */
 
 .lp-cta {
-  --sl-color-white: #f2f3f5;
-  --sl-color-gray-2: #c4c9d2;
-  --sl-color-gray-4: #5d6573;
-  --sl-color-black: #0f1115;
-  --sl-color-text-accent: #8ea4ff;
-  --sl-color-accent-high: #b8c6ff;
-  color-scheme: dark;
   display: grid;
   gap: 16px;
   justify-items: start;
   margin-block: 32px 64px;
   padding: 48px 24px;
   border-radius: var(--ts-radius-frame);
-  background: #16181d;
-}
-:root:not([data-theme='light']) .lp-cta {
-  background: var(--ts-surface);
+  background-color: var(--ts-surface);
+  background-image: radial-gradient(var(--ts-line) 1px, transparent 1px);
+  background-size: 16px 16px;
   box-shadow: inset 0 0 0 1px var(--ts-line);
 }
 .lp-cta p {
@@ -933,10 +917,6 @@ html[data-has-hero] {
 }
 .lp-cta .hero-actions {
   margin-top: 8px;
-}
-.lp-cta .sl-link-button.primary:hover {
-  background: var(--sl-color-accent-high);
-  border-color: var(--sl-color-accent-high);
 }
 @media (min-width: 50rem) {
   .lp-cta {

@@ -1,0 +1,39 @@
+---
+/**
+ * Header links (overrides Starlight's SocialIcons, which renders in the desktop header and the mobile menu):
+ * the main docs entry points as text, the app as the one external action, then the configured social icons.
+ */
+import config from 'virtual:starlight/user-config';
+import { Icon } from '@astrojs/starlight/components';
+import { ADMIN_URL } from '../../config.ts';
+
+const NAV = [
+  { label: 'Docs', href: '/getting-started/', match: (p: string) => p.startsWith('/getting-started') || p.startsWith('/concepts') },
+  { label: 'SDKs', href: '/sdks/flutter/', match: (p: string) => p.startsWith('/sdks') },
+  { label: 'API', href: '/api/', match: (p: string) => p.startsWith('/api') },
+];
+const path = Astro.url.pathname;
+const social = config.social || [];
+---
+
+<nav class="header-nav" aria-label="Main">
+  {
+    NAV.map((item) => (
+      <a href={item.href} class="header-link" aria-current={item.match(path) ? 'page' : undefined}>
+        {item.label}
+      </a>
+    ))
+  }
+  <a href={ADMIN_URL} class="header-cta">
+    Theme Studio
+    <Icon name="external" size="0.875rem" />
+  </a>
+</nav>
+{
+  social.map(({ label, href, icon }) => (
+    <a {href} rel="me" class="header-icon">
+      <span class="sr-only">{label}</span>
+      <Icon name={icon} size="1.25rem" />
+    </a>
+  ))
+}

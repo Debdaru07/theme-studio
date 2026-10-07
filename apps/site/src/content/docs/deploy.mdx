@@ -1,18 +1,19 @@
 ---
 title: Deploy on free tiers
-description: Run the Theme API on Render, the database on Turso, and Theme Studio plus these docs on Cloudflare Pages, all on free plans.
+description: Run the Theme API on Render, the database on Turso, and Theme Studio plus these docs on Cloudflare Workers, all on free plans.
 ---
 
 import { Aside, Steps, Code } from '@astrojs/starlight/components';
-import { API_URL, ADMIN_URL, REPO_URL } from '../../config.ts';
+import { API_URL, ADMIN_URL, REPO_URL, SITE_URL } from '../../config.ts';
 
-export const adminEnv = `VITE_API_URL=${API_URL}
-VITE_DEMO_LOGINS=true
-NODE_VERSION=24`;
-export const siteEnv = `PUBLIC_API_URL=${API_URL}
+export const adminEnv = `NODE_VERSION=24
+VITE_API_URL=${API_URL}
+VITE_DEMO_LOGINS=true`;
+export const siteEnv = `NODE_VERSION=24
+PUBLIC_API_URL=${API_URL}
 PUBLIC_ADMIN_URL=${ADMIN_URL}
 PUBLIC_REPO_URL=${REPO_URL}
-NODE_VERSION=24`;
+PUBLIC_SITE_URL=${SITE_URL}`;
 export const smoke = `curl ${API_URL}/health
 curl -i -H "X-Theme-Key: pk_demo_acme" ${API_URL}/v1/theme`;
 
@@ -20,8 +21,8 @@ curl -i -H "X-Theme-Key: pk_demo_acme" ${API_URL}/v1/theme`;
 | --- | --- | --- |
 | Theme API (`apps/server`) | **Render** free web service | Sleeps after 15 min without traffic. The first request after that takes about 30–60 s. |
 | Database | **Turso** (libSQL, SQLite-compatible) | Free plan is plenty for themes. |
-| Theme Studio (`apps/admin`) | **Cloudflare Pages** | Static build. |
-| This docs site (`apps/site`) | **Cloudflare Pages** | Static build. |
+| Theme Studio (`apps/admin`) | **Cloudflare Workers** (static assets) | Static files are free and unmetered. |
+| This docs site (`apps/site`) | **Cloudflare Workers** (static assets) | Static site. |
 
 <Aside type="tip" title="Cold starts don't break apps">
 SDKs render their cached theme immediately and revalidate in the background, so a sleeping API only delays
@@ -42,7 +43,7 @@ bundled default until the API answers.
 | `ADMIN_PASSWORD` | Password for the platform admin (`admin@dts.local`). Without it, the platform admin is **not** created. |
 | `NODE_VERSION` | `24` |
 
-**Theme Studio (Cloudflare Pages)**
+**Theme Studio (Cloudflare build variables)**
 
 | Variable | Value |
 | --- | --- |
@@ -76,36 +77,38 @@ bundled default until the API answers.
 
    <Code code={smoke} lang="sh" />
 
-5. **Deploy Theme Studio on Cloudflare Pages.** Workers & Pages → **Create → Pages → Connect to Git** → pick the
+5. **Deploy Theme Studio on Cloudflare Workers.** Workers & Pages → **Create → Import a repository** → pick the
    repository, then:
 
    | Setting | Value |
    | --- | --- |
-   | Framework preset | None |
-   | Root directory | `/` (repository root, so npm workspaces resolve) |
-   | Build command | `npm run build -w @dts/admin` |
-   | Build output directory | `apps/admin/dist` |
+   | Project name | `theme-studio` (must match `name` in `apps/admin/wrangler.jsonc`) |
+   | Build command | `npm ci && npm run build -w @dts/admin` |
+   | Deploy command | `npx wrangler deploy --config apps/admin/wrangler.jsonc` |
+   | Preview command | `npx wrangler versions upload --config apps/admin/wrangler.jsonc` |
 
-   Environment variables:
+   Build variables (**Advanced settings**):
 
    <Code code={adminEnv} lang="ini" />
 
-   Pages serves `index.html` for unknown paths when the build has no `404.html`, so client-side routes work.
+   The Wrangler config serves `index.html` for app routes, so refreshing `/clients/…/theme` works. Don't add a
+   `_redirects` SPA rule: Workers rejects it as an infinite loop.
 
-6. **Deploy this docs site on Cloudflare Pages** as a second Pages project from the same repository:
+6. **Deploy this docs site** as a second Worker from the same repository:
 
    | Setting | Value |
    | --- | --- |
-   | Framework preset | Astro (or None) |
-   | Root directory | `/` |
-   | Build command | `npm run build -w @dts/site` |
-   | Build output directory | `apps/site/dist` |
+   | Project name | `theme-studio-docs` (must match `name` in `apps/site/wrangler.jsonc`) |
+   | Build command | `npm ci && npm run build -w @dts/site` |
+   | Deploy command | `npx wrangler deploy --config apps/site/wrangler.jsonc` |
+   | Preview command | `npx wrangler versions upload --config apps/site/wrangler.jsonc` |
 
-   Environment variables (all optional; these are the defaults):
+   Build variables (all optional; these are the defaults). `PUBLIC_SITE_URL` is this site's own URL, used for
+   canonical links, the sitemap and social cards:
 
    <Code code={siteEnv} lang="ini" />
 
-7. **Sign in to Theme Studio** at the Pages URL with a demo account (or `admin@dts.local` and your
+7. **Sign in to Theme Studio** at its `workers.dev` URL with a demo account (or `admin@dts.local` and your
    `ADMIN_PASSWORD`), change a color, and publish. `GET /v1/theme` returns the new version immediately.
 
 8. **Point your apps at the hosted API**: use the Render URL as the SDK `endpoint` and the client's publishable
