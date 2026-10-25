@@ -17,6 +17,14 @@ export {
   type ThemeStorage,
 } from './client.ts';
 export {
+  documentLifecycle,
+  type EventSourceFactory,
+  type EventSourceLike,
+  type LifecycleSignal,
+  type WatchLifecycle,
+  type WatchOptions,
+} from './live.ts';
+export {
   breakpointFor,
   colorsFor,
   cubicBezierCss,

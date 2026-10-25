@@ -6,6 +6,7 @@ library;
 
 export 'src/client/cache.dart';
 export 'src/client/client.dart';
+export 'src/client/live.dart';
 export 'src/material/fonts.dart';
 export 'src/material/page_transitions.dart';
 export 'src/material/theme_builder.dart';

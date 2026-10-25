@@ -1,5 +1,6 @@
 import type { Theme } from '@debdaru07/schema';
 import { DEFAULT_THEME } from './default-theme.ts';
+import { watchTheme, type WatchOptions } from './live.ts';
 
 /** Minimal key/value storage; sync (localStorage) or async (React Native AsyncStorage). */
 export interface ThemeStorage {
@@ -58,6 +59,11 @@ export interface ThemeClient {
   refresh(): Promise<Theme>;
   /** Called on every theme/status change. Returns an unsubscribe function. */
   subscribe(listener: (snapshot: ThemeSnapshot) => void): () => void;
+  /**
+   * Live updates: holds a Server-Sent Events connection while the page is visible and refreshes when a new
+   * theme is published, and refreshes on focus, visibility and `online`. Returns a stop function.
+   */
+  watch(options?: WatchOptions): () => void;
 }
 
 export class ThemeFetchError extends Error {
@@ -130,6 +136,7 @@ export function createThemeClient(options: ThemeClientOptions): ThemeClient {
   const storage = options.storage ?? localStorageAdapter();
   const storageKey = options.storageKey ?? `dts:theme:${options.key}`;
   const url = `${options.endpoint.replace(/\/+$/, '')}/v1/theme`;
+  const eventsUrl = `${url}/events?key=${encodeURIComponent(options.key)}`;
   const fallback = options.fallback ?? DEFAULT_THEME;
 
   let snapshot: ThemeSnapshot = { theme: fallback, status: 'idle', source: 'fallback', error: null };
@@ -252,5 +259,6 @@ export function createThemeClient(options: ThemeClientOptions): ThemeClient {
         listeners.delete(listener);
       };
     },
+    watch: (watchOptions) => watchTheme({ url: eventsUrl, refresh, currentHash: () => themeId(snapshot.theme) }, watchOptions),
   };
 }

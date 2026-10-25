@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react';
-import { AccessibilityInfo, useColorScheme, useWindowDimensions } from 'react-native';
+import { AccessibilityInfo, AppState, useColorScheme, useWindowDimensions } from 'react-native';
 import type { Breakpoint, ColorScheme, Theme } from '@debdaru07/schema';
 import {
   breakpointFor,
@@ -16,6 +16,8 @@ import {
   type ThemeSnapshot,
   type ThemeSource,
   type ThemeStatus,
+  type WatchLifecycle,
+  type WatchOptions,
 } from '@debdaru07/web/core';
 
 export interface NativeThemeContextValue {
@@ -46,12 +48,32 @@ export interface ThemeProviderProps {
   mode?: ModePreference;
   /** Call `client.load()` on mount. Default `true`. */
   autoLoad?: boolean;
+  /**
+   * Live updates through `client.watch()`: connected while the app is in the foreground, refreshed when it
+   * becomes active. React Native has no EventSource: pass one (`{ eventSource: EventSource }` from
+   * `react-native-sse`) or install a global polyfill. Options are read on mount. Default `false`.
+   */
+  live?: boolean | WatchOptions;
   children?: ReactNode;
+}
+
+/** `AppState` as a watch lifecycle: connected unless backgrounded, refreshed on becoming active. */
+export function appStateLifecycle(): WatchLifecycle {
+  return {
+    isVisible: () => AppState.currentState !== 'background',
+    subscribe(listener) {
+      const sub = AppState.addEventListener('change', (state) => {
+        if (state === 'active') listener('visible');
+        else if (state === 'background') listener('hidden');
+      });
+      return () => sub.remove();
+    },
+  };
 }
 
 const noopSubscribe = () => () => {};
 
-export function ThemeProvider({ client, theme: themeProp, fallback = DEFAULT_THEME, mode = 'system', autoLoad = true, children }: ThemeProviderProps) {
+export function ThemeProvider({ client, theme: themeProp, fallback = DEFAULT_THEME, mode = 'system', autoLoad = true, live = false, children }: ThemeProviderProps) {
   const snapshot: ThemeSnapshot | null = useSyncExternalStore(
     client ? client.subscribe : noopSubscribe,
     () => client?.getSnapshot() ?? null,
@@ -61,6 +83,12 @@ export function ThemeProvider({ client, theme: themeProp, fallback = DEFAULT_THE
   useEffect(() => {
     if (client && autoLoad && client.status === 'idle') void client.load();
   }, [client, autoLoad]);
+
+  const isLive = !!live;
+  useEffect(() => {
+    if (!client || !isLive) return;
+    return client.watch({ lifecycle: appStateLifecycle(), ...(typeof live === 'object' ? live : {}) });
+  }, [client, isLive]);
 
   const system = useColorScheme();
   const { width } = useWindowDimensions();

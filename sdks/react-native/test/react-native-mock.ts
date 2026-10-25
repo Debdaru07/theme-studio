@@ -43,6 +43,7 @@ export const __mock = {
   reset() {
     state = initial();
     reduceMotionListeners.clear();
+    AppState.currentState = 'active';
     for (const l of [...listeners]) l();
   },
 };
@@ -67,6 +68,28 @@ export const AccessibilityInfo = {
   addEventListener(_event: 'reduceMotionChanged', handler: (enabled: boolean) => void): { remove(): void } {
     reduceMotionListeners.add(handler);
     return { remove: () => reduceMotionListeners.delete(handler) };
+  },
+};
+
+export type AppStateStatus = 'active' | 'background' | 'inactive' | 'unknown' | 'extension';
+
+const appStateListeners = new Set<(state: AppStateStatus) => void>();
+
+export const AppState = {
+  currentState: 'active' as AppStateStatus,
+  addEventListener(_event: 'change', handler: (state: AppStateStatus) => void): { remove(): void } {
+    appStateListeners.add(handler);
+    return { remove: () => appStateListeners.delete(handler) };
+  },
+};
+
+export const __appState = {
+  set(next: AppStateStatus) {
+    AppState.currentState = next;
+    for (const l of [...appStateListeners]) l(next);
+  },
+  get listenerCount() {
+    return appStateListeners.size;
   },
 };
 

@@ -22,6 +22,7 @@ import {
   type ThemeSnapshot,
   type ThemeSource,
   type ThemeStatus,
+  type WatchOptions,
 } from '@debdaru07/web';
 
 export interface ThemeContextValue {
@@ -60,6 +61,11 @@ export interface ThemeProviderProps {
   loadFonts?: boolean;
   /** Call `client.load()` on mount. Default `true`. */
   autoLoad?: boolean;
+  /**
+   * Live updates through `client.watch()`: re-skin within a second of a publish while the tab is visible, and
+   * re-check on focus. `true`, or `WatchOptions` (read on mount). Default `false`.
+   */
+  live?: boolean | WatchOptions;
   /** Wrapper props (`scope="element"` only). */
   className?: string;
   style?: CSSProperties;
@@ -90,6 +96,7 @@ export function ThemeProvider(props: ThemeProviderProps) {
     breakpoint: bpOption = 'auto',
     loadFonts = true,
     autoLoad = true,
+    live = false,
     className,
     style,
     children,
@@ -104,6 +111,12 @@ export function ThemeProvider(props: ThemeProviderProps) {
   useEffect(() => {
     if (client && autoLoad && client.status === 'idle') void client.load();
   }, [client, autoLoad]);
+
+  const isLive = !!live;
+  useEffect(() => {
+    if (!client || !isLive) return;
+    return client.watch(typeof live === 'object' ? live : undefined);
+  }, [client, isLive]);
 
   const theme = themeProp ?? snapshot?.theme ?? fallback;
   const ref = useRef<HTMLDivElement>(null);

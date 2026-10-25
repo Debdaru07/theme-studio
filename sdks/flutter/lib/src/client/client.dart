@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 
 import '../models/theme.dart';
 import 'cache.dart';
+import 'live.dart';
 
 /// Where the current theme came from.
 enum DtThemeSource { bundled, cache, network }
@@ -121,6 +122,8 @@ class DynamicThemeClient {
 
   Uri get themeUri => Uri.parse('$endpoint/v1/theme');
 
+  Uri get eventsUri => Uri.parse('$endpoint/v1/theme/events');
+
   /// Cache key; distinct per endpoint and key so switching clients never mixes themes.
   String get cacheKey => '$endpoint|$publishableKey';
 
@@ -232,6 +235,21 @@ class DynamicThemeClient {
       return DtTheme.fallback;
     }
   }
+
+  /// Opens a live connection: [refresh] runs within about a second of a publish. Call [DtThemeWatch.stop]
+  /// when the app goes to the background; [DynamicThemeBuilder] with `live: true` does this for you.
+  DtThemeWatch watch({Duration minRetry = const Duration(seconds: 1), Duration maxRetry = const Duration(seconds: 30)}) =>
+      DtThemeWatch(
+        httpClient: _http,
+        uri: eventsUri,
+        publishableKey: publishableKey,
+        currentHash: () => _disposed ? null : _state.value.theme.hash,
+        refresh: () async {
+          if (!_disposed) await refresh();
+        },
+        minRetry: minRetry,
+        maxRetry: maxRetry,
+      );
 
   /// Removes the cached theme for this client.
   Future<void> clearCache() => cache.remove(cacheKey);

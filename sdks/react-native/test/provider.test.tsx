@@ -1,6 +1,6 @@
 import { act, cleanup, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { __mock } from 'react-native';
+import { __appState, __mock } from 'react-native';
 import type { Theme } from '@debdaru07/schema';
 import acmeJson from '@debdaru07/schema/fixtures/acme.json' with { type: 'json' };
 import globexJson from '@debdaru07/schema/fixtures/globex.json' with { type: 'json' };
@@ -149,5 +149,71 @@ describe('ThemeProvider (react-native)', () => {
     } finally {
       console.error = orig;
     }
+  });
+});
+
+describe('live updates (AppState)', () => {
+  class FakeEventSource {
+    static instances: FakeEventSource[] = [];
+    listeners = new Map<string, (e: { data?: unknown }) => void>();
+    closed = false;
+    constructor(public url: string) {
+      FakeEventSource.instances.push(this);
+    }
+    addEventListener(type: string, l: (e: { data?: unknown }) => void) {
+      this.listeners.set(type, l);
+    }
+    close() {
+      this.closed = true;
+    }
+    emit(type: string, data: unknown) {
+      this.listeners.get(type)?.({ data: JSON.stringify(data) });
+    }
+  }
+
+  it('connects while active, closes in the background, and refreshes when active again', async () => {
+    FakeEventSource.instances = [];
+    const served = [acme, globex];
+    const calls: string[] = [];
+    const fetch: FetchLike = async (url) => {
+      calls.push(url);
+      const body = served.length > 1 ? served.shift()! : served[0]!;
+      return { status: 200, ok: true, headers: { get: () => `"${body.meta?.hash}"` }, json: async () => body };
+    };
+    const client = createThemeClient({ endpoint: 'http://localhost:8787', key: 'pk_demo_acme', storage: asyncStorage(), fetch });
+    const { unmount } = render(
+      <ThemeProvider client={client} mode="light" live={{ eventSource: FakeEventSource, debounceMs: 0 }}>
+        <Probe />
+      </ThemeProvider>,
+    );
+    await act(() => client.load());
+    expect(ctx?.theme.assets.appName).toBe('Acme Fleet');
+    expect(FakeEventSource.instances).toHaveLength(1);
+    expect(FakeEventSource.instances[0]!.url).toBe('http://localhost:8787/v1/theme/events?key=pk_demo_acme');
+
+    act(() => __appState.set('background'));
+    expect(FakeEventSource.instances[0]!.closed).toBe(true);
+
+    await act(async () => {
+      __appState.set('active');
+      await new Promise((r) => setTimeout(r, 10));
+    });
+    expect(FakeEventSource.instances).toHaveLength(2);
+    expect(calls).toHaveLength(2);
+    expect(ctx?.theme.assets.appName).toBe('Globex Care');
+
+    unmount();
+    expect(FakeEventSource.instances[1]!.closed).toBe(true);
+    expect(__appState.listenerCount).toBe(0);
+  });
+
+  it('is off by default', () => {
+    const client = createThemeClient({ endpoint: 'http://x', key: 'k', storage: asyncStorage(), fetch: async () => ({ status: 304, ok: false, headers: { get: () => null }, json: async () => null }) });
+    render(
+      <ThemeProvider client={client} autoLoad={false}>
+        <Probe />
+      </ThemeProvider>,
+    );
+    expect(__appState.listenerCount).toBe(0);
   });
 });

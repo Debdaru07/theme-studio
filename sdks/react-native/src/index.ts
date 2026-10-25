@@ -1,6 +1,7 @@
 export {
   ThemeContext,
   ThemeProvider,
+  appStateLifecycle,
   useBreakpoint,
   useMotion,
   useNavigationPattern,
