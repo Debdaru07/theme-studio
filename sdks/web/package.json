@@ -20,6 +20,6 @@
     "@debdaru07/schema": "*"
   },
   "devDependencies": {
-    "happy-dom": "^20.0.0"
+    "happy-dom": "^21.0.4"
   }
 }
