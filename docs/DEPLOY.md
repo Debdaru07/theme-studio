@@ -22,6 +22,11 @@ Free tiers change; check each provider's pricing page before relying on them.
    - `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`: from step 1.
    - `ADMIN_PASSWORD`: password for `admin@dts.local` (platform admin). Leave empty to create no platform admin.
    - `JWT_SECRET` is generated for you. `SEED_DEMO=true` seeds the Northwind demo (agency + Acme/Globex clients).
+   - `TRUST_PROXY` (optional): how many proxies sit in front of the API. The client IP used for the live-update
+     connection limit (20 streams per IP) is the `X-Forwarded-For` entry the nearest of them appended; entries
+     further left are client-controlled and ignored. Default `1` in production, which fits Render's single proxy.
+     Raise it only if you add another proxy that appends its own entry (for example a CDN in front of Render);
+     `0` or `false` uses the socket address. Development leaves it off.
 3. Deploy, then check `https://<service>.onrender.com/health` → `{"ok":true}` and
    `curl -H "X-Theme-Key: pk_demo_acme" https://<service>.onrender.com/v1/theme`.
 

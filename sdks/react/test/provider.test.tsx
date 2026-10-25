@@ -228,6 +228,66 @@ describe('ThemeProvider', () => {
     expect(seen?.source).toBe('prop');
   });
 
+  it('live watches the client while mounted and re-renders on a published change', async () => {
+    const sources: { url: string; closed: boolean; emit(type: string, data: unknown): void }[] = [];
+    class FakeEventSource {
+      listeners = new Map<string, (e: { data?: unknown }) => void>();
+      closed = false;
+      constructor(public url: string) {
+        sources.push(this);
+      }
+      addEventListener(type: string, l: (e: { data?: unknown }) => void) {
+        this.listeners.set(type, l);
+      }
+      close() {
+        this.closed = true;
+      }
+      emit(type: string, data: unknown) {
+        this.listeners.get(type)?.({ data: JSON.stringify(data) });
+      }
+    }
+    const served = [acme, globex];
+    const fetch: FetchLike = async () => {
+      const body = served.length > 1 ? served.shift()! : served[0]!;
+      return { status: 200, ok: true, headers: { get: () => `"${body.meta?.hash}"` }, json: async () => body };
+    };
+    const client = createThemeClient({ endpoint: 'http://localhost:8787', key: 'pk_demo_acme', storage: memoryStorage(), fetch });
+    const { unmount } = render(
+      <ThemeProvider client={client} live={{ eventSource: FakeEventSource }} mode="light" breakpoint="mobile" loadFonts={false}>
+        <Probe />
+      </ThemeProvider>,
+    );
+    await act(() => client.load());
+    expect(probeText()?.startsWith('#1D4ED8')).toBe(true);
+    expect(sources).toHaveLength(1);
+    expect(sources[0]!.url).toBe('http://localhost:8787/v1/theme/events?key=pk_demo_acme');
+
+    await act(async () => {
+      sources[0]!.emit('theme', { hash: globex.meta!.hash });
+      await new Promise((r) => setTimeout(r, 0));
+    });
+    expect(probeText()?.startsWith('#0F766E')).toBe(true);
+
+    unmount();
+    expect(sources[0]!.closed).toBe(true);
+  });
+
+  it('does not watch unless live is set', () => {
+    const client = createThemeClient({
+      endpoint: 'http://x',
+      key: 'k',
+      storage: memoryStorage(),
+      fetch: async () => ({ status: 304, ok: false, headers: { get: () => null }, json: async () => null }),
+    });
+    const watch = vi.spyOn(client, 'watch');
+    render(
+      <ThemeProvider client={client} autoLoad={false} loadFonts={false}>
+        <Probe />
+      </ThemeProvider>,
+    );
+    expect(watch).not.toHaveBeenCalled();
+  });
+
   it('useTheme throws outside a provider', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => render(<Probe />)).toThrow(/inside <ThemeProvider>/);

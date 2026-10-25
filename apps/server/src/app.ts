@@ -5,6 +5,7 @@ import Fastify, { type FastifyInstance, type FastifyRequest } from 'fastify';
 import { z, ZodError } from 'zod';
 import type { Db } from './db.ts';
 import { HttpError, forbidden, notFound } from './errors.ts';
+import { ConnectionCounter, InProcessThemeEvents, LIVE_DEFAULTS, type LiveLimits, type ThemeEvents } from './events.ts';
 import { hashPassword, verifyPassword } from './passwords.ts';
 import { Repo, type Client, type OwnerType, type User } from './repo.ts';
 import { ThemeService } from './themes.ts';
@@ -13,6 +14,10 @@ export interface AppOptions {
   db: Db;
   jwtSecret: string;
   logger?: boolean;
+  /** Trusted proxy hops: the client IP is the `X-Forwarded-For` entry the nearest of them appended. */
+  trustProxy?: number | false;
+  events?: ThemeEvents;
+  live?: Partial<LiveLimits>;
 }
 
 // ── Request bodies ───────────────────────────────────────────────────────────
@@ -55,9 +60,12 @@ const canEditClient = (u: User, c: Client) =>
   canManageTenant(u, c.tenantId) || (u.role === 'client_editor' && u.clientId === c.id);
 
 export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
-  const app = Fastify({ logger: opts.logger ?? false });
+  const hops = opts.trustProxy ?? false;
+  const app = Fastify({ logger: opts.logger ?? false, trustProxy: hops ? (_address: string, hop: number) => hop < hops : false });
   const repo = new Repo(opts.db, opts.db);
-  const themes = new ThemeService(repo);
+  const events = opts.events ?? new InProcessThemeEvents();
+  const themes = new ThemeService(repo, events);
+  const live = { ...LIVE_DEFAULTS, ...opts.live };
 
   await app.register(cors, {
     // Bearer tokens, not cookies, so reflecting any origin is safe. SDKs need to read ETag.
@@ -297,12 +305,17 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
 
   // ── Public SDK endpoint ────────────────────────────────────────────────────
 
-  app.get('/v1/theme', async (req, reply) => {
+  const clientForKey = async (req: FastifyRequest) => {
     const key =
       (req.headers['x-theme-key'] as string | undefined) ?? (req.query as Record<string, string | undefined>).key;
     if (!key) throw new HttpError(401, 'Missing X-Theme-Key header');
     const client = await repo.getClientByKey(key);
     if (!client) throw new HttpError(401, 'Unknown theme key');
+    return { key, client };
+  };
+
+  app.get('/v1/theme', async (req, reply) => {
+    const { client } = await clientForKey(req);
     const published = await repo.getPublishedJson(client.id);
     if (!published) throw new HttpError(404, 'No published theme for this client');
 
@@ -313,6 +326,95 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
       return reply.status(304).send();
     }
     return reply.type('application/json').send(published.resolved);
+  });
+
+  const perKey = new ConnectionCounter();
+  const perIp = new ConnectionCounter();
+  const streams = new Set<() => void>();
+  app.addHook('preClose', async () => {
+    for (const end of [...streams]) end();
+  });
+
+  /** Server-Sent Events: `theme` with `{ hash }` on connect and whenever the resolved theme changes; `revoked` when the key stops working. */
+  app.get('/v1/theme/events', async (req, reply) => {
+    const { key, client } = await clientForKey(req);
+    const ip = req.ip;
+    if (perKey.get(key) >= live.maxPerKey || perIp.get(ip) >= live.maxPerIp) {
+      throw new HttpError(429, 'Too many live connections');
+    }
+    perKey.add(key);
+    perIp.add(ip);
+
+    const res = reply.raw;
+    reply.hijack();
+    res.writeHead(200, {
+      ...(reply.getHeaders() as Record<string, string>),
+      'Content-Type': 'text/event-stream; charset=utf-8',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no',
+    });
+    res.flushHeaders();
+
+    let closed = false;
+    let sent: string | null | undefined;
+    let queue = Promise.resolve();
+    let retry: ReturnType<typeof setTimeout> | undefined;
+    let failures = 0;
+    const send = (event: string, data: unknown) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+    const check = (withHash = true) => {
+      queue = queue
+        .then(async () => {
+          if (closed) return;
+          const current = await repo.getClientByKey(key);
+          if (closed) return;
+          if (current?.id !== client.id) {
+            send('revoked', {});
+            end();
+            return;
+          }
+          if (withHash) {
+            const hash = await repo.getPublishedHash(client.id);
+            if (!closed && hash !== sent) {
+              sent = hash;
+              send('theme', { hash });
+            }
+            failures = 0;
+            clearTimeout(retry);
+            retry = undefined;
+          }
+        })
+        .catch((err) => {
+          app.log.warn({ err }, 'theme events check failed');
+          if (closed || retry) return;
+          const delay = live.retryMs[Math.min(failures++, live.retryMs.length - 1)]!;
+          retry = setTimeout(() => {
+            retry = undefined;
+            void check();
+          }, delay);
+        });
+      return queue;
+    };
+
+    const heartbeat = setInterval(() => {
+      res.write(': ping\n\n');
+      void check(false);
+    }, live.heartbeatMs);
+    const unsubscribe = events.subscribe(client.id, () => void check());
+    const end = () => {
+      if (closed) return;
+      closed = true;
+      clearInterval(heartbeat);
+      clearTimeout(retry);
+      unsubscribe();
+      perKey.remove(key);
+      perIp.remove(ip);
+      streams.delete(end);
+      res.end();
+    };
+    streams.add(end);
+    res.on('close', end);
+    await check();
   });
 
   return app;

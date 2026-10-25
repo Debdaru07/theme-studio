@@ -102,6 +102,18 @@ and `@media (min-width)` layout blocks. Inline it in `<head>` to avoid a flash o
 For SSR or tests, use `memoryStorage()`.
 `@debdaru07/web/core` is a DOM-free entry point (client + token helpers) for non-browser runtimes.
 
+### Live updates
+
+```ts
+const stop = client.watch(); // re-skins within about a second of a publish
+```
+
+`watch()` holds a Server-Sent Events connection to `/v1/theme/events` only while the page is visible, and calls
+`refresh()` when the published theme changes. It also refreshes (debounced) on `visibilitychange`, `focus` and
+`online`, and reconnects with backoff. Without `EventSource` (SSR, old browsers) only the focus refresh runs. Options:
+`eventSource` (an EventSource class, or `null`), `lifecycle`, `debounceMs`, `minRetryMs`, `maxRetryMs`. Closing the
+connection while hidden lets the free-tier hosted API sleep when nobody is looking.
+
 ## CSS variables
 
 | Variable | Source |

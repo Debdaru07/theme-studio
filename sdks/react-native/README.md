@@ -49,6 +49,23 @@ export default function App() {
 }
 ```
 
+## Live updates
+
+React Native has no built-in `EventSource`; [`react-native-sse`](https://www.npmjs.com/package/react-native-sse)
+provides one:
+
+```tsx
+import EventSource from 'react-native-sse';
+
+<ThemeProvider client={client} live={{ eventSource: EventSource }}>
+  <App />
+</ThemeProvider>;
+```
+
+With `live` (default `false`), the provider connects to `/v1/theme/events` while the app is in the foreground
+(`AppState`), disconnects in the background, and refreshes every time the app becomes active. Open apps re-skin within
+about a second of a publish. Without an `EventSource`, `live` still refreshes on every return to the foreground.
+
 ## Components
 
 Same names and props as `@debdaru07/react`, in React Native terms (`onPress`, `onChangeText`, `onValueChange`,

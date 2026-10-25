@@ -45,14 +45,28 @@ you edit; only core pairs stop the Publish button. The API enforces the same gat
 
 Client themes are overrides on top of the agency's base. When a tenant admin publishes a new base theme, the API
 re-resolves **every client that has a published theme**: it takes the client's current published layer, resolves
-it on the new base, and publishes it as a new client version noted `Rebased on base theme vN`. Apps pick it up on
-their next sync.
+it on the new base, and publishes it as a new client version noted `Rebased on base theme vN`. Live apps of every
+rebased client update at once; others pick it up on their next sync.
 
 A client whose layer would fail the core contrast checks on the new base is **skipped** (its previous version stays
 live). The publish response lists `rebased` and `skipped` clients with the reason.
 
-<Aside type="tip">
-There is no push channel yet, so a published change appears on the app's next sync. The Flutter SDK syncs on
-launch, on app resume and on an optional `pollInterval`. The JS SDKs sync on `client.load()` (the React providers
-call it on mount); call `client.refresh()` whenever you want to check again.
+## How apps receive a publish
+
+With **live updates** on, an open app re-skins within about a second of a publish, with no reload. The SDK holds a
+Server-Sent Events connection to [`GET /v1/theme/events`](/api/#get-v1themeevents) only while the tab is visible
+or the app is in the foreground, and re-checks the theme whenever it becomes visible or regains focus. A base theme
+publish notifies every client it rebases; a rollback notifies like any other publish.
+
+| SDK | Turn it on | Without it |
+| --- | --- | --- |
+| Web | `client.watch()` (returns a stop function) | `client.load()` once; call `client.refresh()` yourself |
+| React | `<ThemeProvider client={client} live>` | Loads on mount |
+| React Native | `<ThemeProvider client={client} live={{ eventSource }}>` with an EventSource polyfill | Loads on mount |
+| Flutter | `DynamicThemeApp(live: true)` or `DynamicThemeBuilder(live: true)` | Refreshes on launch, on resume and on `pollInterval` |
+
+<Aside type="note" title="Free hosting">
+The hosted API runs on a free Render instance that sleeps when idle. Connections close while apps are in the
+background so the API can still sleep; waking it can take up to a minute, and the SDKs keep
+showing the cached theme meanwhile.
 </Aside>

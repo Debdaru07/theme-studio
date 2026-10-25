@@ -1,6 +1,6 @@
 {
   "name": "@debdaru07/react-native",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Theme Studio React Native bindings: ThemeProvider, hooks and RN style helpers",
   "license": "MIT",
   "type": "module",
@@ -30,7 +30,7 @@
     "@testing-library/react": "^16.3.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
-    "happy-dom": "^20.0.0",
+    "happy-dom": "^21.0.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   }

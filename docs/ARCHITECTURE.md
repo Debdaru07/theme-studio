@@ -136,8 +136,9 @@ Tables: `tenants`, `users` (role: `platform_admin` | `tenant_admin` | `client_ed
 | `POST /clients/:id/theme/preview` → resolved theme + contrast report (not saved) | admin app live preview |
 | `POST /clients/:id/theme/publish` · `GET …/versions` · `POST …/versions/:v/rollback` | tenant admin, client editor |
 | **`GET /v1/theme`** (header `X-Theme-Key: pk_…`) → resolved published theme, `ETag`, `Cache-Control` | **SDKs** (public, read-only) |
+| **`GET /v1/theme/events`** (`?key=pk_…`) → Server-Sent Events: the published hash on connect and on every change | **SDKs** with live updates (see §11.10) |
 
-Publishing the tenant base theme re-resolves every client that inherits from it.
+Publishing the tenant base theme re-resolves every client that inherits from it and notifies their live streams.
 
 ## 7. Admin app (React + TS)
 
@@ -163,6 +164,7 @@ All four follow the same lifecycle:
 init(key, endpoint) → load cached theme (instant) → render
                     → fetch /v1/theme with If-None-Match → if changed: cache + re-render
 fallback order: network → cache → bundled default theme
+live (opt-in): while visible/foreground, /v1/theme/events → new hash → refresh; on focus/resume → refresh
 ```
 
 | SDK | API surface |
@@ -187,7 +189,7 @@ fallback order: network → cache → bundled default theme
 ## 10. Out of scope for the MVP
 
 Billing and subscriptions, SSO, custom font uploads (Google Fonts only), icon and illustration theming,
-real-time push (SDKs refresh on launch and resume, plus an optional poll interval) and multi-region hosting.
+push to apps that are in the background (live updates only run while an app is visible) and multi-region hosting.
 The SDKs are published on npm (`@debdaru07/*`) and pub.dev (`theme_studio`); see [PUBLISHING.md](PUBLISHING.md).
 
 ## 11. Decisions (2026-10-06)
@@ -213,3 +215,25 @@ The SDKs are published on npm (`@debdaru07/*`) and pub.dev (`theme_studio`); see
    regenerates the list). Weight choices are limited to the weights a family ships, and every text style has an
    `italic` flag. SDKs treat a missing `italic` as `false`, so themes cached before it existed still load.
 9. **Hosting (free tier):** API on Render, DB on Turso, admin and docs on Cloudflare Pages. See [DEPLOY.md](DEPLOY.md).
+10. **Live updates (2026-10-26): live while visible, refresh on focus.** `GET /v1/theme/events` is a Server-Sent
+    Events stream per publishable key (`?key=` because `EventSource` cannot send headers, or `X-Theme-Key`). It sends
+    `event: theme` with `{ hash }` on connect and whenever the client's resolved theme changes, a `: ping` comment
+    every 25 s, and `event: revoked` before closing when the key no longer maps to the client. SDKs connect only while
+    the tab is visible or the app is in the foreground and refresh on focus/resume, so idle apps hold no connection
+    and the free Render instance can still sleep. Opt-in: `client.watch()` (web), `live` on the React and React
+    Native providers, `live: true` on the Flutter builder.
+
+    `ThemeService` publishes the affected client ids to a `ThemeEvents` port (`apps/server/src/events.ts`) after its
+    transaction commits: the client for a client publish or rollback, every rebased client for a base theme publish.
+    Each open stream re-reads the key and the published hash, so a message only means "look again" and repeats are
+    harmless. Rotating a key or deleting a client has no API route yet; whichever adds one should publish the client
+    id so open streams send `revoked` at once (each heartbeat also re-checks the key, so within 25 s regardless).
+    A failed database check is retried after 2 s, 5 s, then every 15 s while the stream is open. Limits: 500 streams
+    per key and 20 per IP (from `X-Forwarded-For` behind Render: `TRUST_PROXY` hops, default 1, so a spoofed
+    left-most entry is ignored; see [DEPLOY.md](DEPLOY.md)).
+
+    The port is implemented in process (`InProcessThemeEvents`), which is enough for the single Render instance. With
+    several instances, a publish on one must reach streams held by the others: implement `ThemeEvents` over a shared
+    channel (Redis or Postgres `LISTEN/NOTIFY`, or a Turso-polled `versions` cursor), and keep the per-key and per-IP
+    limits in that shared store or accept that they become per instance. Sticky sessions are not needed because
+    every stream re-reads from the database.

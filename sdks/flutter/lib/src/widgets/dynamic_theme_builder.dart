@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 
 import '../client/cache.dart';
 import '../client/client.dart';
+import '../client/live.dart';
 import '../material/fonts.dart';
 import '../material/theme_builder.dart';
 import '../models/breakpoint.dart';
@@ -71,7 +72,8 @@ typedef DynamicThemeWidgetBuilder = Widget Function(BuildContext context, Dynami
 /// Rebuilds with light/dark [ThemeData] whenever the client's theme changes.
 ///
 /// Also refreshes on app resume, optionally every [pollInterval], and rebuilds typography
-/// when the window crosses a breakpoint.
+/// when the window crosses a breakpoint. With [live], it holds a live connection while the app is
+/// resumed, so a published theme applies within about a second.
 class DynamicThemeBuilder extends StatefulWidget {
   const DynamicThemeBuilder({
     super.key,
@@ -79,6 +81,7 @@ class DynamicThemeBuilder extends StatefulWidget {
     required this.builder,
     this.pollInterval,
     this.refreshOnResume = true,
+    this.live = false,
     this.autoInit = true,
     this.responsiveTypography = true,
     this.fonts,
@@ -88,6 +91,9 @@ class DynamicThemeBuilder extends StatefulWidget {
   final DynamicThemeWidgetBuilder builder;
   final Duration? pollInterval;
   final bool refreshOnResume;
+
+  /// Listen to `/v1/theme/events` while the app is resumed; disconnect in the background.
+  final bool live;
 
   /// Calls [DynamicThemeClient.init] on mount.
   final bool autoInit;
@@ -104,6 +110,7 @@ class DynamicThemeBuilder extends StatefulWidget {
 
 class _DynamicThemeBuilderState extends State<DynamicThemeBuilder> with WidgetsBindingObserver {
   Timer? _poll;
+  DtThemeWatch? _watch;
   DynamicThemeData? _cached;
 
   @override
@@ -113,6 +120,7 @@ class _DynamicThemeBuilderState extends State<DynamicThemeBuilder> with WidgetsB
     widget.client.state.addListener(_onChange);
     if (widget.autoInit) widget.client.init();
     _schedulePoll();
+    _syncWatch();
   }
 
   @override
@@ -125,6 +133,11 @@ class _DynamicThemeBuilderState extends State<DynamicThemeBuilder> with WidgetsB
       _cached = null;
     }
     if (old.pollInterval != widget.pollInterval || old.client != widget.client) _schedulePoll();
+    if (old.live != widget.live || old.client != widget.client) {
+      _watch?.stop();
+      _watch = null;
+      _syncWatch();
+    }
     if (old.fonts != widget.fonts || old.responsiveTypography != widget.responsiveTypography) _cached = null;
   }
 
@@ -134,6 +147,17 @@ class _DynamicThemeBuilderState extends State<DynamicThemeBuilder> with WidgetsB
     _poll = interval == null ? null : Timer.periodic(interval, (_) => widget.client.refresh());
   }
 
+  void _syncWatch() {
+    final state = WidgetsBinding.instance.lifecycleState;
+    final foreground = state == null || state == AppLifecycleState.resumed || state == AppLifecycleState.inactive;
+    if (widget.live && foreground) {
+      _watch ??= widget.client.watch();
+    } else {
+      _watch?.stop();
+      _watch = null;
+    }
+  }
+
   void _onChange() {
     if (mounted) setState(() {});
   }
@@ -141,6 +165,7 @@ class _DynamicThemeBuilderState extends State<DynamicThemeBuilder> with WidgetsB
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed && widget.refreshOnResume) widget.client.refresh();
+    _syncWatch();
   }
 
   @override
@@ -151,6 +176,7 @@ class _DynamicThemeBuilderState extends State<DynamicThemeBuilder> with WidgetsB
   @override
   void dispose() {
     _poll?.cancel();
+    _watch?.stop();
     WidgetsBinding.instance.removeObserver(this);
     widget.client.state.removeListener(_onChange);
     super.dispose();
@@ -211,6 +237,7 @@ class DynamicThemeApp extends StatelessWidget {
     this.locale,
     this.pollInterval,
     this.refreshOnResume = true,
+    this.live = false,
     this.fonts,
   });
 
@@ -232,6 +259,7 @@ class DynamicThemeApp extends StatelessWidget {
   final Locale? locale;
   final Duration? pollInterval;
   final bool refreshOnResume;
+  final bool live;
   final DtFontResolver? fonts;
 
   @override
@@ -239,6 +267,7 @@ class DynamicThemeApp extends StatelessWidget {
         client: client,
         pollInterval: pollInterval,
         refreshOnResume: refreshOnResume,
+        live: live,
         fonts: fonts,
         builder: (context, data) => MaterialApp(
           title: title ?? data.theme.assets.appName,

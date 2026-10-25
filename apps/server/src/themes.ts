@@ -10,6 +10,7 @@ import {
   type ThemeInput,
 } from '@debdaru07/schema';
 import { HttpError, notFound } from './errors.ts';
+import type { ThemeEvents } from './events.ts';
 import type { Client, OwnerType, Repo, Role, Tenant, User, VersionSummary } from './repo.ts';
 
 export function themeHash(theme: Theme): string {
@@ -40,7 +41,10 @@ export interface TenantPublishResult extends PublishResult {
  * agency-level tokens on one client's theme, and that client's editors keep them but cannot change them.
  */
 export class ThemeService {
-  constructor(private readonly repo: Repo) {}
+  constructor(
+    private readonly repo: Repo,
+    private readonly events?: ThemeEvents,
+  ) {}
 
   // ── Lookups ────────────────────────────────────────────────────────────────
 
@@ -94,14 +98,16 @@ export class ThemeService {
     if (!resolved.components.publishable) {
       throw new HttpError(422, 'Theme fails component guardrails', { components: resolved.components });
     }
-    return this.repo.withTx(async (repo) => ({ version: await this.insertClientVersion(repo, client, layer, user, note) }));
+    const result = await this.repo.withTx(async (repo) => ({ version: await this.insertClientVersion(repo, client, layer, user, note) }));
+    this.events?.publish([client.id]);
+    return result;
   }
 
   async publishTenant(tenant: Tenant, user: User | null, note: string | null): Promise<TenantPublishResult> {
     const layer = (await this.repo.getDraft('tenant', tenant.id))?.layer ?? {};
     const { theme } = this.previewTenant(layer);
 
-    return this.repo.withTx(async (repo) => {
+    const result = await this.repo.withTx(async (repo) => {
       const version = await repo.nextVersion('tenant', tenant.id);
       const publishedAt = new Date().toISOString();
       const hash = themeHash(theme);
@@ -126,6 +132,8 @@ export class ThemeService {
       }
       return { version: (await repo.listVersions('tenant', tenant.id))[0]!, rebased, skipped };
     });
+    this.events?.publish(result.rebased.map((r) => r.clientId));
+    return result;
   }
 
   /** Copies an old client version into the draft and publishes it as a new version. */

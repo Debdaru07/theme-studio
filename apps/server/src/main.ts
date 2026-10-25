@@ -4,7 +4,7 @@ import { openDb } from './db.ts';
 import { MIN_ADMIN_PASSWORD_LENGTH, seedDemo, syncPlatformAdmin } from './demo.ts';
 
 const db = await openDb({ url: config.databaseUrl, authToken: config.databaseAuthToken });
-const app = await buildApp({ db, jwtSecret: config.jwtSecret, logger: true });
+const app = await buildApp({ db, jwtSecret: config.jwtSecret, logger: true, trustProxy: config.trustProxy });
 
 if (config.isDevSecret) app.log.warn('JWT_SECRET not set — using the development secret');
 if (config.seedDemo) {

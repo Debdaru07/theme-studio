@@ -51,6 +51,7 @@ The provider writes the [CSS variables](/sdks/web/#css-variables) onto `<html>`,
 | `breakpoint` | `'auto'` | Fixed, or `'auto'`: viewport width for `root`, the wrapper's width for `element`. |
 | `loadFonts` | `true` | Inject Google Fonts links. |
 | `autoLoad` | `true` | Call `client.load()` on mount. |
+| `live` | `false` | Live updates: `true` or [watch options](/sdks/web/#live-updates). See [Live updates](#live-updates). |
 | `className`, `style` | | Wrapper props (`scope="element"` only). |
 
 ### Scoped themes
@@ -116,18 +117,33 @@ function Panel({ open }: { open: boolean }) {
 Map `pageTransition` to your router's transition (for example the View Transitions API or Framer Motion variants).
 `usePrefersReducedMotion()` exposes the raw media query.
 
+## Live updates
+
+Add `live` and an open app re-skins within about a second of a publish, with no reload:
+
+```tsx
+<ThemeProvider client={client} live>
+  <App />
+</ThemeProvider>
+```
+
+The provider calls [`client.watch()`](/sdks/web/#live-updates) on mount and stops it on unmount. The connection is
+open only while the tab is visible; when the tab becomes visible again or the window regains focus, the theme is
+re-checked. Pass options instead of `true` (for example `live={{ debounceMs: 500 }}`); they are read on mount.
+It is off by default, so existing apps keep their behaviour until they opt in.
+
 ## Caching & offline behaviour
 
 Identical to the [Web SDK](/sdks/web/#caching--offline-behaviour): the provider subscribes to the client
 (`useSyncExternalStore`), shows the cached theme immediately, revalidates with `If-None-Match`, and keeps the
 current theme on errors. Check `status` and `error` from `useTheme()` to surface problems. Call
-`client.refresh()` (for example on window focus) to sync again.
+`client.refresh()` to sync again, or turn on `live`.
 
 ## API reference
 
 | Export | Returns |
 | --- | --- |
-| `<ThemeProvider client? theme? fallback? mode? scope? breakpoint? loadFonts? autoLoad? className? style?>` | Context provider that applies the theme |
+| `<ThemeProvider client? theme? fallback? mode? scope? breakpoint? loadFonts? autoLoad? live? className? style?>` | Context provider that applies the theme |
 | `useTheme()` | `{ theme, mode, colors, breakpoint, status, source, error, client, rootElement }` |
 | `useToken(path)` | Typed value: `useToken('color.primary')`, `useToken('spacing.scale.md')` |
 | `useBreakpoint()` | `'mobile' \| 'tablet' \| 'desktop' \| 'wide'` (container-based when scoped) |
