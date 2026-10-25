@@ -202,6 +202,14 @@ export class Repo {
     );
   }
 
+  async getPublishedHash(clientId: string): Promise<string | null> {
+    const row = await this.one<{ hash: string }>(
+      `SELECT hash FROM versions WHERE owner_type = 'client' AND owner_id = ? ORDER BY version DESC LIMIT 1`,
+      [clientId],
+    );
+    return row?.hash ?? null;
+  }
+
   async nextVersion(ownerType: OwnerType, ownerId: string): Promise<number> {
     const row = await this.one<{ next: number }>(
       'SELECT COALESCE(MAX(version), 0) + 1 AS next FROM versions WHERE owner_type = ? AND owner_id = ?',

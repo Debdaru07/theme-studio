@@ -12,6 +12,8 @@ export const config = {
   jwtSecret: env.JWT_SECRET ?? DEV_SECRET,
   isDevSecret: !env.JWT_SECRET,
   /** Seeds the Northwind demo tenant. On by default in development, opt-in in production. */
+  /** Behind a proxy (Render), client IPs for the live-connection limit come from X-Forwarded-For. */
+  trustProxy: env.TRUST_PROXY ? env.TRUST_PROXY === 'true' : production,
   seedDemo: env.SEED_DEMO ? env.SEED_DEMO === 'true' : !production,
   /** Platform admin password for the demo seed. Without it, production seeds no platform admin. */
   adminPassword: env.ADMIN_PASSWORD?.trim() || undefined,
