@@ -1,6 +1,6 @@
 ---
 title: API reference
-description: The public GET /v1/theme endpoint, the theme JSON Schema, and the admin endpoints.
+description: The public GET /v1/theme and /v1/theme/events endpoints, the theme JSON Schema, and the admin endpoints.
 ---
 
 import { Aside, Code } from '@astrojs/starlight/components';
@@ -9,8 +9,8 @@ import { API_URL } from '../../config.ts';
 export const curlFirst = `curl -i -H "X-Theme-Key: pk_demo_acme" ${API_URL}/v1/theme`;
 export const curlAgain = `curl -i -H "X-Theme-Key: pk_demo_acme" -H 'If-None-Match: "0a2bf3a7c02c4617"' ${API_URL}/v1/theme`;
 
-The Theme API is a Fastify service. Apps only ever call **one public endpoint**; everything else is used by
-Theme Studio with a signed-in user.
+The Theme API is a Fastify service. Apps only call **two public endpoints**, the theme and its live-update stream;
+everything else is used by Theme Studio with a signed-in user.
 
 Hosted API: <a href={API_URL}>{API_URL}</a> · local: `http://localhost:8787`
 
@@ -64,6 +64,36 @@ A complete theme as described in [Tokens](/concepts/tokens/), with `meta`:
 
 Every token is present and every value is a literal: no references, no seeds, no partial objects.
 
+## `GET /v1/theme/events`
+
+A [Server-Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events) stream that tells an
+open app when its published theme changes. The SDKs use it for [live updates](/concepts/publishing/#how-apps-receive-a-publish);
+it carries only a hash, so the app then fetches the theme with a conditional `GET /v1/theme`.
+
+The key goes in `?key=pk_…` (`EventSource` cannot send headers) or in `X-Theme-Key`.
+
+```text
+event: theme
+data: {"hash":"0a2bf3a7c02c4617"}
+
+: ping
+
+event: revoked
+data: {}
+```
+
+| Message | When |
+| --- | --- |
+| `event: theme` with `{ "hash" }` | On connect (the current `meta.hash`, or `null` if nothing is published), then each time the resolved theme changes: a client publish or rollback, or a base theme publish that rebases the client |
+| `: ping` | A comment every 25 s, so proxies keep the connection open |
+| `event: revoked` | The key no longer belongs to the client; the server closes the stream |
+
+Errors before the stream starts are JSON, as for `/v1/theme`: `401` for a missing or unknown key, and `429` when a
+key (500) or an IP address (20) already has too many open streams. Responses carry `X-Accel-Buffering: no` and
+`Cache-Control: no-cache, no-transform`, and CORS allows any origin.
+
+<Code code={`curl -N "${API_URL}/v1/theme/events?key=pk_demo_acme"`} lang="sh" />
+
 ## JSON Schema
 
 <a href="/theme.schema.json">`/theme.schema.json`</a> is the JSON Schema (draft 2020-12) of a resolved theme,
@@ -112,6 +142,7 @@ Used by Theme Studio. Authenticate with `POST /auth/login`, then send `Authoriza
 | `GET /clients/:id/theme/versions/:version` | client editors | One version (layer + resolved theme) |
 | `POST /clients/:id/theme/versions/:version/rollback` | client editors | Re-publish an old version as a new one |
 | **`GET /v1/theme`** | **public** (`X-Theme-Key`) | Resolved published theme for SDKs |
+| **`GET /v1/theme/events`** | **public** (`?key=` or `X-Theme-Key`) | Server-Sent Events: the published hash, on connect and on every change |
 
 "Tenant members" means platform admins and users of that tenant. "Client editors" means the client's own editors
 plus admins of its tenant and platform admins. See [Roles & permissions](/concepts/roles/).

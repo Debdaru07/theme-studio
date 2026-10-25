@@ -62,8 +62,8 @@ Then style with variables:
 | `storageKey` | `dts:theme:<key>` | Cache key, distinct per client. |
 
 The client exposes `current`, `status` (`idle` / `loading` / `ready` / `error`), `source` (`fallback` / `cache` /
-`network`), `error`, `getSnapshot()`, `load()`, `refresh()` and `subscribe(listener)`. `load()` and `refresh()`
-never reject; they resolve with the best theme available.
+`network`), `error`, `getSnapshot()`, `load()`, `refresh()`, `subscribe(listener)` and `watch(options)` (see
+[Live updates](#live-updates)). `load()` and `refresh()` never reject; they resolve with the best theme available.
 
 ### `applyTheme(theme, options)`
 
@@ -128,6 +128,38 @@ m.pageTransition;       // 'fade' | 'slide' | 'scale' | 'sharedAxis' | 'none' ('
 
 Reduced motion applies only when the user asks for it **and** the theme sets `motion.respectReducedMotion`.
 
+## Live updates
+
+`client.watch()` re-skins an open page within about a second of a publish, with no reload. It returns a stop
+function.
+
+```ts
+const client = createThemeClient({ endpoint, key });
+client.subscribe((s) => applyTheme(s.theme));
+await client.load();
+const stop = client.watch();
+```
+
+- While `document.visibilityState === 'visible'`, it holds an `EventSource` to
+  [`/v1/theme/events`](/api/#get-v1themeevents). When the published hash differs from `current.meta.hash`, it calls
+  `refresh()`, which is a conditional `GET` like any other.
+- When the tab is hidden, it closes the connection. On `visibilitychange` to visible, `focus` and `online`, it
+  reconnects and calls `refresh()` (debounced), so a publish made while the tab was hidden shows up when you return.
+- Dropped connections reconnect with exponential backoff (1 s up to 30 s). If the key is revoked, it stops.
+- Without `EventSource` (SSR, old browsers, tests), only the focus/visibility refresh runs.
+
+| Option | Default | Purpose |
+| --- | --- | --- |
+| `eventSource` | `globalThis.EventSource` | An EventSource class (polyfills, tests). `null` keeps only the focus refresh. |
+| `lifecycle` | `documentLifecycle()` | When the app counts as visible. React Native passes an `AppState` lifecycle. |
+| `debounceMs` | `250` | Debounce for focus/visibility refreshes. |
+| `minRetryMs` / `maxRetryMs` | `1000` / `30000` | Reconnect backoff. |
+
+<Aside title="Free hosting">
+Connections stay open only while the page is visible, so the free Render instance behind the hosted API can still
+sleep when nobody is looking. Waking it can take up to a minute; the cached theme stays on screen meanwhile.
+</Aside>
+
 ## Caching & offline behaviour
 
 | Situation | Result |
@@ -182,7 +214,8 @@ sizes on the web, scale them in your CSS per `data-dts-breakpoint`.
 
 | Export | Purpose |
 | --- | --- |
-| `createThemeClient(options)` | Fetch + cache client (`ThemeClient`). |
+| `createThemeClient(options)` | Fetch + cache client (`ThemeClient`), with `watch()` for live updates. |
+| `documentLifecycle()` | The default `watch()` lifecycle: page visibility, `focus` and `online`. |
 | `applyTheme(theme, options)` | Write variables onto an element; returns `dispose()`. |
 | `themeStylesheet(theme, selector?)` | CSS text for SSR. |
 | `toCssVariables(theme, mode, breakpoint?)` | All variables as a `{ name: value }` record. |
@@ -196,7 +229,7 @@ sizes on the web, scale them in your CSS per `data-dts-breakpoint`.
 | `localStorageAdapter()`, `memoryStorage()` | Storage adapters. |
 | `DEFAULT_THEME` | Bundled platform default. |
 | `ThemeFetchError` | `error.status`: HTTP status or `0`. |
-| Types | `Theme`, `ThemeClient`, `ThemeClientOptions`, `ThemeSnapshot`, `ThemeStatus`, `ThemeSource`, `ThemeStorage`, `ApplyThemeOptions`, `CssVarPath`, `TokenPath`, `ColorMode`, `ModePreference`, `MotionTokens`, … |
+| Types | `Theme`, `ThemeClient`, `ThemeClientOptions`, `ThemeSnapshot`, `ThemeStatus`, `ThemeSource`, `ThemeStorage`, `WatchOptions`, `WatchLifecycle`, `EventSourceFactory`, `ApplyThemeOptions`, `CssVarPath`, `TokenPath`, `ColorMode`, `ModePreference`, `MotionTokens`, … |
 
 `@debdaru07/web/core` is a DOM-free entry point (client, storage and token helpers, no CSS or fonts) for non-browser
 runtimes.

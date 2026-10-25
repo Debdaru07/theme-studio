@@ -79,6 +79,7 @@ Future<void> main() async {
 | `themeMode` | `ThemeMode.system` | Light, dark or follow the OS. |
 | `pollInterval` | `null` | Periodic `refresh()`. |
 | `refreshOnResume` | `true` | `refresh()` on `AppLifecycleState.resumed`. |
+| `live` | `false` | Live updates while the app is resumed. See [Live updates](#live-updates). |
 | `fonts` | `DtFonts.resolver` | Font resolver (see [Fonts](#fonts)). |
 | `home`, `routes`, `initialRoute`, `onGenerateRoute`, `navigatorKey`, `scaffoldMessengerKey`, `title`, `builder`, `locale`, `localizationsDelegates`, `supportedLocales`, `debugShowCheckedModeBanner` | | Passed to `MaterialApp`. |
 
@@ -101,7 +102,7 @@ DynamicThemeBuilder(
 
 `data` is a `DynamicThemeData` with `theme` (`DtTheme`), `light`, `dark`, `state` (`DtThemeState`) and
 `breakpoint`. Anywhere below, `DynamicTheme.of(context)` returns the same object. `DynamicThemeBuilder` also takes
-`refreshOnResume`, `autoInit` (call `client.init()` on mount, default `true`), `responsiveTypography`
+`refreshOnResume`, `live`, `autoInit` (call `client.init()` on mount, default `true`), `responsiveTypography`
 (default `true`) and `fonts`.
 
 To map a theme without a client (tests, previews), use `DtThemeBuilder(theme, breakpoint: Breakpoint.mobile)`
@@ -216,6 +217,20 @@ DynamicThemeApp(client: client, fonts: DtFonts.system, home: ...);   // per app
 Text styles honour each style's `italic` flag, and `display` / `headline` follow
 `typography.responsiveScale` for the window's breakpoint.
 
+## Live updates
+
+With `live: true`, an open app re-skins within about a second of a publish:
+
+```dart
+DynamicThemeApp(client: client, live: true, home: const HomePage())
+```
+
+While the app is resumed, the builder streams [`/v1/theme/events`](/api/#get-v1themeevents) over `package:http` and
+calls `client.refresh()` when the published hash changes. When the app is paused or hidden, it disconnects; on
+resume it reconnects and refreshes (`refreshOnResume`). Dropped connections reconnect with backoff (1 s up to 30 s).
+You can drop `pollInterval` once `live` is on. To manage it yourself, `client.watch()` returns a
+`DtThemeWatch`; call `stop()` when the app goes to the background.
+
 ## Caching & offline behaviour
 
 ```text
@@ -248,7 +263,8 @@ A sleeping API (see [Deploy](/deploy/)) can take 30–60 s to answer the first r
 
 | Export | Purpose |
 | --- | --- |
-| `DynamicThemeClient` | Fetch + cache. `state`, `changes`, `theme`, `init()`, `loadCache()`, `refresh()`, `clearCache()`, `dispose()`. |
+| `DynamicThemeClient` | Fetch + cache. `state`, `changes`, `theme`, `init()`, `loadCache()`, `refresh()`, `watch()`, `clearCache()`, `dispose()`. |
+| `DtThemeWatch` | A live connection from `client.watch()`; `stop()`, `isActive`. |
 | `DynamicTheme.init(...)` / `.of(context)` / `.maybeOf(context)` | Create a client and await the cache; read `DynamicThemeData`. |
 | `DynamicThemeApp` | `MaterialApp` themed by a client. |
 | `DynamicThemeBuilder`, `DynamicThemeData` | Builder for `MaterialApp.router` and other setups. |

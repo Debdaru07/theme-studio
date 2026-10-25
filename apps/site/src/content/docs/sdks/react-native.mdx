@@ -67,6 +67,7 @@ AsyncStorage (or MMKV, or anything with `getItem` / `setItem`) for offline suppo
 | `fallback` | `DEFAULT_THEME` | Used when there is neither `theme` nor `client`. |
 | `mode` | `'system'` | `'light'`, `'dark'` or `'system'` (`useColorScheme`). |
 | `autoLoad` | `true` | Call `client.load()` on mount. |
+| `live` | `false` | Live updates: `true` or [watch options](/sdks/web/#live-updates), usually `{ eventSource }`. See [Live updates](#live-updates). |
 
 ## Accessing tokens
 
@@ -160,25 +161,41 @@ Animated.timing(value, {
 }).start();
 ```
 
+## Live updates
+
+With `live`, an open app re-skins within about a second of a publish. React Native has no built-in `EventSource`,
+so pass one. [`react-native-sse`](https://www.npmjs.com/package/react-native-sse) works:
+
+```sh
+npm install react-native-sse
+```
+
+```tsx
+import EventSource from 'react-native-sse';
+
+<ThemeProvider client={client} live={{ eventSource: EventSource }}>
+  <App />
+</ThemeProvider>
+```
+
+The provider follows `AppState`: the connection is open while the app is in the foreground and closed when it goes to
+the background, and the theme is re-checked every time the app becomes `active`. A global `EventSource` polyfill
+works too (`live` alone then picks it up). Without any `EventSource`, `live` still refreshes on every return to the
+foreground. `appStateLifecycle()` is exported if you call `client.watch()` yourself. It is off by default.
+
 ## Caching & offline behaviour
 
 The same client as the [Web SDK](/sdks/web/#caching--offline-behaviour): cache first (from your `storage`), then
 `GET /v1/theme` with `If-None-Match`; on `304` nothing changes; on errors the current theme stays and `status` is
-`'error'`; with no cache and no network the bundled `DEFAULT_THEME` renders. The SDK does not refresh on app
-foreground by itself. Call `client.refresh()` from an `AppState` listener if you want that:
-
-```ts
-useEffect(() => {
-  const sub = AppState.addEventListener('change', (s) => s === 'active' && client.refresh());
-  return () => sub.remove();
-}, []);
-```
+`'error'`; with no cache and no network the bundled `DEFAULT_THEME` renders. Without `live`, the SDK does not refresh
+on app foreground by itself.
 
 ## API reference
 
 | Export | Purpose |
 | --- | --- |
-| `ThemeProvider` | Provider (`client`, `theme`, `fallback`, `mode`, `autoLoad`). |
+| `ThemeProvider` | Provider (`client`, `theme`, `fallback`, `mode`, `autoLoad`, `live`). |
+| `appStateLifecycle()` | `AppState` lifecycle for `client.watch({ lifecycle })`. |
 | `useTheme`, `useToken`, `useBreakpoint`, `useNavigationPattern`, `useMotion`, `useReducedMotion` | Hooks. |
 | `textStyle`, `textStyles`, `shadow`, `radius`, `easing`, `easingFunction`, `screenAnimation` | Style helpers. |
 | `ThemeContext`, `NativeThemeContextValue`, `ThemeProviderProps`, `RNTextStyle`, `RNShadowStyle`, `TextStyleOptions`, `NativeStackAnimation` | Context and types. |

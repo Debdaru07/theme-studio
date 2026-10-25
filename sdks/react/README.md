@@ -85,11 +85,23 @@ With `scope="element"` the provider renders a wrapper `<div>` and puts the CSS v
 `breakpoint` (default `'auto'`) measures that wrapper, so `useBreakpoint()` and `useNavigationPattern()` follow
 its width. A `theme` prop takes precedence over `client`. Several scoped providers can coexist on one page.
 
+## Live updates
+
+```tsx
+<ThemeProvider client={client} live>
+  <App />
+</ThemeProvider>
+```
+
+`live` (default `false`) calls `client.watch()` from `@debdaru07/web` on mount and stops it on unmount: open apps
+re-skin within about a second of a publish. The connection is open only while the tab is visible, and the theme is
+re-checked when the tab becomes visible or the window regains focus. Pass watch options instead of `true` if needed.
+
 ## API
 
 | Export | Returns |
 | --- | --- |
-| `<ThemeProvider client? theme? fallback? mode? scope? breakpoint? loadFonts? autoLoad? className? style?>` | Context provider that applies the theme |
+| `<ThemeProvider client? theme? fallback? mode? scope? breakpoint? loadFonts? autoLoad? live? className? style?>` | Context provider that applies the theme |
 | `useTheme()` | `{ theme, mode, colors, breakpoint, status, source, error, client, rootElement }` |
 | `useToken(path)` | Typed value, e.g. `useToken('color.primary')` or `useToken('spacing.scale.md')` |
 | `useBreakpoint()` | `'mobile' \| 'tablet' \| 'desktop' \| 'wide'` (container-based when scoped) |

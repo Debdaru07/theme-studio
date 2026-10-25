@@ -33,7 +33,7 @@ final client = DynamicThemeClient('https://theme-studio-api.onrender.com', 'pk_d
 void main() => runApp(DynamicThemeApp(
       client: client, // cache first, then GET /v1/theme with If-None-Match
       themeMode: ThemeMode.system,
-      pollInterval: const Duration(minutes: 5),
+      live: true, // re-skin within about a second of a publish while the app is open
       home: const HomePage(),
     ));
 
@@ -82,7 +82,8 @@ Material's defaults. Props and a live preview of each are on **Integrate → Com
 | --- | --- |
 | `DynamicThemeClient(endpoint, key, {httpClient, cache, fallbackTheme})` | Loads cache → network (`ETag`/`304`) → bundled default. Exposes `state` (`ValueListenable<DtThemeState>`), `changes` (stream), `init()`, `refresh()`. |
 | `DynamicTheme.init(publishableKey:, endpoint:)` | Creates a client and waits until the cached theme is loaded. |
-| `DynamicThemeApp` / `DynamicThemeBuilder` | Rebuild with light and dark `ThemeData` when the theme changes. Refresh on app resume, with an optional poll. Typography follows the window's breakpoint. |
+| `DynamicThemeApp` / `DynamicThemeBuilder` | Rebuild with light and dark `ThemeData` when the theme changes. Refresh on app resume, with an optional poll. `live: true` streams `/v1/theme/events` while the app is resumed, so a publish applies within about a second. Typography follows the window's breakpoint. |
+| `client.watch()` | The live connection behind `live: true`, as a `DtThemeWatch` you `stop()` yourself. |
 | `DtThemeBuilder(theme, {breakpoint, fonts})` | Maps a `DtTheme` to `ThemeData` directly (`.light`, `.dark`, `.build(brightness)`). |
 | `context.dt` | Tokens and the current breakpoint: `context.dt.spacing.md`, `.colors.success`, `.layout.pagePadding`, `.breakpoint`, `.navPattern`, `.shadow(2)`, `.motion`, `.reduceMotion`. |
 | `DtAdaptiveScaffold` | Bottom bar, rail, modal drawer, sidebar or top tabs, following `navigation.pattern[breakpoint]`. |

@@ -233,6 +233,9 @@ function PublishDialog({ ed, blocked, onClose }: { ed: ThemeEditor; blocked: boo
           <span>Note (optional)</span>
           <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. Spring rebrand" />
         </label>
+        <p className="muted small">
+          Open apps with live updates switch to the new theme within a second or two. Others pick it up the next time they load the theme.
+        </p>
         {ed.publish.error && <p className="error-text">{ed.publish.error.message}</p>}
 
         {confirmDiscard ? (
