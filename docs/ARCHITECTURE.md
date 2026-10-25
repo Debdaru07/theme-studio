@@ -227,8 +227,10 @@ The SDKs are published on npm (`@debdaru07/*`) and pub.dev (`theme_studio`); see
     transaction commits: the client for a client publish or rollback, every rebased client for a base theme publish.
     Each open stream re-reads the key and the published hash, so a message only means "look again" and repeats are
     harmless. Rotating a key or deleting a client has no API route yet; whichever adds one should publish the client
-    id, and open streams then send `revoked`. Limits: 500 streams per key and 20 per IP (`X-Forwarded-For` behind
-    Render, `TRUST_PROXY`).
+    id so open streams send `revoked` at once (each heartbeat also re-checks the key, so within 25 s regardless).
+    A failed database check is retried after 2 s, 5 s, then every 15 s while the stream is open. Limits: 500 streams
+    per key and 20 per IP (from `X-Forwarded-For` behind Render: `TRUST_PROXY` hops, default 1, so a spoofed
+    left-most entry is ignored; see [DEPLOY.md](DEPLOY.md)).
 
     The port is implemented in process (`InProcessThemeEvents`), which is enough for the single Render instance. With
     several instances, a publish on one must reach streams held by the others: implement `ThemeEvents` over a shared

@@ -54,6 +54,12 @@ class DtThemeWatch {
       if (!isActive || abort.isCompleted) return;
       if (res.statusCode != 200) {
         unawaited(res.stream.drain<void>().catchError((_) {}));
+        if (res.statusCode == 401) {
+          _revoked = true;
+          _close();
+          unawaited(_refresh());
+          return;
+        }
         return _scheduleRetry();
       }
       _event = 'message';

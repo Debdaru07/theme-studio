@@ -2,11 +2,13 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { FastifyInstance } from 'fastify';
-import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { buildApp } from '../src/app.ts';
+import { parseTrustProxy } from '../src/config.ts';
 import { openDb, type Db } from '../src/db.ts';
 import { DEMO_KEYS, DEMO_USERS, seedDemo } from '../src/demo.ts';
 import type { LiveLimits } from '../src/events.ts';
+import { Repo } from '../src/repo.ts';
 
 let app: FastifyInstance;
 let db: Db;
@@ -16,8 +18,8 @@ const dir = mkdtempSync(join(tmpdir(), 'dts-events-'));
 let n = 0;
 const streams: Stream[] = [];
 
-async function start(live?: Partial<LiveLimits>) {
-  app = await buildApp({ db, jwtSecret: 'test-secret-test-secret-test-secret', live });
+async function start(live?: Partial<LiveLimits>, trustProxy?: number | false) {
+  app = await buildApp({ db, jwtSecret: 'test-secret-test-secret-test-secret', live, trustProxy });
   base = await app.listen({ port: 0, host: '127.0.0.1' });
 }
 
@@ -29,6 +31,7 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
+  vi.restoreAllMocks();
   for (const s of streams.splice(0)) s.close();
   await app.close();
   db.close();
@@ -98,11 +101,15 @@ async function open(query: string, headers: Record<string, string> = {}): Promis
       queue.length
         ? Promise.resolve(queue.shift()!)
         : new Promise((resolve, reject) => {
-            const t = setTimeout(() => reject(new Error('no event')), timeoutMs);
-            waiters.push((m) => {
+            const waiter = (m: SseMessage) => {
               clearTimeout(t);
               resolve(m);
-            });
+            };
+            const t = setTimeout(() => {
+              waiters.splice(waiters.indexOf(waiter), 1);
+              reject(new Error('no event'));
+            }, timeoutMs);
+            waiters.push(waiter);
           }),
     close: () => ctrl.abort(),
   };
@@ -225,5 +232,67 @@ describe('GET /v1/theme/events', () => {
     const again = await open(`?key=${DEMO_KEYS.acme}`);
     expect(again.res.status).toBe(200);
     expect((await again.next()).event).toBe('theme');
+  });
+
+  it('retries a failed database check with backoff while the stream is open', async () => {
+    await start({ retryMs: [40, 80] });
+    const s = await open(`?key=${DEMO_KEYS.acme}`);
+    await s.next();
+
+    const lookup = vi
+      .spyOn(Repo.prototype, 'getPublishedHash')
+      .mockRejectedValueOnce(new Error('db down'))
+      .mockRejectedValueOnce(new Error('db down'));
+    const headers = await login('acmeEditor');
+    const url = `/clients/${ids.clients.acme}/theme`;
+    await app.inject({ method: 'PUT', url: `${url}/draft`, headers, payload: { layer: { color: { seed: { primary: '#7C3AED' } } } } });
+    await app.inject({ method: 'POST', url: `${url}/publish`, headers });
+
+    await expect(s.next(30)).rejects.toThrow('no event');
+    expect(hashIn(await s.next(500))).toBe(await hashOf(DEMO_KEYS.acme));
+    expect(lookup.mock.calls.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('stops retrying once the stream closes', async () => {
+    await start({ retryMs: [40] });
+    const s = await open(`?key=${DEMO_KEYS.acme}`);
+    await s.next();
+    const lookup = vi.spyOn(Repo.prototype, 'getPublishedHash').mockRejectedValue(new Error('db down'));
+    const headers = await login('acmeEditor');
+    await app.inject({ method: 'POST', url: `/clients/${ids.clients.acme}/theme/versions/1/rollback`, headers });
+    s.close();
+    await new Promise((r) => setTimeout(r, 50));
+    const calls = lookup.mock.calls.length;
+    await new Promise((r) => setTimeout(r, 150));
+    expect(lookup.mock.calls.length).toBe(calls);
+  });
+
+  it('sends revoked on a heartbeat when the key stopped working without an event', async () => {
+    await start({ heartbeatMs: 50 });
+    const s = await open(`?key=${DEMO_KEYS.acme}`);
+    await s.next();
+    await db.execute({ sql: 'UPDATE clients SET publishable_key = ? WHERE id = ?', args: ['pk_rotated', ids.clients.acme] });
+    expect((await s.next(500)).event).toBe('revoked');
+  });
+
+  it('limits per client IP from the address the nearest proxy appended, not a spoofed left-most entry', async () => {
+    await start({ maxPerIp: 1 }, 1);
+    const first = await open(`?key=${DEMO_KEYS.acme}`, { 'x-forwarded-for': '10.0.0.1, 203.0.113.9' });
+    expect(first.res.status).toBe(200);
+    const spoofed = await open(`?key=${DEMO_KEYS.acme}`, { 'x-forwarded-for': '10.0.0.2, 203.0.113.9' });
+    expect(spoofed.res.status).toBe(429);
+    const other = await open(`?key=${DEMO_KEYS.acme}`, { 'x-forwarded-for': '10.0.0.1, 203.0.113.10' });
+    expect(other.res.status).toBe(200);
+  });
+});
+
+describe('TRUST_PROXY', () => {
+  it('is a hop count, 1 in production and off in development by default', () => {
+    expect(parseTrustProxy(undefined, true)).toBe(1);
+    expect(parseTrustProxy(undefined, false)).toBe(false);
+    expect(parseTrustProxy('2', true)).toBe(2);
+    expect(parseTrustProxy('0', true)).toBe(false);
+    expect(parseTrustProxy('false', true)).toBe(false);
+    expect(() => parseTrustProxy('true', true)).toThrow(/number of proxy hops/);
   });
 });

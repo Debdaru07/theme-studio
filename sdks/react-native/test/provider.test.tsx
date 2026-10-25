@@ -207,6 +207,30 @@ describe('live updates (AppState)', () => {
     expect(__appState.listenerCount).toBe(0);
   });
 
+  it('stops reconnecting when a connection error turns out to be a rejected key (401)', async () => {
+    FakeEventSource.instances = [];
+    const fetch: FetchLike = async () => ({ status: 401, ok: false, headers: { get: () => null }, json: async () => ({}) });
+    const client = createThemeClient({ endpoint: 'http://localhost:8787', key: 'pk_revoked', storage: asyncStorage(), fetch });
+    const { unmount } = render(
+      <ThemeProvider client={client} autoLoad={false} live={{ eventSource: FakeEventSource, debounceMs: 0, minRetryMs: 5, maxRetryMs: 5 }}>
+        <Probe />
+      </ThemeProvider>,
+    );
+    expect(FakeEventSource.instances).toHaveLength(1);
+    await act(async () => {
+      FakeEventSource.instances[0]!.emit('error', {});
+      await new Promise((r) => setTimeout(r, 30));
+    });
+    expect(ctx?.error?.status).toBe(401);
+    await act(async () => {
+      __appState.set('background');
+      __appState.set('active');
+      await new Promise((r) => setTimeout(r, 30));
+    });
+    expect(FakeEventSource.instances).toHaveLength(1);
+    unmount();
+  });
+
   it('is off by default', () => {
     const client = createThemeClient({ endpoint: 'http://x', key: 'k', storage: asyncStorage(), fetch: async () => ({ status: 304, ok: false, headers: { get: () => null }, json: async () => null }) });
     render(

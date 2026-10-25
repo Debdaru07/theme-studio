@@ -11,9 +11,11 @@ export interface LiveLimits {
   maxPerKey: number;
   maxPerIp: number;
   heartbeatMs: number;
+  /** Delays before re-running a failed database check; the last one repeats while the stream is open. */
+  retryMs: number[];
 }
 
-export const LIVE_DEFAULTS: LiveLimits = { maxPerKey: 500, maxPerIp: 20, heartbeatMs: 25_000 };
+export const LIVE_DEFAULTS: LiveLimits = { maxPerKey: 500, maxPerIp: 20, heartbeatMs: 25_000, retryMs: [2_000, 5_000, 15_000] };
 
 export class ConnectionCounter {
   private readonly counts = new Map<string, number>();

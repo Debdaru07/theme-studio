@@ -114,6 +114,29 @@ void main() {
     c.dispose();
   });
 
+  test('a 401 on (re)connect is permanent: no retries', () async {
+    final api = FakeApi()..eventsStatus = 401;
+    final c = newClient(api);
+    final watch = c.watch(minRetry: const Duration(milliseconds: 10), maxRetry: const Duration(milliseconds: 10));
+    await settle(const Duration(milliseconds: 100));
+    expect(watch.isActive, isFalse);
+    expect(api.eventRequests, hasLength(1));
+    expect(api.themeRequests, 1);
+    watch.stop();
+    c.dispose();
+  });
+
+  test('other error statuses keep retrying', () async {
+    final api = FakeApi()..eventsStatus = 503;
+    final c = newClient(api);
+    final watch = c.watch(minRetry: const Duration(milliseconds: 10), maxRetry: const Duration(milliseconds: 10));
+    await settle(const Duration(milliseconds: 100));
+    expect(watch.isActive, isTrue);
+    expect(api.eventRequests.length, greaterThan(2));
+    watch.stop();
+    c.dispose();
+  });
+
   testWidgets('DynamicThemeBuilder(live: true) connects while resumed and disconnects in the background', (tester) async {
     final api = FakeApi();
     final c = newClient(api);

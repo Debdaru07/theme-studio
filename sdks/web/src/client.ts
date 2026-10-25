@@ -259,6 +259,10 @@ export function createThemeClient(options: ThemeClientOptions): ThemeClient {
         listeners.delete(listener);
       };
     },
-    watch: (watchOptions) => watchTheme({ url: eventsUrl, refresh, currentHash: () => themeId(snapshot.theme) }, watchOptions),
+    watch: (watchOptions) =>
+      watchTheme(
+        { url: eventsUrl, refresh, currentHash: () => themeId(snapshot.theme), errorStatus: () => snapshot.error?.status ?? null },
+        watchOptions,
+      ),
   };
 }

@@ -56,6 +56,8 @@ export interface WatchTarget {
   url: string;
   refresh(): Promise<unknown>;
   currentHash(): string | null;
+  /** HTTP status of the last failed `refresh()`, or `null` after a success. */
+  errorStatus(): number | null;
 }
 
 function eventHash(data: unknown): string | null {
@@ -119,10 +121,13 @@ export function watchTheme(target: WatchTarget, options: WatchOptions = {}): () 
       disconnect();
       void target.refresh();
     });
-    es.addEventListener('error', () => {
+    es.addEventListener('error', async () => {
       if (source !== es) return;
       disconnect();
-      const delay = Math.min(maxRetryMs, minRetryMs * 2 ** attempt++);
+      await target.refresh();
+      if (target.errorStatus() === 401) revoked = true;
+      if (stopped || revoked || source || retryTimer) return;
+      const delay = Math.min(maxRetryMs, minRetryMs * 2 ** Math.min(attempt++, 16));
       retryTimer = setTimeout(connect, delay / 2 + (Math.random() * delay) / 2);
     });
   };

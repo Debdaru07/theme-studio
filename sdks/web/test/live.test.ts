@@ -183,6 +183,35 @@ describe('client.watch()', () => {
     stop();
   });
 
+  it('on a connection error, refreshes first and stops for good when the key is rejected (401)', async () => {
+    let status = 200;
+    const fetch = vi.fn<FetchLike>(async () => ({
+      status,
+      ok: status === 200,
+      headers: { get: () => `"${acme.meta?.hash}"` },
+      json: async () => acme,
+    }));
+    const client = createThemeClient({ endpoint: ENDPOINT, key: KEY, storage: memoryStorage(), fetch });
+    const stop = client.watch({ eventSource: FakeEventSource, minRetryMs: 1000 });
+
+    FakeEventSource.instances[0]!.emit('error');
+    await flush();
+    expect(fetch).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(FakeEventSource.instances).toHaveLength(2);
+
+    status = 401;
+    FakeEventSource.instances[1]!.emit('error');
+    await flush();
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(client.error?.status).toBe(401);
+    await vi.advanceTimersByTimeAsync(60_000);
+    setVisibility('visible');
+    window.dispatchEvent(new Event('focus'));
+    expect(FakeEventSource.instances).toHaveLength(2);
+    stop();
+  });
+
   it('stops reconnecting once the key is revoked', async () => {
     const fetch = serving(acme);
     const client = createThemeClient({ endpoint: ENDPOINT, key: KEY, storage: memoryStorage(), fetch });

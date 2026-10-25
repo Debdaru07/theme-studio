@@ -145,7 +145,8 @@ const stop = client.watch();
   `refresh()`, which is a conditional `GET` like any other.
 - When the tab is hidden, it closes the connection. On `visibilitychange` to visible, `focus` and `online`, it
   reconnects and calls `refresh()` (debounced), so a publish made while the tab was hidden shows up when you return.
-- Dropped connections reconnect with exponential backoff (1 s up to 30 s). If the key is revoked, it stops.
+- Dropped connections call `refresh()` and then reconnect with exponential backoff (1 s up to 30 s). If the key is
+  revoked, or that refresh is rejected with `401`, it stops.
 - Without `EventSource` (SSR, old browsers, tests), only the focus/visibility refresh runs.
 
 | Option | Default | Purpose |

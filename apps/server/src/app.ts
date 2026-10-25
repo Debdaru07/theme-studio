@@ -14,8 +14,8 @@ export interface AppOptions {
   db: Db;
   jwtSecret: string;
   logger?: boolean;
-  /** Use client IPs from `X-Forwarded-For` (behind Render's proxy). */
-  trustProxy?: boolean;
+  /** Trusted proxy hops: the client IP is the `X-Forwarded-For` entry the nearest of them appended. */
+  trustProxy?: number | false;
   events?: ThemeEvents;
   live?: Partial<LiveLimits>;
 }
@@ -60,7 +60,8 @@ const canEditClient = (u: User, c: Client) =>
   canManageTenant(u, c.tenantId) || (u.role === 'client_editor' && u.clientId === c.id);
 
 export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
-  const app = Fastify({ logger: opts.logger ?? false, trustProxy: opts.trustProxy ?? false });
+  const hops = opts.trustProxy ?? false;
+  const app = Fastify({ logger: opts.logger ?? false, trustProxy: hops ? (_address: string, hop: number) => hop < hops : false });
   const repo = new Repo(opts.db, opts.db);
   const events = opts.events ?? new InProcessThemeEvents();
   const themes = new ThemeService(repo, events);
@@ -358,8 +359,10 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
     let closed = false;
     let sent: string | null | undefined;
     let queue = Promise.resolve();
+    let retry: ReturnType<typeof setTimeout> | undefined;
+    let failures = 0;
     const send = (event: string, data: unknown) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
-    const check = () => {
+    const check = (withHash = true) => {
       queue = queue
         .then(async () => {
           if (closed) return;
@@ -370,22 +373,39 @@ export async function buildApp(opts: AppOptions): Promise<FastifyInstance> {
             end();
             return;
           }
-          const hash = await repo.getPublishedHash(client.id);
-          if (!closed && hash !== sent) {
-            sent = hash;
-            send('theme', { hash });
+          if (withHash) {
+            const hash = await repo.getPublishedHash(client.id);
+            if (!closed && hash !== sent) {
+              sent = hash;
+              send('theme', { hash });
+            }
+            failures = 0;
+            clearTimeout(retry);
+            retry = undefined;
           }
         })
-        .catch((err) => app.log.warn({ err }, 'theme events check failed'));
+        .catch((err) => {
+          app.log.warn({ err }, 'theme events check failed');
+          if (closed || retry) return;
+          const delay = live.retryMs[Math.min(failures++, live.retryMs.length - 1)]!;
+          retry = setTimeout(() => {
+            retry = undefined;
+            void check();
+          }, delay);
+        });
       return queue;
     };
 
-    const heartbeat = setInterval(() => res.write(': ping\n\n'), live.heartbeatMs);
+    const heartbeat = setInterval(() => {
+      res.write(': ping\n\n');
+      void check(false);
+    }, live.heartbeatMs);
     const unsubscribe = events.subscribe(client.id, () => void check());
     const end = () => {
       if (closed) return;
       closed = true;
       clearInterval(heartbeat);
+      clearTimeout(retry);
       unsubscribe();
       perKey.remove(key);
       perIp.remove(ip);
